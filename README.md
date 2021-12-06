@@ -1,4 +1,4 @@
-Commands:
+**Commands:**
   - `bundle exec spec`
     - Instructions
       - Run from within the root folder -- not from within `./lib` or `./spec`.
@@ -12,7 +12,7 @@ Commands:
         existing functionality of the TestScriptEngine and TestScriptRunnable
         classes.  
 
-Folders and Important Files:
+**Folders and Important Files:**
   - `./lib`
     - assertions.rb
     - test-driver.rb
@@ -65,7 +65,7 @@ Folders and Important Files:
   used within those TestScripts (i.e. using a patient resource as a fixture) 
   should be located within the `./ExampleResources` subfolder. 
 
-TODO:
+**TODO:**
   - Unit tests for TestScriptEngine Class
   - Clean-up/simplify unit tests for TestScriptRunnable 
   - Create a mapping of Inferno assertions to the assertions used within TestScriptRunnable
