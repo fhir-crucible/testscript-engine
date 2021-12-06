@@ -1,0 +1,105 @@
+{
+  "id": "testscript-example-readtest",
+  "name": "TestScript Example Read Test",
+  "status": "waiting",
+  "result": "fail",
+  "test": [
+    {
+      "name": "R001",
+      "description": "Read a known Patient and validate response.",
+      "action": [
+        {
+          "operation": {
+            "result": "error",
+            "message": "Error while executing  operation."
+          }
+        },
+        {
+          "assert": {
+            "result": "error",
+            "message": "Assertion unable to be processed."
+          }
+        },
+        {
+          "assert": {
+            "result": "skip",
+            "message": "Confirm that the returned format is XML."
+          }
+        },
+        {
+          "assert": {
+            "result": "skip",
+            "message": "Confirm that the returned HTTP Header Last-Modified is present. Warning only as the server might not support versioning."
+          }
+        },
+        {
+          "assert": {
+            "result": "skip",
+            "message": "Confirm that the returned resource type is Patient."
+          }
+        },
+        {
+          "assert": {
+            "result": "skip",
+            "message": "Confirm that the returned Patient conforms to the base FHIR specification."
+          }
+        }
+      ]
+    },
+    {
+      "name": "R002",
+      "description": "Read an unknown Resource Type and validate response.",
+      "action": [
+        {
+          "operation": {
+            "result": "error",
+            "message": "Error while executing  operation."
+          }
+        },
+        {
+          "assert": {
+            "result": "error",
+            "message": "Assertion unable to be processed."
+          }
+        }
+      ]
+    },
+    {
+      "name": "R003",
+      "description": "Read a known, non-existing Patient and validate response.",
+      "action": [
+        {
+          "operation": {
+            "result": "error",
+            "message": "Error while executing  operation."
+          }
+        },
+        {
+          "assert": {
+            "result": "error",
+            "message": "Assertion unable to be processed."
+          }
+        }
+      ]
+    },
+    {
+      "name": "R004",
+      "description": "Read a Patient using a known bad formatted resource id and validate response.",
+      "action": [
+        {
+          "operation": {
+            "result": "error",
+            "message": "Error while executing  operation."
+          }
+        },
+        {
+          "assert": {
+            "result": "error",
+            "message": "Assertion unable to be processed."
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestReport"
+}
