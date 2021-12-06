@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-	s.name = 'hot_stuff'
+	s.name = 'test_script_engine'
 	s.version = '0.0.0'
 	s.summary = "A collection of tools for utilizing the FHIR TestScript Resource."
 	s.author = 'John Fraser'
