@@ -1,0 +1,98 @@
+{
+  "id": "testscript-example-update",
+  "language": {
+    "system": "http://hl7.org/fhir/ValueSet/languages",
+    "code": "en"
+  },
+  "name": "TestReport Example Update",
+  "status": "completed",
+  "testScript": {
+    "reference": "../TestScripts/update_test_script.json"
+  },
+  "result": "fail",
+  "score": 75.0,
+  "tester": "The MITRE Corporation",
+  "issued": "2022-04-25T10:03:22-04:00",
+  "setup": {
+    "action": [
+      {
+        "operation": {
+          "id": "SetupDeletePatient",
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "pass"
+          }
+        }
+      },
+      {
+        "assert": {
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "fail"
+          },
+          "message": "[.assert_response_code] Expected 200,204 but found 409."
+        }
+      },
+      {
+        "operation": {
+          "id": "SetupCreatePatient",
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "pass"
+          }
+        }
+      },
+      {
+        "assert": {
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "fail"
+          },
+          "message": "[.assert_response_code] Expected 201 but found 200."
+        }
+      }
+    ]
+  },
+  "test": [
+    {
+      "name": "Update Patient",
+      "description": "Update a Patient and validate response.",
+      "action": [
+        {
+          "operation": {
+            "id": "SetupUpdatePatient",
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestReport"
+}

@@ -1,74 +1,43 @@
 **Commands:**
-  - `bundle exec spec`
-    - Instructions
-      - Run from within the root folder -- not from within `./lib` or `./spec`.
-    - Functionality
-      - Runs all existing unit tests using rspec.
   - `ruby test-driver.rb`
     - Note
       - Run from within `./lib`.
     - Functionality
-      - Runs the driver, which is the primary means for running and testing 
-        existing functionality of the TestScriptEngine and TestScriptRunnable
-        classes.  
+      - This runs the driver, which is currently the means for running and testing using the engine and runnable class. TestScripts to be run must be added to the TestScripts directory.
 
-**Folders and Important Files:**
+**Folders and Files:**
   - `./lib`
+    - driver.rb
     - assertions.rb
-    - test-driver.rb
     - TestScriptEngine.rb
     - TestScriptRunnable.rb
+    - TestReportHandler.rb
+    - MessageHandler.rb
   - `./spec`
-    - `./spec_tScripts`
   - `./TestReports`
   - `./TestScripts `
-    - `./ExampleResources`
+    - `./fixtures`
 
 `./lib`:
   - assertions.rb
-      - Contains the hard-coded assertions used during assertion handling within
-      the TestScriptRunnable class.
-  - test-driver.rb
-      - Driver that tests, piecewise, the available functionality of the 
-      TestScriptEngine class. It demonstrates the start to finish process of 
-      using the TestScriptEngine to run TestScripts in their json file format.
+      - Contains the hard-coded assertions used during assertion handling within the TestScriptRunnable class.
+  - driver.rb
+      - Starter file that creates an instance of the engine, loads in the TestScript resources located within the TestScript directory, and runs them against the public Hapi FHIR endpoint. It demonstrates the start to finish process of using the TestScriptEngine to run TestScripts in their json file format.
   - TestScriptEngine.rb
-      - Home of the TestScriptEngine class. TestScriptEngine design aimed to make
-      the class as flexible and open as possible, with all methods and 
-      attributes exposed to users of the class. The engine really deals with 
-      centralizing the execution process - from TestScript input to TestReport
-      output - while allowing a user to inspect, replace, or cherry-pick any of
-      the pieces that comprise that process. It is the engine's responsibiliy 
-      to leverage a runnable against an endpoint.
+      - Home of the TestScriptEngine class. The engine deals with loading in json TestScript files, managing their transformation into runnables, and ultimately their execution. It is the engine's responsibiliy to direct and leverage a runnable against (an) endpoint(s).
   - TestScriptRunnable.rb
-      - Home of the TestScriptRunnable class. TestScriptRunnable design aimed to 
-      turn a TestScript object into a callable method, where calling that 
-      method would initiate execution -- from loading fixtures to teardown -- 
-      on whichever endpoint the engine points the runnable towards. The idea is
-      that a runnable contained within one method has a ton of potential value
-      when we reach the point where we are chaining the execution of multiple, 
-      individual TestScripts together.
+      - TestScriptRunnable class is an encapsulation of all the information needed to run a TestScript json resource. The runnable of a TestScript was designed with the idea that, after its initialization, is could be pointed at and run against any number of endpoints without reloading the original TestScript json resource. Setup, Tests, and Teardown actions are executed in that order, with Setup and Teardown actions factored into the overall score given as part of the TestReport output. 
+  - TestReportHandler.rb
+      - Class for creating and updating the TestReport resource. The report's skeleton is generated using the corresponding TestScript, though the action results are left blank and populated as directed during TestScript execution. As a result, the report is synchronous with the runnable class and relies on the TestScriptRunnable to communicate the result of an action execution or evaluation.
+  - MessageHandler.rb
+      - Module for all command-line logging functionality and adding messages to FHIR resources. 
+
 
 `./spec`:
-  - Folder containing all existing unit tests for both TestScriptEngine and 
-  TestScriptRunnable
-  - `./spec_tScripts`:
-    - Folder containing sample TestScript json files necessary for unit testing
-      functionality within the TestScriptRunnable class.
+  - Folder containing all existing unit tests for both TestScriptEngine and TestScriptRunnable
 
 `./TestReports`:
-  - Folder containing the TestReport(s) created while executing (a) given 
-  TestScript(s).  
+  - Folder containing the TestReport(s) created while executing (a) given TestScript(s).  
 
 `./TestScripts`:
-  - Folder that contains the TestScripts to be executed. Any example resources 
-  used within those TestScripts (i.e. using a patient resource as a fixture) 
-  should be located within the `./ExampleResources` subfolder. 
-
-**TODO:**
-  - Unit tests for TestScriptEngine Class
-  - Clean-up/simplify unit tests for TestScriptRunnable 
-  - Create a mapping of Inferno assertions to the assertions used within TestScriptRunnable
-  - Clean up error handling in TestScriptRunnable
-
-  *Note - Search TODO in any file to explore what work still needs to be done. 
+  - Folder that contains the TestScripts to be executed. Any example resources used within those TestScripts (i.e. using a patient resource as a fixture) should be located within the `./fixtures` subfolder. 

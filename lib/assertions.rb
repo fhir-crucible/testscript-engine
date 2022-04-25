@@ -1,115 +1,233 @@
+# frozen_string_literal: true
 require 'pry-nav'
 module Assertions
 
-  class AssertionException < Exception
+  CODE_MAP = {
+    'okay' => 200,
+    'created' => 201,
+    'noContent' => 204,
+    'notModified' => 304,
+    'bad' => 400,
+    'forbidden' => 403,
+    'notFound' => 404,
+    'methodNotAllowed' => 405,
+    'conflict' => 409,
+    'gone' => 410,
+    'preconditionFailed' => 412,
+    'unprocessable' => 422,
+    nil => 422
+  }.freeze
+
+  class AssertionException < RuntimeError
     attr_accessor :data
-    def initialize(message, data=nil)
+
+    def initialize(message, data = nil)
       super(message)
-      FHIR.logger.error "AssertionException: #{message}"
       @data = data
+    end
+  end
+
+  def assert_compare_to_source_expression assertion
+    resource = fixtures[assertion.compareToSourceId]
+    raise_exception('[.assert_compare_to_source_expression]', 'noFixture', assertion.compareToSourceId) unless resource
+
+    begin
+      unless FHIRPath.evaluate(assertion.compareToSourceExpression, resource.to_hash)
+        raise_exception('[.assert_compare_to_source_expression]', 'falseExpression', assertion.compareToSourceExpression, "with fixture id: #{resource.compareToSourceId}") 
+      end 
+    rescue => fpe
+      raise fpe if fpe.class == Assertions::AssertionException
+      raise_exception('[.assert_compare_to_source_expression]', 'invalidExpression', assertion.compareToSourceExpression)
     end 
   end 
 
-  def assert_contentType(reply, contentType)
-    header = reply.response[:headers]['content-type']
-    header!.split(';')[0]
+  def assert_compare_to_source_path assertion
+    resource = fixtures[assertion.compareToSourceId]
+    raise_exception('[.assert_compare_to_source_path]', 'noFixture', assertion.compareToSourceId) unless resource
 
-    unless "application/fhir+#{contentType}" == response_content_type
-      raise AssertionException.new "Expected content-type application/fhir+#{content_type} 
-        but found #{response_content_type}", response_content_type
+    expected = evaluate_path(assertion.compareToSourcePath, resource)
+    raise_exception('[.assert_compare_to_source_path]', 'badExtraction', "with fixture id: #{assertion.compareToSourceId}", assertion.compareToSourcePath) unless expected
+
+    actual = evaluate_path(assertion.path, assert_find_resource(assertion.sourceId, '[.assert_compare_to_source_path]'))
+    raise_exception('[.assert_compare_to_source_path]', 'badExtraction', assertion.sourceId ? "with fixture id: #{assertion.sourceId}" : "returned by server", assertion.path) unless actual
+
+    assert_operator(actual, assertion.operator, expected, '[.assert_compare_to_source_path]')
+  end 
+
+  def assert_content_type assertion
+    header = last_reply.response[:headers]['content-type']
+    raise_exception('[.assert_content_type]', 'noContentType', 'content-type') unless header
+
+    value = header.split(';').find { |x| x == assertion.contentType }
+    raise_exception('[.assert_content_type]', 'badContentType', assertion.contentType, header) unless value
+  end
+
+  def assert_find_resource(id, location)
+    resource = response_map[id]&.resource || fixtures[id] || last_reply&.resource
+    resource || raise_exception(location, 'noResource', "with id: #{id}" || '')
+  end 
+
+  def assert_expression assertion
+    resource = assert_find_resource(assertion.sourceId, '[.assert_expression]')
+    begin
+      unless FHIRPath.evaluate(assertion.expression, resource.to_hash) == true
+        raise_exception('[.assert_expression]', 'falseExpression', assertion.expression, assertion.sourceId ? "with id: #{assertion.sourceId}" : 'in latest reply from server') 
+      end 
+    rescue => fpe
+      raise fpe if fpe.class == Assertions::AssertionException
+      raise_exception('[.assert_expression]', 'invalidExpression', assertion.expression)
     end 
+  end 
+
+  def assert_header_field assertion
+    reply = assertion.sourceId ? response_map[assertion.sourceId] : last_reply
+    if assertion.direction == 'request'
+      header_value = reply.request[:headers][assertion.headerField.downcase]
+      prefix = 'Request'
+    else 
+      header_value = reply.response[:headers][assertion.headerField.downcase]
+      prefix = 'Response'
+    end 
+
+    raise_exception('[.assert_header_field]', 'noValue') unless assertion.value || (['empty', 'notEmpty'].include? assertion.operator)
+    assert_operator(header_value, assertion.operator, replace_variables(assertion.value), "[.assert_header_field] #{prefix} Header Field #{assertion.headerField} --")
+  end 
+
+  def assert_minimum_id assertion
+    resource = assert_find_resource(assertion.sourceId, '[.assert_minimum_id]')
+    min_resource = response_map[assertion.minimumId] || fixtures[assertion.minimumId] 
+    raise_exception('[.assert_minimum_id]', 'noResource', "with id: #{assertion.minimumId}") unless min_resource
+    raise_exception('[.assert_minimum_id]', 'noMinimum', assertion.sourceId ? "with id: #{assertion.sourceId}" : "in last response" , "#{assertion.minimumId}") unless min_compare_hashes(min_resource.to_hash, resource.to_hash)
+  end 
+
+  def min_compare_hashes(min_hash, targ_hash)
+    return false unless (min_hash.keys - targ_hash.keys).empty?
+
+    return min_hash.all? do |k, v|
+      return true if v.is_a? String
+      return min_compare_hashes(v, targ_hash[k]) if v.is_a? Hash
+      return min_compare_arrays(v, targ_hash[k]) if v.is_a? Array
+    end 
+  end 
+
+  def min_compare_arrays(min_arr, targ_arr)
+    return min_arr.all? do |min|
+      return true if min.is_a? String
+      targ_arr.any? do |targ|
+        return min_compare_hashes(min, targ) if min.is_a? Hash and targ.is_a? Hash
+        return min_compare_arrays(min, targ) if min.is_a? Array and targ.is_a? Array
+      end 
+    end 
+  end 
+
+  def assert_navigation_links assertion
+    resource = assert_find_resource(assertion.sourceId, '[.assert_navigation_links]')
+    links = resource.first_link && resource.last_link && resource.next_link
+    raise_exception('[.assert_navigation_links]', 'noLinks') if !links and assertion.navigationLinks 
+    raise_exception('[.assert_navigation_links]', 'yesLinks') if links and !assertion.navigationLinks 
+  end 
+
+  def assert_path assertion
+    resource = assert_find_resource(assertion.sourceId, '[.assert_path]')
+
+    raise_exception('[.assert_path]', 'noValue') unless assertion.value || (['empty', 'notEmpty'].include? assertion.operator)
+    assert_operator(evaluate_path(assertion.path, resource), assertion.operator, replace_variables(assertion.value), '[.assert_path]')
+  end 
+
+  def assert_request_method assertion
+    assert_operator(last_reply.request[:method].to_s, assertion.operator, replace_variables(assertion.requestMethod), '[.assert_request_method]')
+  end
+
+  def assert_request_url assertion
+    assert_operator(last_reply.request[:url], assertion.operator, replace_variables(assertion.requestURL), '[.assert_request_url]')
+  end 
+
+  def assert_response assertion
+    reply = response_map[assertion.sourceId] || last_reply
+    expected = CODE_MAP[assertion.response]
+    assert_operator(reply&.code, assertion.operator, expected, '[.assert_response]')
+  end 
+
+  def assert_response_code assertion
+    reply = response_map[assertion.sourceId] || last_reply
+    assert_operator(reply&.code&.to_s, assertion.operator, assertion.responseCode, '[.assert_response_code]')
+  end 
+
+  def assert_resource assertion
+    resource = assert_find_resource(assertion.sourceId, '[.assert_resource]')
+    assert_operator(resource.resourceType, assertion.operator, assertion.resource, '[.assert_resource]')
+  end 
+
+  def assert_validate_profile_id assertion
+    uri = script.profile.find { |profile| profile.id == assertion.validateProfileId }.reference
+    response = client.validate(last_reply.response, { profile_uri: uri } )
+
+    raise_exception('noValidation', '[.assert_valid_profile_id]', last_reply.resource.resourceType) if response.code.to_s == "201"
+    raise_exception('badValidation', '[.assert_valid_profile_id]', response.code)  if response.code.to_s != "200"
   end 
 
   def assert_operator(actual, operator, expected, message = '', data = '')
+    operator = operator.try(:to_sym) || :equals
+    fail_message = String.new
+    expected = 'nothing' unless expected or ['empty', 'notEmpty'].include? operator
+    actual = 'nothing' unless actual or ['empty', 'notEmpty'].include? operator
+    
     case operator
     when :equals
-      unless actual == expected
-        message += " Expected #{expected} but found #{actual}"
-        raise AssertionException.new message, data
-      end 
+      fail_message += " Expected #{expected} but found #{actual}." unless actual == expected
     when :notEquals
-      unless actual != expected_code
-        message += " Did not expect #{expected} but found #{actual}."
-        raise AssertionException.new message, data
-      end
+      fail_message += " Did not expect #{expected} but found #{actual}." unless actual != expected
     when :in
-      unless expected.split(',').include?(actual)
-        message += " Expected #{expected} but found #{actual}."
-        raise AssertionException.new message, data
-      end
+      fail_message += " Expected #{expected} but found #{actual}." unless expected.split(',').include?(actual)
     when :notIn
-      unless !expected.split(',').include?(actual)
-        message += " Did not expect #{expected} but found #{actual}."
-        raise AssertionException.new message, data
-      end
+      fail_message += " Did not expect #{expected} but found #{actual}." if expected.split(',').include?(actual)
     when :greaterThan
-      unless actual && expected && actual > expected
-        message += " Expected greater than #{expected} but found #{actual}."
-        raise AssertionException.new message, data
-      end
+      fail_message += " Expected greater than #{expected} but found #{actual}." unless actual && expected && actual > expected
     when :lessThan
-      unless actual && expected && actual < expected
-        message += " Expected greater than #{expected} but found #{actual}."
-        raise AssertionException.new message, data
-      end
-    when :empty 
-      unless actual.nil? || ctual.length == 0
-        message += " Expected empty but found #{actual}."
-        raise AssertionException.new message, data
-      end
+      fail_message += " Expected greater than #{expected} but found #{actual}." unless actual && expected && actual < expected
+    when :empty
+      fail_message += " Expected empty but found #{actual}." unless actual.nil? || actual.length.zero?
     when :notEmpty
-      unless actual && actual.length > 0
-        message += " Expected not empty but found #{actual}."
-        raise AssertionException.new message, data
-      end
+      fail_message += " Expected not empty but found #{actual}." unless actual&.length&.positive?
     when :contains
-      unless actual && actual.include?(expected)
-        message += " Expected #{actual} to contain #{expected}."
-        raise AssertionException.new message, data
-      end
+      fail_message += " Expected #{actual} to contain #{expected}." unless actual&.include?(expected)
     when :notContains
-      unless actual.nil? || !actual.include?(expected)
-        message += " Expected #{actual} to not contain #{expected}."
-        raise AssertionException.new message, data
-      end
+      fail_message += " Expected #{actual} to not contain #{expected}." unless actual.nil? || !actual.include?(expected)
     else
-      message += " Invalid test; unknown operator: #{operator}."
-      raise AssertionExection.new message, data
+      fail_message += " Invalid test due to unknown operator: #{operator}."
     end
-  end 
 
-  def assert_minimum(reply, fixture)
-    raise AssertionException.new 'MinimumId not yet implemented'
-  end 
-
-  def assert_navigation_links(reply)
-    bundle = reply.resource
-    unless bundle.first_link && bundle.last_link && bundle.next_link
-      raise AssertionException.new "Expecting first, next and last link to be present"
-    end
-  end 
-
-  def assert_resource_type(reply, resource_type)
-    unless reply.resource && reply.resource.class == resource_type
-      raise AssertionException.new "Bad response type: expected #{resource_type}, but found #{reply.resource.class}.", reply.body
-    end 
+    raise AssertionException.new (message + fail_message) unless fail_message.empty?
   end
-  
-  def assert_response_code(reply, code)
-    unless reply.code.to_s == code.to_s
-      raise AssertionException.new "Bad response code: expected #{code}, but found #{reply.code}", reply.body
+
+  def raise_exception(location, message_type, *info)
+    case message_type
+    when 'badContentType'
+      location += " Expected content-type with value: #{info[0]}, but found value: #{info[1]}."
+    when 'badExtraction'
+      location += " Could not extract element from resource #{info[0]} using path: #{info[1]}."
+    when 'falseExpression'
+      location += " Expression: #{info[0]} did not evaluate to true for resource stored #{info[1]}. FHIRPath Expressions must evaluate to true."
+    when 'invalidExpression' 
+      location += " Invalid Expression: #{info[0]}. Valid FHIRPath Expression is required."
+    when 'noContentType'
+      location += " Expected #{info[0]} header not included in response."
+    when 'noFixture'
+      location += " Expected resource stored in fixtures with id: #{info[0]}. No such resource found." 
+    when 'noLinks'
+      location += " Bundle resource does not contain first, last, and next links as expected."
+    when 'noMinimum'
+      location += " Resource #{info[0]} does not have minimum content of resource with id: #{info[1]}."
+    when 'noResource'
+      location += " Expected resource #{info[0]} in fixtures, responses, or in last reply from server. No such resource found."
+    when 'noValue'
+      location += " Expected assertion.value to be defined. Assertion unprocessable without value."
+    when 'yesLinks'
+      location += " Bundle resource contains first, last, and next links, but no navigation links were expected."
+    when 'noValidation'
+      location += " Server created a #{info[0]} with the ID `_validate` rather than validate the resource."
     end 
+
+    raise AssertionException.new location 
   end 
-
-  def assert_valid_profile(response, klass)
-    unless response[:code].to_s == "200"
-
-      raise AssertionException.new "Server created a #{klass.name.demodulize} with the ID `_validate` rather than validate the resource." if response[:code].to_s == "201"
-
-      raise AssertionException.new "Response code #{response[:code]} with no OperationOutcome provided"
-    end 
-  end 
-
-
-
-end 
+end

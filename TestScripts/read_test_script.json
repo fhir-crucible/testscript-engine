@@ -106,7 +106,7 @@
         {
           "assert": {
             "description": "Confirm that the returned format is XML.",
-            "contentType": "xml",
+            "contentType": "application/fhir+xml",
             "warningOnly": false
           }
         },
@@ -129,7 +129,7 @@
           "assert": {
             "description": "Confirm that the returned Patient conforms to the base FHIR specification.",
             "validateProfileId": "patient-profile",
-            "warningOnly": false
+            "warningOnly": true
           }
         }
       ]

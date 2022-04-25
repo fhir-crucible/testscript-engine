@@ -1,0 +1,181 @@
+{
+  "id": "testscript-example-search",
+  "language": {
+    "system": "http://hl7.org/fhir/ValueSet/languages",
+    "code": "en"
+  },
+  "name": "TestReport Example Search",
+  "status": "completed",
+  "testScript": {
+    "reference": "../TestScripts/search_test_script.json"
+  },
+  "result": "fail",
+  "score": 94.44,
+  "tester": "The MITRE Corporation",
+  "issued": "2022-04-25T10:03:20-04:00",
+  "setup": {
+    "action": [
+      {
+        "operation": {
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "pass"
+          }
+        }
+      },
+      {
+        "assert": {
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "pass"
+          }
+        }
+      },
+      {
+        "assert": {
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "pass"
+          }
+        }
+      },
+      {
+        "assert": {
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "pass"
+          }
+        }
+      },
+      {
+        "assert": {
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "fail"
+          },
+          "message": "[.assert_navigation_links] Bundle resource does not contain first, last, and next links as expected."
+        }
+      }
+    ]
+  },
+  "test": [
+    {
+      "name": "Patient Create Search",
+      "description": "Create a Patient resource and capture the returned HTTP Header Location. Then search for (read) that Patient using the Location URL value and validate the response.",
+      "action": [
+        {
+          "operation": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "operation": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Patient Search Dynamic",
+      "description": "Search for Patient resources using the user defined dynamic variables ${PatientSearchFamilyName} and ${PatientSearchGivenName} and validate response.",
+      "action": [
+        {
+          "operation": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "warning"
+            },
+            "message": "badValidation"
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestReport"
+}
