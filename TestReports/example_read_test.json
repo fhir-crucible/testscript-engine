@@ -1,0 +1,141 @@
+{
+  "id": "testscript-example-readtest",
+  "language": {
+    "system": "http://hl7.org/fhir/ValueSet/languages",
+    "code": "en"
+  },
+  "name": "TestReport Example Read Test",
+  "status": "completed",
+  "testScript": {
+    "reference": "../TestScripts/read_test_script.json"
+  },
+  "result": "fail",
+  "score": 91.67,
+  "tester": "The MITRE Corporation",
+  "issued": "2022-04-25T10:03:22-04:00",
+  "test": [
+    {
+      "name": "Sprinkler Read Test R001",
+      "description": "Read a known Patient and validate response.",
+      "action": [
+        {
+          "operation": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "warning"
+            },
+            "message": "badValidation"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sprinkler Read Test R002",
+      "description": "Read an unknown Resource Type and validate response.",
+      "action": [
+        {
+          "operation": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sprinkler Read Test R003",
+      "description": "Read a known, non-existing Patient and validate response.",
+      "action": [
+        {
+          "operation": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sprinkler Read Test R004",
+      "description": "Read a Patient using a known bad formatted resource id and validate response.",
+      "action": [
+        {
+          "operation": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "pass"
+            }
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "fail"
+            },
+            "message": "[.assert_response] Expected 400 but found 404."
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestReport"
+}

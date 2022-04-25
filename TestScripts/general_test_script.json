@@ -11,7 +11,7 @@
     "value": "urn:oid:1.3.6.1.4.1.21367.2005.3.7.9876"
   },
   "version": "1.0",
-  "name": "TestScript Example",
+  "name": "TestScript Example General",
   "status": "draft",
   "experimental": true,
   "date": "2017-01-18",
@@ -82,19 +82,19 @@
   "fixture": [
     {
       "id": "fixture-patient-create",
-      "autocreate": true,
+      "autocreate": false,
       "autodelete": false,
       "resource": {
-        "reference": "patient_example.json",
+        "reference": "Patient/example.json",
         "display": "Peter Chalmers"
       }
     },
     {
       "id": "fixture-patient-minimum",
       "autocreate": false,
-      "autodelete": true,
+      "autodelete": false,
       "resource": {
-        "reference": "Patient/example",
+        "reference": "Patient/example.json",
         "display": "Peter Chalmers (minimum)"
       }
     }
@@ -157,7 +157,7 @@
         "assert": {
           "description": "Confirm that the returned HTTP status is 201(Created).",
           "direction": "response",
-          "responseCode": "201",
+          "responseCode": "200",
           "warningOnly": false
         }
       },
