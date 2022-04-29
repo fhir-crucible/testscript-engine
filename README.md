@@ -1,9 +1,11 @@
 **Commands:**
-  - `ruby test-driver.rb`
-    - Note
-      - Run from within `./lib`.
-    - Functionality
-      - This runs the driver, which is currently the means for running and testing using the engine and runnable class. TestScripts to be run must be added to the TestScripts directory.
+  ```
+    cd lib
+    ruby driver.rb
+  ```
+
+  - Functionality
+    - This runs the driver, which is currently the means for running and testing using the engine and runnable class. TestScripts to be run must be added to the TestScripts directory.
 
 **Folders and Files:**
   - `./lib`
