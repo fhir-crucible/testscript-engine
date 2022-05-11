@@ -1,3 +1,15 @@
+## About the Project
+
+The TestScript Execution Engine is to support FHIR testing in an integrated and systematic way by providing the following.
+
+* A general purpose test execution tool to be implemented in a variety of use cases
+* Support TestScript / TestReport Resource types as inputs and outputs to be aligned with FHIR architecture
+* (TBA) Support an end-to-end pipeline of FHIR testing including authoring exception handling and analytics
+* (TBA) Integration of FHIR Shorthand as a TestScript authoring environment
+
+
+### Getting started
+
 **Commands:**
   ```
     cd lib
@@ -43,6 +55,13 @@
 
 `./TestScripts`:
   - Folder that contains the TestScripts to be executed. Any example resources used within those TestScripts (i.e. using a patient resource as a fixture) should be located within the `./fixtures` subfolder. 
+
+## References
+
+* [Testing FHIR](https://build.fhir.org/testing.html)
+* [FHIR Resource: TestScript](https://build.fhir.org/testscript.html)
+* [FHIR Resource: TestReport](https://build.fhir.org/testreport.html)
+* [Crucible](https://github.com/fhir-crucible)
 
 
 ## License
