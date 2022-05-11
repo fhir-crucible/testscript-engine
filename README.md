@@ -1,6 +1,6 @@
 ## About the Project
 
-The TestScript Execution Engine is to support FHIR testing in an integrated and systematic way by providing the following.
+The TestScript Execution Engine is to support FHIR testing in an integrated and systematic way by providing the following features.
 
 * A general purpose test execution tool to be implemented in a variety of use cases
 * Support TestScript / TestReport Resource types as inputs and outputs to be aligned with FHIR architecture
