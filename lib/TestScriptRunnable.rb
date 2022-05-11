@@ -11,7 +11,8 @@ class TestScriptRunnable
                     'create' => :post, 
                     'update' => :put, 
                     'delete' => :delete, 
-                    'search' => :get }.freeze
+                    'search' => :get,
+                    'history' => :get  }.freeze
 
   attr_accessor :script, :last_reply
 
@@ -119,7 +120,7 @@ class TestScriptRunnable
     catch :exit do
       throw :exit, report.fail('noClient') unless client
       throw :exit, report.fail('noRequestType') unless op.type&.code || op.local_method
-
+      
       request_type = REQUEST_TYPES[op.local_method || op.type.code]
       throw :exit, report.skip('notImplemented') unless request_type
 
@@ -127,7 +128,11 @@ class TestScriptRunnable
       request.compact!
 
       begin
-        reply = client.send *request
+        if op.type.code == 'history'
+          reply = client.resource_instance_history(FHIR::Patient, id_map[op.targetId])
+        else
+          reply = client.send *request
+        end
       rescue StandardError => e
         log_error e.message
         report.error e.message
@@ -150,7 +155,7 @@ class TestScriptRunnable
       rawType = assertion.to_hash.find { |k, v| assertTypes.include? k } 
       assertType = rawType[0].split(/(?<=\p{Ll})(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})/).map(&:downcase).join('_')
       self.send(("assert_#{assertType}").to_sym, assertion) 
-
+      
     rescue AssertionException => e
       return assertion.warningOnly ? report.warning(e.message) : report.fail(e.message)
     rescue StandardError => e
