@@ -1,23 +1,23 @@
 {
-  "id": "testscript-example-update",
+  "id": "testscript-example-history-observation",
   "language": {
     "system": "http://hl7.org/fhir/ValueSet/languages",
     "code": "en"
   },
-  "name": "TestReport Example Update",
+  "name": "TestReport Example History Observation",
   "status": "completed",
   "testScript": {
-    "reference": "../TestScripts/update_test_script.json"
+    "reference": "../TestScripts/history_test_script_obs.json"
   },
   "result": "fail",
-  "score": 75.0,
+  "score": 63.64,
   "tester": "The MITRE Corporation",
-  "issued": "2022-05-11T23:27:52-06:00",
+  "issued": "2022-05-11T23:27:39-06:00",
   "setup": {
     "action": [
       {
         "operation": {
-          "id": "SetupDeletePatient",
+          "id": "SetupDeleteObservation",
           "result": {
             "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
             "code": "pass"
@@ -28,14 +28,13 @@
         "assert": {
           "result": {
             "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-            "code": "fail"
-          },
-          "message": "[.assert_response_code] Expected 200,204 but found 409."
+            "code": "pass"
+          }
         }
       },
       {
         "operation": {
-          "id": "SetupCreatePatient",
+          "id": "SetupCreateObservation",
           "result": {
             "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
             "code": "pass"
@@ -46,21 +45,36 @@
         "assert": {
           "result": {
             "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-            "code": "fail"
-          },
-          "message": "[.assert_response_code] Expected 201 but found 200."
+            "code": "pass"
+          }
+        }
+      },
+      {
+        "operation": {
+          "id": "SetupUpdateObservation",
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "pass"
+          }
+        }
+      },
+      {
+        "assert": {
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "pass"
+          }
         }
       }
     ]
   },
   "test": [
     {
-      "name": "Update Patient",
-      "description": "Update a Patient and validate response.",
+      "name": "History Observation",
+      "description": "Get the history for a known Observation and validate response.",
       "action": [
         {
           "operation": {
-            "id": "SetupUpdatePatient",
             "result": {
               "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
               "code": "pass"
@@ -71,24 +85,36 @@
           "assert": {
             "result": {
               "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-              "code": "pass"
-            }
+              "code": "fail"
+            },
+            "message": "[.assert_response] Expected 200 but found 404."
           }
         },
         {
           "assert": {
             "result": {
               "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-              "code": "pass"
-            }
+              "code": "fail"
+            },
+            "message": "[.assert_resource] Expected Bundle but found OperationOutcome."
           }
         },
         {
           "assert": {
             "result": {
               "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-              "code": "pass"
-            }
+              "code": "fail"
+            },
+            "message": "badValidation"
+          }
+        },
+        {
+          "assert": {
+            "result": {
+              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+              "code": "fail"
+            },
+            "message": "[.assert_path] Expected history but found nothing."
           }
         }
       ]

@@ -1,20 +1,55 @@
 {
-  "id": "testscript-example-search",
+  "id": "testscript-example-observation",
   "language": {
     "system": "http://hl7.org/fhir/ValueSet/languages",
     "code": "en"
   },
-  "name": "TestReport Example Search",
+  "name": "TestReport Example General Observation",
   "status": "completed",
   "testScript": {
-    "reference": "../TestScripts/search_test_script.json"
+    "reference": "../TestScripts/general_test_script_obs.json"
   },
   "result": "fail",
-  "score": 94.44,
+  "score": 86.67,
   "tester": "The MITRE Corporation",
-  "issued": "2022-05-11T23:27:47-06:00",
+  "issued": "2022-05-11T23:27:35-06:00",
   "setup": {
     "action": [
+      {
+        "operation": {
+          "id": "SetupDeleteObservation",
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "pass"
+          }
+        }
+      },
+      {
+        "assert": {
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "pass"
+          }
+        }
+      },
+      {
+        "operation": {
+          "id": "SetupCreateObservation",
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "pass"
+          }
+        }
+      },
+      {
+        "assert": {
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "fail"
+          },
+          "message": "[.assert_response_code] Expected 200 but found 201."
+        }
+      },
       {
         "operation": {
           "result": {
@@ -38,30 +73,13 @@
             "code": "pass"
           }
         }
-      },
-      {
-        "assert": {
-          "result": {
-            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-            "code": "pass"
-          }
-        }
-      },
-      {
-        "assert": {
-          "result": {
-            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-            "code": "fail"
-          },
-          "message": "[.assert_navigation_links] Bundle resource does not contain first, last, and next links as expected."
-        }
       }
     ]
   },
   "test": [
     {
-      "name": "Patient Create Search",
-      "description": "Create a Patient resource and capture the returned HTTP Header Location. Then search for (read) that Patient using the Location URL value and validate the response.",
+      "name": "Read Observation",
+      "description": "Read a Observation and validate response.",
       "action": [
         {
           "operation": {
@@ -73,52 +91,7 @@
         },
         {
           "assert": {
-            "result": {
-              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-              "code": "pass"
-            }
-          }
-        },
-        {
-          "assert": {
-            "result": {
-              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-              "code": "pass"
-            }
-          }
-        },
-        {
-          "operation": {
-            "result": {
-              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-              "code": "pass"
-            }
-          }
-        },
-        {
-          "assert": {
-            "result": {
-              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-              "code": "pass"
-            }
-          }
-        },
-        {
-          "assert": {
-            "result": {
-              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-              "code": "pass"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Patient Search Dynamic",
-      "description": "Search for Patient resources using the user defined dynamic variables ${PatientSearchFamilyName} and ${PatientSearchGivenName} and validate response.",
-      "action": [
-        {
-          "operation": {
+            "id": "01-ReadObservationOK",
             "result": {
               "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
               "code": "pass"
@@ -145,15 +118,7 @@
           "assert": {
             "result": {
               "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-              "code": "pass"
-            }
-          }
-        },
-        {
-          "assert": {
-            "result": {
-              "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-              "code": "warning"
+              "code": "fail"
             },
             "message": "badValidation"
           }
@@ -170,12 +135,25 @@
           "assert": {
             "result": {
               "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-              "code": "pass"
-            }
+              "code": "warning"
+            },
+            "message": "[.assert_minimum_id] Expected resource with id: fixture-observation-minimum in fixtures, responses, or in last reply from server. No such resource found."
           }
         }
       ]
     }
   ],
+  "teardown": {
+    "action": [
+      {
+        "operation": {
+          "result": {
+            "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
+            "code": "pass"
+          }
+        }
+      }
+    ]
+  },
   "resourceType": "TestReport"
 }

@@ -7,6 +7,10 @@ The TestScript Execution Engine is to support FHIR testing in an integrated and 
 * (TBA) Support an end-to-end pipeline of FHIR testing including authoring exception handling and analytics
 * (TBA) Integration of FHIR Shorthand as a TestScript authoring environment
 
+### Limitations
+
+TestScript Execution Engine is in the early stages of development; it is neither functionally complete nor bug-free.
+
 
 ### Getting started
 
