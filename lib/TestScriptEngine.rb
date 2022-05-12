@@ -42,7 +42,7 @@ class TestScriptEngine
     FHIR.logger.info "[.load_scripts] TestScript Path: [#{path || root}]"
 
     on_deck.each do |resource|
-      next unless resource.include? file_name
+      # next unless resource.include? file_name
 
       begin 
         script = FHIR.from_contents File.read(resource)

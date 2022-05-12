@@ -10,9 +10,9 @@
     "reference": "../TestScripts/history_test_script.json"
   },
   "result": "fail",
-  "score": 63.64,
+  "score": 36.36,
   "tester": "The MITRE Corporation",
-  "issued": "2022-05-11T00:08:11-06:00",
+  "issued": "2022-05-11T23:27:37-06:00",
   "setup": {
     "action": [
       {
@@ -88,16 +88,18 @@
           "assert": {
             "result": {
               "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-              "code": "pass"
-            }
+              "code": "fail"
+            },
+            "message": "[.assert_response] Expected 200 but found 404."
           }
         },
         {
           "assert": {
             "result": {
               "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-              "code": "pass"
-            }
+              "code": "fail"
+            },
+            "message": "[.assert_resource] Expected Bundle but found OperationOutcome."
           }
         },
         {
@@ -113,8 +115,9 @@
           "assert": {
             "result": {
               "system": "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-              "code": "pass"
-            }
+              "code": "fail"
+            },
+            "message": "[.assert_path] Expected history but found nothing."
           }
         }
       ]

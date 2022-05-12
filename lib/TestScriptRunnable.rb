@@ -117,6 +117,8 @@ class TestScriptRunnable
   def execute op
     return unless op
 
+    FHIR.logger.info "[.execute]: #{op.description}"
+
     catch :exit do
       throw :exit, report.fail('noClient') unless client
       throw :exit, report.fail('noRequestType') unless op.type&.code || op.local_method
@@ -129,7 +131,7 @@ class TestScriptRunnable
 
       begin
         if op.type.code == 'history'
-          reply = client.resource_instance_history(FHIR::Patient, id_map[op.targetId])
+          reply = client.resource_instance_history(op.class, id_map[op.targetId])
         else
           reply = client.send *request
         end
