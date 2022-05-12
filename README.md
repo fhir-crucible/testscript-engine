@@ -9,7 +9,7 @@ The TestScript Engine is to support FHIR testing in an integrated and systematic
 
 ### Limitations
 
-TestScript Execution Engine is in the early stages of development; it is neither functionally complete nor bug-free.
+TestScript Execution Engine is in the early stages of development; it is neither functionally complete nor bug-free and we encourage contributions, feedback, and issue-opening from the community.
 
 
 ### Getting started
