@@ -32,7 +32,7 @@ class TestReportHandler
       FHIR.logger.error '[.initialize] Received invalid or non-TestScript resource.'
       raise ArgumentError
     end 
-   
+
     @report = ['setup', 'test', 'teardown'].each_with_object(boilerplate script) do |name, report|
       report.send("#{name}=", build_section(name, script.send(name)))
     end  
@@ -48,7 +48,7 @@ class TestReportHandler
   def build_section(name, section_script)
     return unless section_script
     section(name.capitalize)
-
+    
     return section.new(action: build_action(section_script.action)) if name != 'test'
     section_script.map do |test|
       section.new({
@@ -127,11 +127,23 @@ class TestReportHandler
     return 
   end 
 
+#	Might need to alter ‘score’ calculation based on including/not including setup or teardown failures
+# Or, add the option to decide whether to include them
+
   def finalize
     report.status = 'completed'
     report.score = ((1 - @num_failures / @num_tests.to_f) * 100).round(2)
     report.result = (report.score == 100 ? 'pass' : 'fail')
     report.issued = DateTime.now
+    
+    num_passes = 0
+    report.test[0].action.each do |ac|
+      num_passes += 1 if ac.operation.result.code == 'pass' if ac.operation
+      num_passes += 1 if ac.assert.result.code == 'pass' if ac.assert
+    end
+
+    score_testonly = (num_passes / report.test[0].action.length.to_f * 100).round(2)
+
     return report
   end 
 
