@@ -127,7 +127,7 @@ class TestReportHandler
     return 
   end 
 
-#	Might need to alter ‘score’ calculation based on including/not including setup or teardown failures
+# Might need to alter ‘score’ calculation based on including/not including setup or teardown failures
 # Or, add the option to decide whether to include them
 
   def finalize
