@@ -142,7 +142,7 @@ class TestReportHandler
                [your code here]
           end 
     end 
-      num_passes += 1 if ac.operation.result.code == 'pass' if ac.operation
+      num_passes += 1 if ac.operation&.result&.code == 'pass'
       num_passes += 1 if ac.assert.result.code == 'pass' if ac.assert
     end
 
