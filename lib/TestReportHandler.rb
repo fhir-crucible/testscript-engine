@@ -137,7 +137,11 @@ class TestReportHandler
     report.issued = DateTime.now
     
     num_passes = 0
-    report.test[0].action.each do |ac|
+    report.test.each do |test| 
+          test.action.each do |ac| 
+               [your code here]
+          end 
+    end 
       num_passes += 1 if ac.operation.result.code == 'pass' if ac.operation
       num_passes += 1 if ac.assert.result.code == 'pass' if ac.assert
     end
