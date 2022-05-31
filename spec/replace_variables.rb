@@ -89,6 +89,8 @@ describe TestScriptRunnable do
             end 
 
             context 'and does not have defaultValue' do
+              before { runnable.script.variable.first.defaultValue = nil }
+              
               it 'returns input' do
                 expect(runnable.replace_variables(input)).to eq(input)
               end 
