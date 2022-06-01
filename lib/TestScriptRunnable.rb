@@ -58,9 +58,29 @@ class TestScriptRunnable
 
       hash[fixture.id] = resource
       type = resource.resourceType
+      
+      # Need to consider where to put this code, such as a separate method before setup execition.
+      if fixture.autocreate
+        FHIR.logger.info "[.load_fixture] Autocreate Fixture: #{fixture.id}"
+        script.setup.action.each do |ac|
+            next if ac.operation == nil
+            if ac.operation.sourceId == fixture.id
+              FHIR.logger.warn "Possible duplication of fixture creation (autocreation and setup section)"
+              FHIR.logger.warn "Check setup in TestScript. Operation type: #{ac.operation.type.code} , sourceId: #{ac.operation.sourceId}"
+            end
+        end
 
-      script.setup.action.unshift action_create(fixture.id, type) if fixture.autocreate
-      script.teardown.action << action_delete(fixture.id, type) if fixture.autodelete
+        begin
+          client.create(get_resource_from_ref(fixture.resource))
+        rescue StandardError => e
+          log_error e.message
+          report.error e.message
+          throw :exit
+        end
+      end
+ 
+      # script.setup.action.unshift action_create(fixture.id, type) if fixture.autocreate
+      # script.teardown.action << action_delete(fixture.id, type) if fixture.autodelete
     end 
   end
 
@@ -82,25 +102,16 @@ class TestScriptRunnable
     end
   end
 
-  def action_delete(sourceId, type)
-    FHIR::TestScript::Setup::Action.new({
-      operation: FHIR::TestScript::Setup::Action::Operation.new({
-        sourceId: sourceId,
-        resource: type,
-        local_method: 'delete'
-      })
-    })
-  end 
-
-  def action_create(sourceId, type)
-    FHIR::TestScript::Setup::Action.new({
-      operation: FHIR::TestScript::Setup::Action::Operation.new({
-        sourceId: sourceId,
-        resource: type,
-        local_method: 'delete'
-      })
-    })
-  end 
+  # Failure of postprocessing (autodelete) won't fail test as opposed to failure of autocreate will.
+  def postprocess 
+    script.fixture.each_with_object({}) do |fixture|
+      if fixture.autodelete
+        FHIR.logger.info "[.load_fixture] Autodelete Fixture: #{fixture.id}"
+        resource = get_resource_from_ref(fixture.resource)
+        reply = client.destroy(resource.class, resource.id)
+      end
+    end
+  end
 
   def run client = nil
     client client
@@ -119,7 +130,7 @@ class TestScriptRunnable
   def execute op
     return unless op
 
-    FHIR.logger.info "[.execute]: #{op.description}"
+    FHIR.logger.info "[.execute] #{op.description}"
 
     catch :exit do
       throw :exit, report.fail('noClient') unless client

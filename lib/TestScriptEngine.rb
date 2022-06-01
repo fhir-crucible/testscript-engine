@@ -87,6 +87,7 @@ class TestScriptEngine
       if runnables[runnable_id]
         puts "\nBeggining execution of #{runnable_id}.\n\n"
         reports[runnable_id] = runnable.execute client 
+        runnable.postprocess
         puts "\nFinished execution of #{runnable_id}. Score: #{reports[runnable_id].score} \n"
       else
          FHIR.logger.info "[.execute_runnables] No runnable stored with id [#{runnable_id}]." 
@@ -95,9 +96,11 @@ class TestScriptEngine
       runnables.each do |id, runnable|
         puts "\nBeggining execution of #{id}.\n\n"
         reports[id] = runnable.run client
+        runnable.postprocess
         puts "\nFinished execution of #{id}. Score: #{reports[id].score} \n"
       end 
     end
+
   end 
 
   # @path [String] Optional, specifies the path to the folder which the 
