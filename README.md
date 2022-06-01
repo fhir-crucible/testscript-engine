@@ -1,6 +1,6 @@
 ## About the Project
 
-TestScript Engine is to support essential features of FHIR testing by providing the following features.
+The purpose of the TestScript Engine is to support and encourage essential aspects of FHIR testing through the following features:
 
 * General purpose engine to be implemented in various use cases
 * Execution of TestScript FHIR Resource and delivery of TestResource as outputs
