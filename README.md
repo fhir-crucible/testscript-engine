@@ -5,7 +5,7 @@ The purpose of the TestScript Engine is to support and encourage essential aspec
 * General purpose engine to be implemented in various use cases
 * Intake and execution of FHIR TestScript resources and output of TestReport resources that summarize the result of executing each TestScripts against a given endpoint or system 
 * Aligned with existing FHIR architecture
-* Extensible to be integrated with key FHIR toolchains in the future (FHIR Shorthand, TestScript generator, Synthea, etc.)  
+* Extensible to be integrated with key FHIR toolchains in the future (FHIR Shorthand, [TestScript Generator](https://github.com/fhir-crucible/testscript-generator), Synthea)  
 
 ### Limitations
 
