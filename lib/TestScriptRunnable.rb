@@ -174,28 +174,29 @@ class TestScriptRunnable
   end
   
   def extract_path(operation, request_type)
-    binding.pry
     return replace_variables(operation.url) if operation.url
+
     if operation.params
-      return if operation.resource.nil? and requires_type(operation)
+      return if operation.resource.nil? && requires_type(operation)
+
       mime = "{&_format=#{FORMAT_MAP[operation.contentType]}}" if operation.contentType
       params = "#{replace_variables(operation.params)}#{mime}"
-      search = "/_search" if request_type == :post
-      return "#{operation.resource}#{search}#{params}"
+      search = '/_search' if request_type == :post
+      "#{operation.resource}#{search}#{params}"
     elsif operation.targetId
       type = response_map[operation.targetId]&.resource.resourceType
       id = id_map[operation.targetId]
-      return "#{type}/#{id}" unless (type.nil? || id.nil?) 
+      return "#{type}/#{id}" unless type.nil? || id.nil?
     elsif operation.sourceId
-      return fixtures[operation.sourceId]&.resourceType
+      fixtures[operation.sourceId]&.resourceType
     end
   end
 
   # Determines if the operation requires [type] as part of
   # its intended request url
-  def requires_type operation
-    return !(['search'].include?(operation.type.code))
-  end 
+  def requires_type(operation)
+    !['search'].include?(operation.type.code)
+  end
 
 
   def extract_body(request_type, op)
