@@ -102,11 +102,10 @@ class TestScriptRunnable
 
   # Failure of postprocessing (autodelete) won't fail test as opposed to failure of autocreate will.
   def postprocess 
-    script.fixture.each_with_object({}) do |fixture|
+    fixtures.each do |fixture|
       if fixture.autodelete
         FHIR.logger.info "[.load_fixture] Autodelete Fixture: #{fixture.id}"
-        resource = get_resource_from_ref(fixture.resource)
-        reply = client.destroy(resource.class, resource.id)
+        client.destroy(fixture.resourceType, id_map[fixture.id])
       end
     end
   end
