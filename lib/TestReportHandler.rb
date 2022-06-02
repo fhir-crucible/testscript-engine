@@ -139,7 +139,8 @@ class TestReportHandler
     num_passes = 0
     report.test.each do |test| 
           test.action.each do |ac| 
-               [your code here]
+              num_passes += 1 if ac.operation&.result&.code == 'pass'
+              num_passes += 1 if ac.assert.result.code == 'pass' if ac.assert
           end 
     end 
       num_passes += 1 if ac.operation&.result&.code == 'pass'
