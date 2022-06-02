@@ -100,7 +100,6 @@ class TestScriptEngine
         puts "\nFinished execution of #{id}. Score: #{reports[id].score} \n"
       end 
     end
-
   end 
 
   # @path [String] Optional, specifies the path to the folder which the 
