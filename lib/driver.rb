@@ -3,7 +3,6 @@ require_relative './TestScriptEngine'
 require './TestScriptRunnable' # TODO: Remove
 
 default_engine = TestScriptEngine.new 'http://hapi.fhir.org/baseR4'
-<<<<<<< Updated upstream
 default_engine.load_scripts
 # default_engine.load_scripts(nil, 'update_test_script_obs.json')
 default_engine.make_runnables
