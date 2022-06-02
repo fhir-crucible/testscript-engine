@@ -62,13 +62,6 @@ class TestScriptRunnable
       # Need to consider where to put this code, such as a separate method before setup execition.
       if fixture.autocreate
         FHIR.logger.info "[.load_fixture] Autocreate Fixture: #{fixture.id}"
-        script.setup.action.each do |ac|
-            next if ac.operation == nil
-            if ac.operation.sourceId == fixture.id
-              FHIR.logger.warn "Possible duplication of fixture creation (autocreation and setup section)"
-              FHIR.logger.warn "Check setup in TestScript. Operation type: #{ac.operation.type.code} , sourceId: #{ac.operation.sourceId}"
-            end
-        end
 
         begin
           client.create(get_resource_from_ref(fixture.resource))
