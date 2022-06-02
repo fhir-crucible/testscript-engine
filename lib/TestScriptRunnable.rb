@@ -203,9 +203,9 @@ class TestScriptRunnable
 
   def extract_body(operation, request_type)
     return unless SENDER_TYPES.include?(request_type)
-    return unless operation.sourceId or operation.targetId
+    return unless operation.sourceId || operation.targetId
 
-    fixtures[operation.sourceId] or response_map[operation.targetId]&.resource 
+    fixtures[operation.sourceId] or response_map[operation.targetId]&.resource
   end
 
   def extract_headers op

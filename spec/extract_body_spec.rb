@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'TestScriptRunnable'
 
 describe TestScriptRunnable do
@@ -8,14 +10,16 @@ describe TestScriptRunnable do
   let(:client) { FHIR::Client.new 'https://example.com' }
   let(:clientReply) { FHIR::ClientReply.new(nil, nil, client) }
   let(:operation) { FHIR::TestScript::Setup::Action::Operation.new }
-  let(:runnable) { TestScriptRunnable.new FHIR::TestScript.new(
-    {
-      "resourceType": "TestScript",
-      "url": "http://hl7.org/fhir/TestScript/testscript-example-history",
-      "name": "TestScript-Example-History",
-      "status": "draft"
-    }
-  )}
+  let(:runnable) do
+    TestScriptRunnable.new FHIR::TestScript.new(
+      {
+        "resourceType": 'TestScript',
+        "url": 'http://hl7.org/fhir/TestScript/testscript-example-history',
+        "name": 'TestScript-Example-History',
+        "status": 'draft'
+      }
+    )
+  end
 
   describe '#extract_body' do
     context 'given non-sender request' do
@@ -23,11 +27,11 @@ describe TestScriptRunnable do
 
       it 'returns nil' do
         expect(runnable.extract_body(operation, request_type)).to eq(nil)
-      end 
+      end
     end
-    
+
     context 'given sender request' do
-      context 'with sourceId' do 
+      context 'with sourceId' do
         before { operation.sourceId = sourceId }
 
         context 'denoting Resource A' do
@@ -35,42 +39,42 @@ describe TestScriptRunnable do
 
           it 'returns Resource A' do
             expect(runnable.extract_body(operation, request_type)).to eq(resource)
-          end 
-        end 
+          end
+        end
 
         context 'not denoting some Resource A' do
           it 'returns nil' do
             expect(runnable.extract_body(operation, request_type)).to eq(nil)
-          end 
-        end 
-      end 
+          end
+        end
+      end
 
       context 'with targetId' do
         before { operation.targetId = targetId }
 
         context 'denoting Resource A' do
-          before do 
+          before do
             clientReply.resource = resource
             runnable.response_map[targetId] = clientReply
-          end 
+          end
 
           it 'returns Resource A' do
             expect(runnable.extract_body(operation, request_type)).to eq(resource)
-          end 
-        end 
+          end
+        end
 
         context 'not denoting some Resource A' do
           it 'returns nil' do
             expect(runnable.extract_body(operation, request_type)).to eq(nil)
-          end 
-        end 
-      end 
+          end
+        end
+      end
 
       context 'with neither sourceId nor targetId' do
         it 'returns nil' do
           expect(runnable.extract_body(operation, request_type)).to eq(nil)
-        end 
-      end 
-    end 
-  end 
-end 
+        end
+      end
+    end
+  end
+end
