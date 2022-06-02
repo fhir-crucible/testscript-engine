@@ -68,7 +68,6 @@ class TestScriptRunnable
         rescue StandardError => e
           log_error e.message
           report.error e.message
-          throw :exit
         end
       end
  
