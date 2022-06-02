@@ -143,9 +143,6 @@ class TestReportHandler
               num_passes += 1 if ac.assert.result.code == 'pass' if ac.assert
           end 
     end 
-      num_passes += 1 if ac.operation&.result&.code == 'pass'
-      num_passes += 1 if ac.assert.result.code == 'pass' if ac.assert
-    end
 
     score_testonly = (num_passes / report.test[0].action.length.to_f * 100).round(2)
 
