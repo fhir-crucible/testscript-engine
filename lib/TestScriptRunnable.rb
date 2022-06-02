@@ -70,8 +70,6 @@ class TestScriptRunnable
         end
       end
  
-      # script.setup.action.unshift action_create(fixture.id, type) if fixture.autocreate
-      # script.teardown.action << action_delete(fixture.id, type) if fixture.autodelete
     end 
   end
 
