@@ -134,7 +134,10 @@ class TestScriptRunnable
       body = extract_body(op, request_type)
       throw :exit, report.fail('unknownFailure') unless body
 
-      request = [request_type, path, body, extract_headers(op)]
+      headers = extract_headers(op)
+      headers = client.fhir_headers headers
+
+      request = [request_type, path, body, headers]
       request.compact!
 
       begin
