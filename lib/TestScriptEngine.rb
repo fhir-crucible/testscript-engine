@@ -87,7 +87,6 @@ class TestScriptEngine
       if runnables[runnable_id]
         puts "\nBeggining execution of #{runnable_id}.\n\n"
         reports[runnable_id] = runnable.execute client 
-        runnable.postprocess
         puts "\nFinished execution of #{runnable_id}. Score: #{reports[runnable_id].score} \n"
       else
          FHIR.logger.info "[.execute_runnables] No runnable stored with id [#{runnable_id}]." 
