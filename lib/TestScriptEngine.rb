@@ -96,7 +96,6 @@ class TestScriptEngine
       runnables.each do |id, runnable|
         puts "\nBeggining execution of #{id}.\n\n"
         reports[id] = runnable.run client
-        runnable.postprocess
         puts "\nFinished execution of #{id}. Score: #{reports[id].score} \n"
       end 
     end
