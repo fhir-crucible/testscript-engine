@@ -62,7 +62,7 @@ class TestScriptRunnable
         FHIR.logger.info "[.load_fixture] Autocreate Fixture: #{fixture.id}"
 
         begin
-          client.create(get_resource_from_ref(fixture.resource))
+          client.create(resource)
         rescue StandardError => e
           log_error e.message
           report.error e.message
