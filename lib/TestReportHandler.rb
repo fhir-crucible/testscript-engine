@@ -137,14 +137,16 @@ class TestReportHandler
     report.issued = DateTime.now
     
     num_passes = 0
+    total_test_action = 0
     report.test.each do |test| 
           test.action.each do |ac| 
+            total_test_action +=1
               num_passes += 1 if ac.operation&.result&.code == 'pass'
               num_passes += 1 if ac.assert.result.code == 'pass' if ac.assert
           end 
     end 
 
-    score_testonly = (num_passes / report.test[0].action.length.to_f * 100).round(2)
+    score_testonly = (num_passes / total_test_action.to_f * 100).round(2)
 
     return report
   end 
