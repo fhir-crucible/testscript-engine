@@ -57,20 +57,6 @@ class TestScriptRunnable
       next warn 'badFixtureReference' unless resource = get_resource_from_ref(fixture.resource)
 
       hash[fixture.id] = resource
-      type = resource.resourceType
-      
-      # Need to consider where to put this code, such as a separate method before setup execition.
-      if fixture.autocreate
-        FHIR.logger.info "[.load_fixture] Autocreate Fixture: #{fixture.id}"
-
-        begin
-          client.create(resource)
-        rescue StandardError => e
-          log_error e.message
-          report.error e.message
-        end
-      end
- 
     end 
   end
 
@@ -92,18 +78,38 @@ class TestScriptRunnable
     end
   end
 
-  # Failure of postprocessing (autodelete) won't fail test as opposed to failure of autocreate will.
+  # Failure of postprocessing (autodelete) won't fail test whereas failure of autocreate will.
+  def preprocess
+    script.fixture.each do |fixture|
+      if fixture.autocreate
+        FHIR.logger.info "[.load_fixture] Autocreate Fixture: #{fixture.id}"
+
+        begin
+          reply = client.create(get_resource_from_ref(fixture.resource))
+          id_map[fixture.id] = reply.resource&.id
+        rescue StandardError => e
+          log_error e.message
+          report.error e.message
+          throw :exit
+        end
+
+      end
+    end
+  end
+
   def postprocess 
-    fixtures.each do |fixture|
+    script.fixture.each do |fixture|
       if fixture.autodelete
         FHIR.logger.info "[.load_fixture] Autodelete Fixture: #{fixture.id}"
-        client.destroy(fixture.resourceType, id_map[fixture.id])
+        client.destroy(get_resource_from_ref(fixture.resource).resourceType, id_map[fixture.id])
       end
     end
   end
 
   def run client = nil
     client client
+
+    preprocess
 
     [script.setup, *script.test, script.teardown].each do |section|
       next unless section
@@ -112,6 +118,8 @@ class TestScriptRunnable
         execute(action.operation) || evaluate(action.try(:assert))
       end 
     end 
+
+    postprocess
 
     report.finalize
   end 
