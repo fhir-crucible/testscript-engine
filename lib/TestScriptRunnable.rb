@@ -16,10 +16,12 @@ class TestScriptRunnable
 
   attr_accessor :script, :last_reply
 
+  # maps fixture ids to server ids
   def id_map
     @id_map ||= {}
   end 
 
+  # maps operation.responseid to responses
   def response_map
     @response_map ||= {}
   end 
@@ -126,7 +128,16 @@ class TestScriptRunnable
       request_type = REQUEST_TYPES[op.local_method || op.type.code]
       throw :exit, report.skip('notImplemented') unless request_type
 
-      request = [request_type, extract_path(op), extract_body(request_type, op), extract_headers(op)]
+      path = extract_path(op, request_type)
+      throw :exit, report.fail('unknownFailure') unless path
+
+      body = extract_body(op, request_type)
+      throw :exit, report.fail('unknownFailure') unless body
+
+      headers = extract_headers(op)
+      headers = client.fhir_headers headers
+
+      request = [request_type, path, body, headers]
       request.compact!
 
       begin
@@ -168,45 +179,53 @@ class TestScriptRunnable
     report.pass
   end
   
-  def extract_path op
-    return replace_variables(op.url) if op.url
-    pieces = { format: FORMAT_MAP[op.contentType] }
+  def extract_path(operation, request_type)
+    return replace_variables(operation.url) if operation.url
 
-    if op.targetId
-      pieces[:id] = id_map[op.targetId]
-      pieces[:resource] = find_resource(op.targetId).resourceType
+    if operation.params
+      return if operation.resource.nil? && requires_type(operation)
 
-      throw :exit, report.fail('noId') unless pieces[:id]
-      throw :exit, report.fail('noTargetIdFixture') unless pieces[:resource]
-    elsif op.params
-      pieces[:resource] = replace_variables op.resource
-      pieces[:params] = replace_variables op.params
-
-      throw :exit, report.fail('noResource') unless pieces[:resource]
-    elsif op.sourceId
-      pieces[:resource] = find_resource(op.sourceId).resourceType
-
-      throw :exit, report.fail('noSourceFixture') unless fixtures[op.sourceId].resourceType
+      mime = "{&_format=#{FORMAT_MAP[operation.contentType]}}" if operation.contentType
+      params = "#{replace_variables(operation.params)}#{mime}"
+      search = '/_search' if request_type == :post
+      "#{operation.resource}#{search}#{params}"
+    elsif operation.targetId
+      type = response_map[operation.targetId]&.resource.resourceType
+      id = id_map[operation.targetId]
+      return "#{type}/#{id}" unless type.nil? || id.nil?
+    elsif operation.sourceId
+      fixtures[operation.sourceId]&.resourceType
     end
-
-    # TODO: requestEncodeUrl?
-    client.resource_url(pieces)
   end
 
-  def extract_body(request_type, op)
+  # Determines if the operation requires [type] as part of
+  # its intended request url
+  def requires_type(operation)
+    !['search'].include?(operation.type.code)
+  end
+
+  def extract_body(operation, request_type)
     return unless SENDER_TYPES.include?(request_type)
+    return unless operation.sourceId || operation.targetId
 
-    body = find_resource(op.sourceId || op.targetId)
-    throw :exit, report.fail('noSourceFixture') unless body
-    return body
+    fixtures[operation.sourceId] or response_map[operation.targetId]&.resource
   end
 
-  def extract_headers op
-    requestHeaders = Hash[op.requestHeader.map { |h| [h.field, h.value] }]
-    requestHeaders.merge!({ accept: FORMAT_MAP[op.accept] }) if op.accept
-    requestHeaders.merge!({ content_type: FORMAT_MAP[op.contentType] }) if op.contentType
-    client.fhir_headers requestHeaders
+  def extract_headers(operation)
+    headers = {}
+    headers.merge!({ 'Accept' => get_format(operation.accept) }) if operation.accept
+    headers.merge!({ 'Content-Type' => get_format(operation.contentType) }) if operation.contentType
+
+    headers.merge! Hash[operation.requestHeader.map do |header|
+      [header.field, replace_variables(header.value)]
+    end]
+
+    headers.empty? ? nil : headers
   end
+
+  def get_format format
+    FORMAT_MAP[format] || format
+  end 
 
   def store_response(request_type, op, reply)
     return unless reply
@@ -300,7 +319,6 @@ class TestScriptRunnable
   FETCHER_TYPES = %i[get delete search].freeze
 
   FORMAT_MAP = {
-    nil => FHIR::Formats::ResourceFormat::RESOURCE_JSON,
     'json' => FHIR::Formats::ResourceFormat::RESOURCE_JSON,
     'xml' => FHIR::Formats::ResourceFormat::RESOURCE_XML
   }.freeze
