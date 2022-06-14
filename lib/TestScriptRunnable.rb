@@ -16,10 +16,12 @@ class TestScriptRunnable
 
   attr_accessor :script, :last_reply
 
+  # maps fixture ids to server ids
   def id_map
     @id_map ||= {}
   end 
 
+  # maps operation.responseid to responses
   def response_map
     @response_map ||= {}
   end 
@@ -126,7 +128,10 @@ class TestScriptRunnable
       request_type = REQUEST_TYPES[op.local_method || op.type.code]
       throw :exit, report.skip('notImplemented') unless request_type
 
-      request = [request_type, extract_path(op), extract_body(request_type, op), extract_headers(op)]
+      path = extract_path(op, request_type)
+      throw :exit, report.fail('unknownFailure') unless path
+
+      request = [request_type, path, extract_body(request_type, op), extract_headers(op)]
       request.compact!
 
       begin
@@ -168,30 +173,31 @@ class TestScriptRunnable
     report.pass
   end
   
-  def extract_path op
-    return replace_variables(op.url) if op.url
-    pieces = { format: FORMAT_MAP[op.contentType] }
+  def extract_path(operation, request_type)
+    return replace_variables(operation.url) if operation.url
 
-    if op.targetId
-      pieces[:id] = id_map[op.targetId]
-      pieces[:resource] = find_resource(op.targetId).resourceType
+    if operation.params
+      return if operation.resource.nil? && requires_type(operation)
 
-      throw :exit, report.fail('noId') unless pieces[:id]
-      throw :exit, report.fail('noTargetIdFixture') unless pieces[:resource]
-    elsif op.params
-      pieces[:resource] = replace_variables op.resource
-      pieces[:params] = replace_variables op.params
-
-      throw :exit, report.fail('noResource') unless pieces[:resource]
-    elsif op.sourceId
-      pieces[:resource] = find_resource(op.sourceId).resourceType
-
-      throw :exit, report.fail('noSourceFixture') unless fixtures[op.sourceId].resourceType
+      mime = "{&_format=#{FORMAT_MAP[operation.contentType]}}" if operation.contentType
+      params = "#{replace_variables(operation.params)}#{mime}"
+      search = '/_search' if request_type == :post
+      "#{operation.resource}#{search}#{params}"
+    elsif operation.targetId
+      type = response_map[operation.targetId]&.resource.resourceType
+      id = id_map[operation.targetId]
+      return "#{type}/#{id}" unless type.nil? || id.nil?
+    elsif operation.sourceId
+      fixtures[operation.sourceId]&.resourceType
     end
-
-    # TODO: requestEncodeUrl?
-    client.resource_url(pieces)
   end
+
+  # Determines if the operation requires [type] as part of
+  # its intended request url
+  def requires_type(operation)
+    !['search'].include?(operation.type.code)
+  end
+
 
   def extract_body(request_type, op)
     return unless SENDER_TYPES.include?(request_type)
