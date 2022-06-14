@@ -134,7 +134,10 @@ class TestScriptRunnable
       body = extract_body(op, request_type)
       throw :exit, report.fail('unknownFailure') unless body
 
-      request = [request_type, path, body, extract_headers(op)]
+      headers = extract_headers(op)
+      headers = client.fhir_headers headers
+
+      request = [request_type, path, body, headers]
       request.compact!
 
       begin
@@ -208,12 +211,21 @@ class TestScriptRunnable
     fixtures[operation.sourceId] or response_map[operation.targetId]&.resource
   end
 
-  def extract_headers op
-    requestHeaders = Hash[op.requestHeader.map { |h| [h.field, h.value] }]
-    requestHeaders.merge!({ accept: FORMAT_MAP[op.accept] }) if op.accept
-    requestHeaders.merge!({ content_type: FORMAT_MAP[op.contentType] }) if op.contentType
-    client.fhir_headers requestHeaders
+  def extract_headers(operation)
+    headers = {}
+    headers.merge!({ 'Accept' => get_format(operation.accept) }) if operation.accept
+    headers.merge!({ 'Content-Type' => get_format(operation.contentType) }) if operation.contentType
+
+    headers.merge! Hash[operation.requestHeader.map do |header|
+      [header.field, replace_variables(header.value)]
+    end]
+
+    headers.empty? ? nil : headers
   end
+
+  def get_format format
+    FORMAT_MAP[format] || format
+  end 
 
   def store_response(request_type, op, reply)
     return unless reply
@@ -307,7 +319,6 @@ class TestScriptRunnable
   FETCHER_TYPES = %i[get delete search].freeze
 
   FORMAT_MAP = {
-    nil => FHIR::Formats::ResourceFormat::RESOURCE_JSON,
     'json' => FHIR::Formats::ResourceFormat::RESOURCE_JSON,
     'xml' => FHIR::Formats::ResourceFormat::RESOURCE_XML
   }.freeze
