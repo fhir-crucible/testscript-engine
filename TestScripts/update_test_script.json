@@ -77,7 +77,7 @@
       "autocreate": false,
       "autodelete": false,
       "resource": {
-        "reference": "Patient/example.json",
+        "reference": "Patient/example2.json",
         "display": "Donald Duck"
       }
     }
