@@ -251,28 +251,29 @@ class TestScriptRunnable
     fixtures[id] || response_map[id]&.response&.[](:body)
   end 
 
-  def replace_variables input
-    return input unless input&.include? '${'
+  def replace_variables placeholder
+    return placeholder unless placeholder&.include? '${'
+    replaced = placeholder.clone
 
     script.variable.each do |var|
-      next unless input.include? "${#{var.name}}"
-      val = nil
-
-      if var.expression
-        val = evaluate_expression(var.expression, find_resource(var.sourceId))
-      elsif var.headerField
-        headers = response_map[var.sourceId]&.response&.[](:headers)
-        val = headers&.find { |h, v| h == var.headerField.downcase }&.last
-      elsif var.path
-        val = evaluate_path(var.path, find_resource(var.sourceId))
-      end 
-
-      val ||= var.defaultValue 
-      input.gsub!("${#{var.name}}", val) if val
+      next unless replaced.include? "${#{var.name}}"
+      replacement = evaluate_variable(var)
+      replaced.gsub!("${#{var.name}}", replacement) if replacement
     end 
 
-    return input # TODO: Add error control for unresolvable variable via input.include? '${'
+    return replaced
   end
+
+  def evaluate_variable var
+    if var.expression 
+      evaluate_expression(var.expression, find_resource(var.sourceId)) 
+    elsif var.path
+      evaluate_path(var.path, find_resource(var.sourceId)) 
+    elsif var.headerField
+      headers = response_map[var.sourceId]&.response&.[](:headers)
+      headers&.find { |h, v| h == var.headerField.downcase }&.last
+    end || var.defaultValue
+  end 
 
   def evaluate_expression(expression, resource)
     return unless expression and resource
