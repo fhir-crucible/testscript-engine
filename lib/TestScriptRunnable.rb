@@ -26,6 +26,10 @@ class TestScriptRunnable
     @response_map ||= {}
   end 
 
+  def request_map
+    @request_map ||= {}
+  end
+
   def fixtures
     @fixtures ||= load_fixtures
   end 
@@ -142,9 +146,9 @@ class TestScriptRunnable
 
       begin
         if op.type.code == 'history'
-          reply = client.resource_instance_history(op.class, id_map[op.targetId])
+          client.resource_instance_history(op.class, id_map[op.targetId])
         else
-          reply = client.send *request
+          client.send *request
         end
       rescue StandardError => e
         log_error e.message
@@ -152,7 +156,8 @@ class TestScriptRunnable
         throw :exit
       end
 
-      store_response(request_type, op, reply)
+      storage(client, op)
+
       report.pass
     end 
   end
@@ -227,16 +232,48 @@ class TestScriptRunnable
     FORMAT_MAP[format] || format
   end 
 
+    # Once a fixture has been instantiated on a server (typically by the use of a create operation), the fixture ID is mapped to the ID of the corresponding resource instance on the server. TestScript execution engines must maintain this relationship between fixture IDs and server resource IDs. The TestScript execution engine is responsible for translating the fixture IDs (whether provided to the operation as "source" or "target") to the ID of the resource on the server during execution.
+
+    # should this handle requestId storage? 
+
+  def storage(client, operation) 
+    
+    last_reply = client.reply
+    client.reply = nil
+    return unless last_reply
+
+    begin
+      reply.resource = FHIR.from_contents(last_reply.response[:body].to_s)
+    rescue
+      return
+    end
+
+    dynamic_id = response.id
+
+    request_map[operation.requestId] = request if operation.requestId
+    id_map[operation.sourceId] = dynamic_id if operation.sourceId
+    
+    if operation.responseId
+      response_map[operation.responseId] = response
+      id_map[operation.responseId] = dynamic_id
+    end 
+  end
+
   def store_response(request_type, op, reply)
+    self.last_reply = reply
+
     return unless reply
 
     begin
       reply.resource = FHIR.from_contents(reply.response[:body].to_s)
     rescue
-      reply.resource = nil        
+      return 
     end
 
-    self.last_reply = reply
+    # map server returned ID using id_map (either sourceId or targetId, targetid important for deletes)
+    # The responseId specifies a fixture ID to use to map to the server response. 
+    
+    # Check that delete was succsefful -- if it was, remove 
     id_map.delete(reply.id) if request_type == :delete
 
     if op.responseId
