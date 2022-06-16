@@ -190,7 +190,7 @@ class TestScriptRunnable
       search = '/_search' if request_type == :post
       "#{operation.resource}#{search}#{params}"
     elsif operation.targetId
-      type = response_map[operation.targetId]&.resource.resourceType
+      type = response_map[operation.targetId]&.resource&.resourceType
       id = id_map[operation.targetId]
       return "#{type}/#{id}" unless type.nil? || id.nil?
     elsif operation.sourceId
