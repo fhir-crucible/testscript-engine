@@ -10,11 +10,11 @@ class TestScriptRunnable
   REQUEST_TYPES = { 'read' => :get, 
                     'create' => :post, 
                     'update' => :put, 
-                    'delete' => :delete, 
+                    'delete' => :destroy, 
                     'search' => :get,
                     'history' => :get  }.freeze
 
-  attr_accessor :script, :last_reply
+  attr_accessor :script, :reply
 
   # maps fixture ids to server ids
   def id_map
@@ -210,7 +210,7 @@ class TestScriptRunnable
   end
 
   def extract_body(operation, request_type)
-    return unless SENDER_TYPES.include?(request_type)
+    return unless SENDERS.include?(request_type)
     return unless operation.sourceId || operation.targetId
 
     fixtures[operation.sourceId] or response_map[operation.targetId]&.resource
@@ -236,53 +236,36 @@ class TestScriptRunnable
 
     # should this handle requestId storage? 
 
-  def storage(client, operation) 
-    
-    last_reply = client.reply
+  # requestId
+  # responseId
+  # sourceId
+  # targetId --> 
+
+  def storage operation
+    self.reply = client.reply
     client.reply = nil
-    return unless last_reply
-
-    begin
-      reply.resource = FHIR.from_contents(last_reply.response[:body].to_s)
-    rescue
-      return
-    end
-
-    dynamic_id = response.id
-
-    request_map[operation.requestId] = request if operation.requestId
-    id_map[operation.sourceId] = dynamic_id if operation.sourceId
-    
-    if operation.responseId
-      response_map[operation.responseId] = response
-      id_map[operation.responseId] = dynamic_id
-    end 
-  end
-
-  def store_response(request_type, op, reply)
-    self.last_reply = reply
-
     return unless reply
+
+    request_map[operation.requestId] = reply.request if operation.requestId
+    response_map[operation.responseId] = reply.response if operation.responseId
+
+    if reply.request[:method] == :delete and [200, 202, 204].include? reply.response[:code]
+      id_map.delete(id_map.key(reply.request[:path].split('/')[1]))
+      return
+    end 
 
     begin
       reply.resource = FHIR.from_contents(reply.response[:body].to_s)
     rescue
-      return 
-    end
-
-    # map server returned ID using id_map (either sourceId or targetId, targetid important for deletes)
-    # The responseId specifies a fixture ID to use to map to the server response. 
-    
-    # Check that delete was succsefful -- if it was, remove 
-    id_map.delete(reply.id) if request_type == :delete
-
-    if op.responseId
-      response_map[op.responseId] = reply
-      id_map[op.responseId] = reply.resource&.id if SENDER_TYPES.include?(request_type)
-    elsif op.sourceId
-      id_map[op.sourceId] = reply.resource&.id if SENDER_TYPES.include?(request_type)
     end 
-  end
+
+    var = reply.response[:headers]['location']
+    var.slice!(reply.request[:url])
+    server_id = reply.resource&.id || var.split('/')[2] 
+
+    id_map[operation.responseId] = server_id if server_id and operation.responseId
+    id_map[operation.sourceId] = server_id if server_id and operation.sourceId
+  end 
 
   def find_resource id
     fixtures[id] || response_map[id]&.response&.[](:body)
@@ -353,8 +336,8 @@ class TestScriptRunnable
 
   include Assertions
 
-  SENDER_TYPES = %i[post put].freeze
-  FETCHER_TYPES = %i[get delete search].freeze
+  SENDERS = %i[post put].freeze
+  FETCHERS = %i[get destroy search].freeze
 
   FORMAT_MAP = {
     'json' => FHIR::Formats::ResourceFormat::RESOURCE_JSON,

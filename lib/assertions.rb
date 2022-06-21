@@ -55,7 +55,7 @@ module Assertions
   end 
 
   def assert_content_type assertion
-    header = last_reply.response[:headers]['content-type']
+    header = reply.response[:headers]['content-type']
     raise_exception('[.assert_content_type]', 'noContentType', 'content-type') unless header
 
     value = header.split(';').find { |x| x == assertion.contentType }
@@ -63,7 +63,7 @@ module Assertions
   end
 
   def assert_find_resource(id, location)
-    resource = response_map[id]&.resource || fixtures[id] || last_reply&.resource
+    resource = response_map[id]&.resource || fixtures[id] || reply&.resource
     resource || raise_exception(location, 'noResource', "with id: #{id}" || '')
   end 
 
@@ -80,7 +80,7 @@ module Assertions
   end 
 
   def assert_header_field assertion
-    reply = assertion.sourceId ? response_map[assertion.sourceId] : last_reply
+    reply = assertion.sourceId ? response_map[assertion.sourceId] : reply
     if assertion.direction == 'request'
       header_value = reply.request[:headers][assertion.headerField.downcase]
       prefix = 'Request'
@@ -135,21 +135,21 @@ module Assertions
   end 
 
   def assert_request_method assertion
-    assert_operator(last_reply.request[:method].to_s, assertion.operator, replace_variables(assertion.requestMethod), '[.assert_request_method]')
+    assert_operator(reply.request[:method].to_s, assertion.operator, replace_variables(assertion.requestMethod), '[.assert_request_method]')
   end
 
   def assert_request_url assertion
-    assert_operator(last_reply.request[:url], assertion.operator, replace_variables(assertion.requestURL), '[.assert_request_url]')
+    assert_operator(reply.request[:url], assertion.operator, replace_variables(assertion.requestURL), '[.assert_request_url]')
   end 
 
   def assert_response assertion
-    reply = response_map[assertion.sourceId] || last_reply
+    reply = response_map[assertion.sourceId] || reply
     expected = CODE_MAP[assertion.response]
     assert_operator(reply&.code, assertion.operator, expected, '[.assert_response]')
   end 
 
   def assert_response_code assertion
-    reply = response_map[assertion.sourceId] || last_reply
+    reply = response_map[assertion.sourceId] || reply
     assert_operator(reply&.code&.to_s, assertion.operator, assertion.responseCode, '[.assert_response_code]')
   end 
 
@@ -160,9 +160,9 @@ module Assertions
 
   def assert_validate_profile_id assertion
     uri = script.profile.find { |profile| profile.id == assertion.validateProfileId }.reference
-    response = client.validate(last_reply.response, { profile_uri: uri } )
+    response = client.validate(reply.response, { profile_uri: uri } )
 
-    raise_exception('noValidation', '[.assert_valid_profile_id]', last_reply.resource.resourceType) if response.code.to_s == "201"
+    raise_exception('noValidation', '[.assert_valid_profile_id]', reply.resource.resourceType) if response.code.to_s == "201"
     raise_exception('badValidation', '[.assert_valid_profile_id]', response.code)  if response.code.to_s != "200"
   end 
 
