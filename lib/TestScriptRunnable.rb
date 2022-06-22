@@ -236,22 +236,19 @@ class TestScriptRunnable
 
     # should this handle requestId storage? 
 
-  # requestId
-  # responseId
-  # sourceId
-  # targetId --> 
-
-  def storage operation
-    self.reply = client.reply
+  def storage(operation)
+    return unless self.reply = client.reply
     client.reply = nil
-    return unless reply
 
+    # <--- from here ---> 
     request_map[operation.requestId] = reply.request if operation.requestId
     response_map[operation.responseId] = reply.response if operation.responseId
 
-    if reply.request[:method] == :delete and [200, 202, 204].include? reply.response[:code]
-      id_map.delete(id_map.key(reply.request[:path].split('/')[1]))
-      return
+    if operation.targetId
+      if reply.request[:method] == :delete and [200, 202, 204].include? reply.response[:code]
+        id_map.delete(operation.targetId)
+        return
+      end 
     end 
 
     begin
@@ -260,8 +257,8 @@ class TestScriptRunnable
     end 
 
     var = reply.response[:headers]['location']
-    var.slice!(reply.request[:url])
-    server_id = reply.resource&.id || var.split('/')[2] 
+    var&.slice!(reply.request[:url])
+    server_id = reply.resource&.id || var&.split('/')[2] 
 
     id_map[operation.responseId] = server_id if server_id and operation.responseId
     id_map[operation.sourceId] = server_id if server_id and operation.sourceId

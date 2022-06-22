@@ -1,18 +1,12 @@
 require 'TestScriptRunnable'
 
+
 describe TestScriptRunnable do
-  # let(:requestId) { 'requestId' }
-  # let(:resource) { FHIR::AllergyIntolerance.new }
-  # let(:resourceResponse) { { :code => 200, :headers => {}, :body => resource.to_json } }
-  # let(:resourceReply) { FHIR::ClientReply.new(nil, resourceResponse, client) }
-  # let(:nonResourceResponse) { { :code => 200, :headers => {}, :body => 'body' } }
-  # let(:nonResourceReply) { FHIR::ClientReply.new(nil, nonResourceResponse, client) }
-  # let(:requestType) { :get }
-    # let(:empty_client_reply) { FHIR::ClientReply.new(nil, nil, client) }
 
   let(:base_url) { 'https://example.com' }
   let(:server_id) { 'abcdefgh12345678' }
   let(:id) { 'some_id' }
+  let(:notId) { 'not_some_id' }
   let(:client) { FHIR::Client.new base_url }
   let(:operation) { FHIR::TestScript::Setup::Action::Operation.new }
   let(:runnable) {
@@ -42,25 +36,47 @@ describe TestScriptRunnable do
     }
   }
   let(:client_reply) { FHIR::ClientReply.new(request, response, client) }
+  before do
+    runnable.client.reply = client_reply
+  end 
 
   context '#storage' do
-    context 'when client.reply == nil' do
-      it 'sets @reply = nil' do
+    context 'with client.reply == nil' do
+      before { runnable.client.reply = nil }
+
+      it 'sets @reply to nil' do
         runnable.storage(operation)
 
-        expect(runnable.reply).to be(nil)
+        expect(runnable.reply).to be_nil
       end 
 
-      it 'sets client.reply = nil' do
+      it 'sets client.reply to nil' do
         runnable.storage(operation)
 
-        expect(runnable.client.reply).to be(nil)
+        expect(runnable.client.reply).to be_nil
       end 
 
       it 'returns nil' do
-        expect(runnable.storage(operation)).to be(nil)
+        expect(runnable.storage(operation)).to be_nil
       end 
     end 
+
+    context 'with client.reply' do
+      it 'sets @reply to client.reply' do
+        runnable.storage(operation)
+
+        expect(runnable.reply).to eq(client_reply)
+      end 
+
+      it 'sets client.reply to nil' do
+        runnable.storage(operation)
+
+        expect(runnable.client.reply).to be_nil
+      end 
+    end 
+
+
+
 
     context 'when client.reply != nil' do
       before { runnable.client.reply = client_reply }
@@ -121,7 +137,8 @@ describe TestScriptRunnable do
         context 'and status code == `okay`' do
           before { runnable.client.reply.response[:code] = 202 }
 
-          context 'and id extractable from request.path' do
+          context 'and targetId' do
+            before { operation.targetId = id }
 
             context 'with id stored' do
               before { runnable.id_map[id] = server_id }
@@ -133,46 +150,64 @@ describe TestScriptRunnable do
               end 
             end 
 
-
             context 'without id stored' do
+              before { runnable.id_map[notId] = server_id }
+
               it 'ignores @id_map' do
-
+                runnable.storage(operation)
+  
+                expect(runnable.id_map).to eq({ notId => server_id })
               end 
-            end 
-          end
-
-          context 'and id not extracted from path' do
-            context 'with reponseId' do
-
-            end 
-
-            it 'prints a warning' do
-
-            end 
-
-            it 'ignores @id_map' do
-
             end 
           end
         end
 
         context 'and status code != `okay`' do
-          it 'ignores @id_map' do
+          before do
+            runnable.id_map[id] = server_id
+            operation.targetId = id
+            runnable.client.reply.response[:code] = 400
+          end 
 
+          it 'ignores @id_map' do
+            runnable.storage(operation)
+  
+            expect(runnable.id_map).to eq({ id => server_id })
           end 
         end
+
+        context 'and !targetId' do
+          before { runnable.id_map[id] = server_id }
+
+          it 'ignores @id_map' do
+            runnable.storage(operation)
+  
+            expect(runnable.id_map).to eq({ id => server_id })
+          end 
+        end 
       end
 
       context 'and sourceId != nil' do 
+        before { operation.sourceId = id }
+
         context 'and reply.resource != nil' do
           it 'updates @id_map using reply.resource.id' do
-
+            runnable.storage(operation)
+  
+            expect(runnable.id_map).to eq({ id => server_id })
           end
         end
   
         context 'and reply.resource == nil' do
-          it 'updates @id_mdap using location header' do
+          before do 
+            runnable.client.reply.response[:body] = FHIR::Patient.new.to_json
+            runnable.client.reply.response[:headers] = {}
+          end 
 
+          it 'updates @id_map using location header' do
+            runnable.storage(operation)
+  
+            expect(runnable.id_map).to eq({ id => server_id })
           end 
         end 
       end 
