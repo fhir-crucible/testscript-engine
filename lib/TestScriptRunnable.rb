@@ -244,6 +244,11 @@ class TestScriptRunnable
     request_map[operation.requestId] = reply.request if operation.requestId
     response_map[operation.responseId] = reply.response if operation.responseId
 
+    begin
+      reply.resource = FHIR.from_contents(reply.response[:body].to_s)
+    rescue
+    end 
+
     if operation.targetId
       if reply.request[:method] == :delete and [200, 202, 204].include? reply.response[:code]
         id_map.delete(operation.targetId)
@@ -251,14 +256,9 @@ class TestScriptRunnable
       end 
     end 
 
-    begin
-      reply.resource = FHIR.from_contents(reply.response[:body].to_s)
-    rescue
-    end 
-
-    var = reply.response[:headers]['location']
-    var&.slice!(reply.request[:url])
-    server_id = reply.resource&.id || var&.split('/')[2] 
+    var = reply.response[:headers]&.[]('location')
+    var&.slice!(reply.request&.[](:url))
+    server_id = reply.resource&.id || var&.split('/')&.[](2) 
 
     id_map[operation.responseId] = server_id if server_id and operation.responseId
     id_map[operation.sourceId] = server_id if server_id and operation.sourceId
