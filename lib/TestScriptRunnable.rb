@@ -233,7 +233,7 @@ class TestScriptRunnable
   end  
 
   def successful? code 
-    return [200, 202, 204].include? code
+    [200, 202, 204].include? code
   end 
 
   def storage(op)
@@ -245,7 +245,7 @@ class TestScriptRunnable
 
     (reply.resource = FHIR.from_contents(reply.response&.[](:body).to_s)) rescue {}
 
-    if op.targetId and reply.request[:method] == :delete and successful?(reply.response[:code])
+    if op.targetId and (reply.request[:method] == :delete) and successful?(reply.response[:code])
       id_map.delete(op.targetId) and return
     end 
 

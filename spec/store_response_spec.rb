@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'TestScriptRunnable'
 
 describe TestScriptRunnable do
