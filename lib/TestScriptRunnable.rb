@@ -230,38 +230,32 @@ class TestScriptRunnable
 
   def get_format format
     FORMAT_MAP[format] || format
+  end  
+
+  def successful? code 
+    return [200, 202, 204].include? code
   end 
 
-    # Once a fixture has been instantiated on a server (typically by the use of a create operation), the fixture ID is mapped to the ID of the corresponding resource instance on the server. TestScript execution engines must maintain this relationship between fixture IDs and server resource IDs. The TestScript execution engine is responsible for translating the fixture IDs (whether provided to the operation as "source" or "target") to the ID of the resource on the server during execution.
+  def storage(op)
+    self.reply = client.reply 
+    reply.nil? ? return : client.reply = nil
 
-    # should this handle requestId storage? 
+    request_map[op.requestId] = reply.request if op.requestId
+    response_map[op.responseId] = reply.response if op.responseId
 
-  def storage(operation)
-    return unless self.reply = client.reply
-    client.reply = nil
+    (reply.resource = FHIR.from_contents(reply.response&.[](:body).to_s)) rescue {}
 
-    # <--- from here ---> 
-    request_map[operation.requestId] = reply.request if operation.requestId
-    response_map[operation.responseId] = reply.response if operation.responseId
-
-    begin
-      reply.resource = FHIR.from_contents(reply.response[:body].to_s)
-    rescue
+    if op.targetId and reply.request[:method] == :delete and successful?(reply.response[:code])
+      id_map.delete(op.targetId) and return
     end 
 
-    if operation.targetId
-      if reply.request[:method] == :delete and [200, 202, 204].include? reply.response[:code]
-        id_map.delete(operation.targetId)
-        return
-      end 
+    dynamic_id = reply.resource&.id || begin
+      reply.response&.[](:headers)&.[]('location')&.remove(reply.request[:url].to_s)&.split('/')&.[](2) 
     end 
 
-    var = reply.response[:headers]&.[]('location')
-    var&.slice!(reply.request&.[](:url))
-    server_id = reply.resource&.id || var&.split('/')&.[](2) 
-
-    id_map[operation.responseId] = server_id if server_id and operation.responseId
-    id_map[operation.sourceId] = server_id if server_id and operation.sourceId
+    id_map[op.responseId] = dynamic_id if op.responseId and dynamic_id
+    id_map[op.sourceId] = dynamic_id if op.sourceId and dynamic_id
+    return
   end 
 
   def find_resource id
