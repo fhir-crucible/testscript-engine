@@ -34,10 +34,42 @@ let(:runnable) do
     TestScriptRunnable.new script
 end
 
+describe '#preprocessing' do
+    context 'given autocreate true' do
+        before {
+            runnable.script.fixture[0].autocreate = true
+        }
+
+        it 'returns nil' do
+            expect(runnable.preprocess).to raise_error
+        end
+    end
+
+    context 'given autocreate false' do
+        before {
+            runnable.script.fixture[0].autocreate = false
+            runnable.preprocess
+        }
+
+        it 'returns nil' do
+            expect(runnable.id_map["fixture-patient-create"]).to eq(nil)
+        end
+    end
+end
+
 describe '#postprocessing' do
+    context 'given autodelete true' do
+        before {
+            runnable.script.fixture[0].autodelete = true
+        }
+
+        it 'returns nil' do
+            expect(runnable.postprocess).to raise_error
+        end
+    end
+
     context 'given autodelete false' do
         before {
-            runnable.execute client 
             runnable.script.fixture[0].autodelete = false
             runnable.postprocess
         }
@@ -46,54 +78,6 @@ describe '#postprocessing' do
             expect(runnable.id_map["fixture-patient-create"]).to eq(nil)
         end
     end
-
-    context 'given autodelete true' do
-        before {
-            runnable.load_fixtures
-            runnable.script.fixture[0].autodelete = true
-            runnable.postprocess
-        }
-
-        it 'returns nil' do
-            expect(runnable.id_map["fixture-patient-create"]).to eq(nil)
-        end
-    end
-  end
-
-# describe '#preprocessing' do
-#     context 'given autocreate false' do
-#         before {
-#             runnable.script.fixture[0].autocreate = false
-#             runnable.preprocess
-#         }
-
-#         it 'returns nil' do
-#             expect(runnable.id_map["fixture-patient-create"]).to eq(nil)
-#         end
-#     end
-#     context 'given autocreate true' do
-#         before {
-#             runnable.script.fixture[0].resource = runnable.get_resource_from_ref("Patient/example.json")
-#             runnable.script.fixture[0].autocreate = true
-#             runnable.preprocess
-#         }
-
-#         it 'returns nil' do
-#             expect(FHIR.logger).to receive(:info).with '[.load_fixture] Autocreate Fixture: fixture-patient-create'
-#         end
-#     end
-
-#     context 'given autocreate false' do
-#         before {
-#             runnable.script.fixture[0].autocreate = false
-#             runnable.preprocess
-#         }
-
-#         it 'returns nil' do
-#             expect(runnable.id_map["fixture-patient-create"]).to eq(nil)
-#         end
-#     end
-#   end
-# end
+end
 
 end
