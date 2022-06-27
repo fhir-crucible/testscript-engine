@@ -259,10 +259,10 @@ class TestScriptRunnable
   end 
 
   def find_resource id
-    fixtures[id] || response_map[id]&.response&.[](:body)
+    fixtures[id] || response_map[id]&.[](:body)
   end 
 
-  def replace_variables placeholder
+  def replace_variables placeholder    
     return placeholder unless placeholder&.include? '${'
     replaced = placeholder.clone
 

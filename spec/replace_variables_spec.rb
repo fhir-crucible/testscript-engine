@@ -62,7 +62,7 @@ describe TestScriptRunnable do
   let(:multi_match_input) { "/${#{vname}}/${#{vname}}" }
 
   describe '#replace_variables' do
-    before { runnable.response_map[sourceId] = client_reply }
+    before { runnable.response_map[sourceId] = client_reply.response }
 
     context 'given no placeholder' do
       it 'returns input' do
@@ -136,7 +136,7 @@ describe TestScriptRunnable do
             end
 
             context 'since no response' do
-              before { runnable.response_map[sourceId].response = nil }
+              before { runnable.response_map[sourceId] = nil }
 
               it 'returns replaced default input' do
                 expect(runnable.replace_variables(input)).to eq(default_output)
@@ -144,7 +144,7 @@ describe TestScriptRunnable do
             end
 
             context 'since no response headers' do
-              before { runnable.response_map[sourceId].response[:headers] = nil }
+              before { runnable.response_map[sourceId][:headers] = nil }
 
               it 'returns replaced default input' do
                 expect(runnable.replace_variables(input)).to eq(default_output)
@@ -152,7 +152,7 @@ describe TestScriptRunnable do
             end
 
             context 'since no matching header' do
-              before { runnable.response_map[sourceId].response[:headers] = { 'bad_key' => 'bad_val' } }
+              before { runnable.response_map[sourceId][:headers] = { 'bad_key' => 'bad_val' } }
 
               it 'returns replaced default input' do
                 expect(runnable.replace_variables(input)).to eq(default_output)
