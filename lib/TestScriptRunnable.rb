@@ -156,7 +156,7 @@ class TestScriptRunnable
         throw :exit
       end
 
-      storage(client, op)
+      storage(op)
 
       report.pass
     end 
@@ -281,7 +281,7 @@ class TestScriptRunnable
     elsif var.path
       evaluate_path(var.path, find_resource(var.sourceId)) 
     elsif var.headerField
-      headers = response_map[var.sourceId]&.response&.[](:headers)
+      headers = response_map[var.sourceId]&.[](:headers)
       headers&.find { |h, v| h == var.headerField.downcase }&.last
     end || var.defaultValue
   end 
