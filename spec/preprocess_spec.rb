@@ -3,17 +3,12 @@
 require 'TestScriptRunnable'
 
 describe TestScriptRunnable do
-  let(:request_type) { :post }
-  let(:targetId) { 'patient-search' }
-  let(:sourceId) { 'fixture-patient-create' }
-  let(:resource) { FHIR::AllergyIntolerance.new }
-  let(:client) { FHIR::Client.new 'https://example.com' }
-  let(:clientReply) { FHIR::ClientReply.new(nil, nil, client) }
-  let(:operation) { FHIR::TestScript::Setup::Action::Operation.new }
+  let(:fixtureId) { 'example' }
+  let(:client) { FHIR::Client.new 'http://hapi.fhir.org/baseR4' }
   let(:script) { FHIR::TestScript.new (
     {
         "resourceType": 'TestScript',
-        "url": 'http://hl7.org/fhir/TestScript/testscript-example-history',
+        "url": 'http://hl7.org/fhir/TestScript/testscript-example-history/',
         "name": 'TestScript-Example-History',
         "status": 'draft',
         "fixture": [
@@ -37,11 +32,13 @@ end
 describe '#preprocessing' do
     context 'given autocreate true' do
         before {
+            runnable.client client
             runnable.script.fixture[0].autocreate = true
+            runnable.script.url = "../testscript-engine/TestScripts/TestScripts/"
         }
 
-        it 'returns nil' do
-            expect(runnable.preprocess).to raise_error
+        it 'returns error while autocreation' do
+            expect { runnable.preprocess }.to raise_error (WebMock::NetConnectNotAllowedError)
         end
     end
 
@@ -51,8 +48,8 @@ describe '#preprocessing' do
             runnable.preprocess
         }
 
-        it 'returns nil' do
-            expect(runnable.id_map["fixture-patient-create"]).to eq(nil)
+        it 'returns nothing since it doesn`t run any code' do
+            expect(FHIR.logger).not_to receive(:info).with "[.load_fixture] Autocreate Fixture: #{fixtureId}"
         end
     end
 end
@@ -60,11 +57,12 @@ end
 describe '#postprocessing' do
     context 'given autodelete true' do
         before {
+            runnable.client client
             runnable.script.fixture[0].autodelete = true
         }
 
-        it 'returns nil' do
-            expect(runnable.postprocess).to raise_error
+        it 'returns error while autodeletion' do
+            expect { runnable.postprocess }.to raise_error (NoMethodError)
         end
     end
 
@@ -74,8 +72,8 @@ describe '#postprocessing' do
             runnable.postprocess
         }
 
-        it 'returns nil' do
-            expect(runnable.id_map["fixture-patient-create"]).to eq(nil)
+        it 'returns nothing since it doesn`t run any code' do
+            expect(FHIR.logger).not_to receive(:info).with "[.load_fixture] Autodelete Fixture: #{fixtureId}"
         end
     end
 end
