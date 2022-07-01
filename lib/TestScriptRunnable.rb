@@ -10,11 +10,11 @@ class TestScriptRunnable
   REQUEST_TYPES = { 'read' => :get, 
                     'create' => :post, 
                     'update' => :put, 
-                    'delete' => :delete, 
+                    'delete' => :destroy, 
                     'search' => :get,
                     'history' => :get  }.freeze
 
-  attr_accessor :script, :last_reply
+  attr_accessor :script, :reply
 
   # maps fixture ids to server ids
   def id_map
@@ -25,6 +25,10 @@ class TestScriptRunnable
   def response_map
     @response_map ||= {}
   end 
+
+  def request_map
+    @request_map ||= {}
+  end
 
   def fixtures
     @fixtures ||= load_fixtures
@@ -142,9 +146,9 @@ class TestScriptRunnable
 
       begin
         if op.type.code == 'history'
-          reply = client.resource_instance_history(op.class, id_map[op.targetId])
+          client.resource_instance_history(op.class, id_map[op.targetId])
         else
-          reply = client.send *request
+          client.send *request
         end
       rescue StandardError => e
         log_error e.message
@@ -152,7 +156,8 @@ class TestScriptRunnable
         throw :exit
       end
 
-      store_response(request_type, op, reply)
+      storage(op)
+
       report.pass
     end 
   end
@@ -205,7 +210,7 @@ class TestScriptRunnable
   end
 
   def extract_body(operation, request_type)
-    return unless SENDER_TYPES.include?(request_type)
+    return unless SENDERS.include?(request_type)
     return unless operation.sourceId || operation.targetId
 
     fixtures[operation.sourceId] or response_map[operation.targetId]&.resource
@@ -225,33 +230,39 @@ class TestScriptRunnable
 
   def get_format format
     FORMAT_MAP[format] || format
+  end  
+
+  def successful? code 
+    [200, 202, 204].include? code
   end 
 
-  def store_response(request_type, op, reply)
-    return unless reply
+  def storage(op)
+    self.reply = client.reply 
+    reply.nil? ? return : client.reply = nil
 
-    begin
-      reply.resource = FHIR.from_contents(reply.response[:body].to_s)
-    rescue
-      reply.resource = nil        
-    end
+    request_map[op.requestId] = reply.request if op.requestId
+    response_map[op.responseId] = reply.response if op.responseId
 
-    self.last_reply = reply
-    id_map.delete(reply.id) if request_type == :delete
+    (reply.resource = FHIR.from_contents(reply.response&.[](:body).to_s)) rescue {}
 
-    if op.responseId
-      response_map[op.responseId] = reply
-      id_map[op.responseId] = reply.resource&.id if SENDER_TYPES.include?(request_type)
-    elsif op.sourceId
-      id_map[op.sourceId] = reply.resource&.id if SENDER_TYPES.include?(request_type)
+    if op.targetId and (reply.request[:method] == :delete) and successful?(reply.response[:code])
+      id_map.delete(op.targetId) and return
     end 
-  end
+
+    dynamic_id = reply.resource&.id || begin
+      reply.response&.[](:headers)&.[]('location')&.remove(reply.request[:url].to_s)&.split('/')&.[](2) 
+    end 
+
+    id_map[op.responseId] = dynamic_id if op.responseId and dynamic_id
+    id_map[op.sourceId] = dynamic_id if op.sourceId and dynamic_id
+    return
+  end 
 
   def find_resource id
-    fixtures[id] || response_map[id]&.response&.[](:body)
+    fixtures[id] || response_map[id]&.[](:body)
   end 
 
-  def replace_variables placeholder
+  def replace_variables placeholder    
     return placeholder unless placeholder&.include? '${'
     replaced = placeholder.clone
 
@@ -270,7 +281,7 @@ class TestScriptRunnable
     elsif var.path
       evaluate_path(var.path, find_resource(var.sourceId)) 
     elsif var.headerField
-      headers = response_map[var.sourceId]&.response&.[](:headers)
+      headers = response_map[var.sourceId]&.[](:headers)
       headers&.find { |h, v| h == var.headerField.downcase }&.last
     end || var.defaultValue
   end 
@@ -316,8 +327,8 @@ class TestScriptRunnable
 
   include Assertions
 
-  SENDER_TYPES = %i[post put].freeze
-  FETCHER_TYPES = %i[get delete search].freeze
+  SENDERS = %i[post put].freeze
+  FETCHERS = %i[get destroy search].freeze
 
   FORMAT_MAP = {
     'json' => FHIR::Formats::ResourceFormat::RESOURCE_JSON,
