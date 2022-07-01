@@ -23,6 +23,16 @@ TestScript Engine is in the early stages of development; it is neither functiona
   - Functionality
     - This runs the driver, which is currently the means for running and testing using the engine and runnable class. TestScripts to be run must be added to the TestScripts directory.
 
+**Optional Arguments:**
+  ```
+    ruby driver.rb [FHIR Server URL] [TestScript Folder]
+  ```
+
+  - `[FHIR Server URL]`
+    - Full URL of the FHIR server being tested. Defaults to the public instance of HAPI FHIR.
+  - `[TestScript Folder]`
+    - Relative or full path to a folder of TestScript resources. Defaults to `./TestScripts`
+
 **Folders and Files:**
   - `./lib`
     - driver.rb
