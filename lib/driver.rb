@@ -3,25 +3,26 @@ require_relative './TestScriptEngine'
 require './TestScriptRunnable' # TODO: Remove
 
 test_server_url = 'http://hapi.fhir.org/baseR4'
-testscript_path = nil
+testscript_path = '../TestScripts'
+testscript_file = nil
 
 parameters = ARGV
 parameters.each do |parameter|
   if parameter.start_with?('http')
     test_server_url = parameter
+  elsif parameter.include?('.json')
+    testscript_file = parameter
   else
     testscript_path = parameter
   end
 end
 
 puts "SERVER: #{test_server_url}"
-puts "TESTSCRIPTS: #{testscript_path}"
+puts "TESTSCRIPT PATH: #{testscript_path}"
+puts "TESTSCRIPT FILE: #{testscript_file}"
 
-default_engine = TestScriptEngine.new(test_server_url, testscript_path)
-# Load and execute all TestScript in /TestScripts
+default_engine = TestScriptEngine.new(test_server_url, testscript_path, testscript_file)
 default_engine.load_scripts
-# Specify a TestScript to execute
-# default_engine.load_scripts(nil, 'general_test_script.json')
 default_engine.make_runnables
 default_engine.execute_runnables
 default_engine.write_reports
