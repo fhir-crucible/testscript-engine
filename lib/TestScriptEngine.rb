@@ -53,6 +53,7 @@ class TestScriptEngine
           FHIR.logger.info "[.load_scripts] TestScript with id [#{script.id}] loaded."
         else
           FHIR.logger.info "[.load_scripts] Invalid or non-TestScript detected. Skipping resource at #{resource}."
+          FHIR.logger.info "[.load_scripts] Violation: #{script.validate.to_hash}"
         end 
       rescue
         FHIR.logger.info "[.load_scripts] Unable to deserialize TestScript resource at #{resource}."
