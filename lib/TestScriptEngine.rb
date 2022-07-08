@@ -3,7 +3,7 @@ require 'fhir_client'
 require_relative './TestScriptRunnable'
 
 class TestScriptEngine
-  attr_accessor :endpoint, :directory_path
+  attr_accessor :endpoint, :directory_path, :file_name
 
   def scripts
     @scripts ||= {}
@@ -25,9 +25,10 @@ class TestScriptEngine
     @client ||= FHIR::Client.new(endpoint || 'localhost:3000') 
   end 
 
-  def initialize(endpoint = nil, directory_path = nil)
+  def initialize(endpoint = nil, directory_path = nil, file_name = nil)
     self.endpoint = endpoint
     self.directory_path = directory_path
+    self.file_name = file_name
   end
 
   # TODO: Tie-in stronger validation. Possibly, Inferno validator.
@@ -37,9 +38,9 @@ class TestScriptEngine
 
   # @path [String] Optional, specifies the path to the folder containing the 
   #                TestScript Resources to-be loaded into the engine. 
-  def load_scripts path = nil, file_name = nil
-    on_deck = Dir.glob "#{path || root}/**/*.{json, xml}"
-    FHIR.logger.info "[.load_scripts] TestScript Path: [#{path || root}]"
+  def load_scripts 
+    on_deck = Dir.glob "#{root}/**/*.{json, xml}"
+    FHIR.logger.info "[.load_scripts] TestScript Path: [#{root}]"
 
     on_deck.each do |resource|
       next if file_name && !resource.include?(file_name)
@@ -52,6 +53,7 @@ class TestScriptEngine
           FHIR.logger.info "[.load_scripts] TestScript with id [#{script.id}] loaded."
         else
           FHIR.logger.info "[.load_scripts] Invalid or non-TestScript detected. Skipping resource at #{resource}."
+          FHIR.logger.info "[.load_scripts] Violation: #{script.validate.to_hash}"
         end 
       rescue
         FHIR.logger.info "[.load_scripts] Unable to deserialize TestScript resource at #{resource}."
