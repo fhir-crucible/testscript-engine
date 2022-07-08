@@ -7,24 +7,25 @@ require_relative './MessageHandler.rb'
 require_relative './TestReportHandler.rb'
 
 class TestScriptRunnable
-  REQUEST_TYPES = { 'read' => :get, 
-                    'create' => :post, 
-                    'update' => :put, 
-                    'delete' => :destroy, 
+  REQUEST_TYPES = { 'read' => :get,
+                    'create' => :post,
+                    'update' => :put,
+                    'delete' => :destroy,
                     'search' => :get,
-                    'history' => :get  }.freeze
+                    'history' => :get,
+                    nil => :get }.freeze
 
   attr_accessor :script, :reply
 
   # maps fixture ids to server ids
   def id_map
     @id_map ||= {}
-  end 
+  end
 
   # maps operation.responseid to responses
   def response_map
     @response_map ||= {}
-  end 
+  end
 
   def request_map
     @request_map ||= {}
@@ -32,16 +33,16 @@ class TestScriptRunnable
 
   def fixtures
     @fixtures ||= load_fixtures
-  end 
+  end
 
   def report
-    @report ||= TestReportHandler.setup(script) 
-  end 
+    @report ||= TestReportHandler.setup(script)
+  end
 
   def client client = nil
     @client = client if client
     @client ||= FHIR::Client.new('https://localhost:8080')
-  end 
+  end
 
   def initialize script
     extend MessageHandler
@@ -49,10 +50,10 @@ class TestScriptRunnable
     unless (script.is_a? FHIR::TestScript) && script.valid?
       FHIR.logger.error '[.initialize] Received invalid or non-TestScript resource.'
       raise ArgumentError
-    end 
+    end
 
     self.script = script
-  end 
+  end
 
   def load_fixtures
     script.fixture.each_with_object({}) do |fixture, hash|
@@ -65,7 +66,7 @@ class TestScriptRunnable
 
       script.setup.action.unshift action_create(fixture.id, type) if fixture.autocreate
       script.teardown.action << action_delete(fixture.id, type) if fixture.autodelete
-    end 
+    end
   end
 
   def get_resource_from_ref reference
@@ -94,7 +95,7 @@ class TestScriptRunnable
         local_method: 'delete'
       })
     })
-  end 
+  end
 
   def action_create(sourceId, type)
     FHIR::TestScript::Setup::Action.new({
@@ -104,7 +105,7 @@ class TestScriptRunnable
         local_method: 'delete'
       })
     })
-  end 
+  end
 
   def run client = nil
     client client
@@ -113,53 +114,47 @@ class TestScriptRunnable
       next unless section
 
       section.action.each do |action|
-        execute(action.operation) || evaluate(action.try(:assert))
-      end 
-    end 
+        execute_operation(action.operation) || evaluate(action.try(:assert))
+      end
+    end
 
     report.finalize
-  end 
+  end
 
-  def execute op
-    return unless op
+  def execute_operation(op)
+    unless op.instance_of?(FHIR::TestScript::Setup::Action::Operation) && op.valid?
+      FHIR.logger.info '[.execute_operation] Can not execute invalid Operation.'
+      return 'fail'
+    end
 
-    FHIR.logger.info "[.execute]: #{op.description}"
+    request = create_request(op)
+    if request.nil?
+      FHIR.logger.info "[.execute_operation] Unable to create a request, can not execute Operation #{op.label || '[unlabeled]'}."
+      return 'fail'
+    end
 
-    catch :exit do
-      throw :exit, report.fail('noClient') unless client
-      throw :exit, report.fail('noRequestType') unless op.type&.code || op.local_method
-      
-      request_type = REQUEST_TYPES[op.local_method || op.type.code]
-      throw :exit, report.skip('notImplemented') unless request_type
+    begin
+      client.send(*request)
+    rescue StandardError => e
+      FHIR.logger.info "[.execute_operation] ERROR: #{e.message} while executing Operation #{op.label || '[unlabeled]'}."
+      return 'fail'
+    end
 
-      path = extract_path(op, request_type)
-      throw :exit, report.fail('unknownFailure') unless path
+    storage(op)
+    'pass'
+  end
 
-      body = extract_body(op, request_type)
-      throw :exit, report.fail('unknownFailure') unless body
+  def create_request(op)
+    req_type = op.local_method&.to_sym || REQUEST_TYPES[op.type&.code]
 
-      headers = extract_headers(op)
-      headers = client.fhir_headers headers
+    request = [req_type,
+               extract_path(op, req_type),
+               extract_body(op, req_type),
+               client.fhir_headers(extract_headers(op))]
 
-      request = [request_type, path, body, headers]
-      request.compact!
+    return if SENDERS.include?(req_type) && request[2].nil?
 
-      begin
-        if op.type.code == 'history'
-          client.resource_instance_history(op.class, id_map[op.targetId])
-        else
-          client.send *request
-        end
-      rescue StandardError => e
-        log_error e.message
-        report.error e.message
-        throw :exit
-      end
-
-      storage(op)
-
-      report.pass
-    end 
+    request.compact
   end
 
   def evaluate assertion
@@ -170,43 +165,41 @@ class TestScriptRunnable
     assertTypes = ['compareToSourceExpression', 'compareToSourcePath', 'contentType', 'expression', 'headerField', 'minimumId', 'navigationLinks', 'path', 'requestMethod', 'requestURL', 'response', 'responseCode', 'resource', 'validateProfileId']
 
     begin
-      rawType = assertion.to_hash.find { |k, v| assertTypes.include? k } 
+      rawType = assertion.to_hash.find { |k, v| assertTypes.include? k }
       assertType = rawType[0].split(/(?<=\p{Ll})(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})/).map(&:downcase).join('_')
-      self.send(("assert_#{assertType}").to_sym, assertion) 
-      
+      self.send(("assert_#{assertType}").to_sym, assertion)
+
     rescue AssertionException => e
       return assertion.warningOnly ? report.warning(e.message) : report.fail(e.message)
     rescue StandardError => e
       FHIR.logger.error "Unable to process assertion. Error: #{e.message}"
       report.error e.message
       return
-    end 
+    end
     report.pass
   end
-  
+
   def extract_path(operation, request_type)
     return replace_variables(operation.url) if operation.url
 
     if operation.params
-      return if operation.resource.nil? && requires_type(operation)
-
-      mime = "{&_format=#{FORMAT_MAP[operation.contentType]}}" if operation.contentType
+      mime = "&_format=#{get_format(operation.contentType)}" if operation.contentType
       params = "#{replace_variables(operation.params)}#{mime}"
       search = '/_search' if request_type == :post
       "#{operation.resource}#{search}#{params}"
     elsif operation.targetId
-      type = response_map[operation.targetId]&.resource&.resourceType
+      resource = response_map[operation.targetId]&.[](:body)
+      return unless resource
+      type = FHIR.from_contents(resource).resourceType
       id = id_map[operation.targetId]
       return "#{type}/#{id}" unless type.nil? || id.nil?
     elsif operation.sourceId
-      fixtures[operation.sourceId]&.resourceType
+      (fixtures[operation.sourceId] || begin
+        resource = response_map[operation.sourceId]&.[](:body)
+        return unless resource
+        FHIR.from_contents(resource)
+      end).resourceType
     end
-  end
-
-  # Determines if the operation requires [type] as part of
-  # its intended request url
-  def requires_type(operation)
-    !['search'].include?(operation.type.code)
   end
 
   def extract_body(operation, request_type)
@@ -230,14 +223,14 @@ class TestScriptRunnable
 
   def get_format format
     FORMAT_MAP[format] || format
-  end  
+  end
 
-  def successful? code 
+  def successful? code
     [200, 202, 204].include? code
-  end 
+  end
 
   def storage(op)
-    self.reply = client.reply 
+    self.reply = client.reply
     reply.nil? ? return : client.reply = nil
 
     request_map[op.requestId] = reply.request if op.requestId
@@ -247,22 +240,22 @@ class TestScriptRunnable
 
     if op.targetId and (reply.request[:method] == :delete) and successful?(reply.response[:code])
       id_map.delete(op.targetId) and return
-    end 
+    end
 
     dynamic_id = reply.resource&.id || begin
-      reply.response&.[](:headers)&.[]('location')&.remove(reply.request[:url].to_s)&.split('/')&.[](2) 
-    end 
+      reply.response&.[](:headers)&.[]('location')&.remove(reply.request[:url].to_s)&.split('/')&.[](2)
+    end
 
     id_map[op.responseId] = dynamic_id if op.responseId and dynamic_id
     id_map[op.sourceId] = dynamic_id if op.sourceId and dynamic_id
     return
-  end 
+  end
 
   def find_resource id
     fixtures[id] || response_map[id]&.[](:body)
-  end 
+  end
 
-  def replace_variables placeholder    
+  def replace_variables placeholder
     return placeholder unless placeholder&.include? '${'
     replaced = placeholder.clone
 
@@ -270,27 +263,27 @@ class TestScriptRunnable
       next unless replaced.include? "${#{var.name}}"
       replacement = evaluate_variable(var)
       replaced.gsub!("${#{var.name}}", replacement) if replacement
-    end 
+    end
 
     return replaced
   end
 
   def evaluate_variable var
-    if var.expression 
-      evaluate_expression(var.expression, find_resource(var.sourceId)) 
+    if var.expression
+      evaluate_expression(var.expression, find_resource(var.sourceId))
     elsif var.path
-      evaluate_path(var.path, find_resource(var.sourceId)) 
+      evaluate_path(var.path, find_resource(var.sourceId))
     elsif var.headerField
       headers = response_map[var.sourceId]&.[](:headers)
       headers&.find { |h, v| h == var.headerField.downcase }&.last
     end || var.defaultValue
-  end 
+  end
 
   def evaluate_expression(expression, resource)
     return unless expression and resource
 
     return FHIRPath.evaluate(expression, resource.to_hash)
-  end 
+  end
 
   def evaluate_path(path, resource)
     return unless path and resource
@@ -301,9 +294,9 @@ class TestScriptRunnable
     rescue
       # If xpath fails, see if JSON path will work...
       result = JsonPath.new(path).first(resource.to_json)
-    end 
+    end
     return result
-  end 
+  end
 
   def extract_xpath_value(resource_xml, resource_xpath)
     # Massage the xpath if it doesn't have fhir: namespace or if doesn't end in @value
