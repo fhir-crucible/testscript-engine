@@ -4,7 +4,7 @@ require './TestScriptRunnable' # TODO: Remove
 
 test_server_url = 'http://server.fire.ly'
 testscript_path = '../TestScripts'
-testscript_path = nil
+testscript_file = nil
 
 parameters = ARGV
 parameters.each do |parameter|

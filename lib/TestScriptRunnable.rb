@@ -3,7 +3,7 @@ require 'pry-nav'
 require 'jsonpath'
 require 'fhir_client'
 require_relative 'assertions'
-require_relative './TestReportHandler.rb'
+require_relative './TestReportBuilder.rb'
 
 class TestScriptRunnable
   include Assertions
@@ -37,7 +37,7 @@ class TestScriptRunnable
   end
 
   def report
-    @report ||= TestReportHandler.setup(script)
+    @report ||= TestReportHandler.report(script)
   end
 
   def autocreate_ids
