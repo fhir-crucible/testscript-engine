@@ -15,7 +15,7 @@ class TestScriptRunnable
                     'history' => :get,
                     nil => :get }.freeze
 
-  attr_accessor :script, :reply
+  attr_accessor :reply
 
   # maps fixture ids to server ids
   def id_map
@@ -39,6 +39,11 @@ class TestScriptRunnable
     @report ||= TestReportHandler.setup(script)
   end
 
+  def script(script = nil)
+    @script = script if script
+    @script
+  end
+
   def client client = nil
     @client = client if client
     @client ||= FHIR::Client.new('https://localhost:8080')
@@ -52,7 +57,7 @@ class TestScriptRunnable
       raise ArgumentError
     end
 
-    self.script = script
+    script(script)
   end
 
   def load_fixtures
