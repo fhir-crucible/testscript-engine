@@ -3,7 +3,6 @@ require 'pry-nav'
 require 'jsonpath'
 require 'fhir_client'
 require_relative 'assertions'
-require_relative './MessageHandler.rb'
 require_relative './TestReportHandler.rb'
 
 class TestScriptRunnable
@@ -15,7 +14,7 @@ class TestScriptRunnable
                     'history' => :get,
                     nil => :get }.freeze
 
-  attr_accessor :script, :reply
+  attr_accessor :reply
 
   # maps fixture ids to server ids
   def id_map
@@ -32,41 +31,158 @@ class TestScriptRunnable
   end
 
   def fixtures
-    @fixtures ||= load_fixtures
+    @fixtures ||= {}
   end
 
   def report
     @report ||= TestReportHandler.setup(script)
   end
 
-  def client client = nil
+  def autocreate_ids
+    @autocreate_ids ||= []
+  end
+
+  def autodelete_ids
+    @autocreate_ids ||= []
+  end
+
+  def script(script = nil)
+    @script = script if script
+    @script
+  end
+
+  def client(client = nil)
     @client = client if client
     @client ||= FHIR::Client.new('https://localhost:8080')
   end
 
   def initialize script
-    extend MessageHandler
-
     unless (script.is_a? FHIR::TestScript) && script.valid?
       FHIR.logger.error '[.initialize] Received invalid or non-TestScript resource.'
       raise ArgumentError
     end
 
-    self.script = script
+    script(script)
+
+    pre_processing
+  end
+
+  def run(client = nil)
+    client(client)
+
+    setup_execution
+    test_execution
+    teardown_execution
+
+    post_processing
+
+    report.finalize
+  end
+
+  def pre_processing
+    FHIR.logger.info 'Begin pre-processing.'
+    load_fixtures
+
+    autocreate_ids.each do |fixture_id|
+      FHIR.logger.info "Auto-creating static fixture #{fixture_id}"
+      execute_operation(operation_create(fixture_id))
+    end
+
+    FHIR.logger.info 'Finish pre-processing.'
+  end
+
+  def setup_execution
+    return unless script.setup
+
+    FHIR.logger.info 'Begin setup.'
+
+    handle_actions(script.setup.action, true)
+
+    FHIR.logger.info 'Finish setup.'
+  end
+
+  def test_execution
+    return if script.test.empty?
+
+    FHIR.logger.info 'Begin test execution.'
+
+    script.test.each { |test| handle_actions(test.action, false) }
+
+    FHIR.logger.info 'Finish test execution.'
+  end
+
+  def teardown_execution
+    return unless script.teardown
+
+    FHIR.logger.info 'Begin teardown.'
+
+    handle_actions(script.teardown.action, false)
+
+    FHIR.logger.info 'Finish teardown.'
+  end
+
+  def post_processing
+    FHIR.logger.info 'Begin post-processing.'
+
+    autodelete_ids.each do |fixture_id|
+      FHIR.logger.info "Auto-deleting dynamic fixture #{fixture_id}"
+      execute_operation(operation_delete(fixture_id))
+    end
+
+    FHIR.logger.info 'Finish post-processing.'
+  end
+
+  def handle_actions(actions, end_on_fail)
+    actions.each do |action|
+      result = begin
+        if action.operation
+          execute_operation(action.operation)
+        elsif action.respond_to?(:assert)
+          evaluate(action.assert)
+        end
+      end
+
+      if result == 'fail' and end_on_fail
+        # TODO: Populate TestReport with fails
+        return
+      else
+        # TODO: Populate TestReport
+        return
+      end
+    end
+  end
+
+  def operation_create(sourceId)
+    FHIR::TestScript::Setup::Action::Operation.new({
+      sourceId: sourceId,
+      local_method: 'create'
+    })
+  end
+
+  def operation_delete(sourceId)
+    FHIR::TestScript::Setup::Action::Operation.new({
+      targetId: id_map[sourceId],
+      local_method: 'delete'
+    })
   end
 
   def load_fixtures
-    script.fixture.each_with_object({}) do |fixture, hash|
-      next warn 'noFixtureId' unless fixture.id
-      next warn 'noFixtureResource' unless fixture.resource
-      next warn 'badFixtureReference' unless resource = get_resource_from_ref(fixture.resource)
+    FHIR.logger.info 'Beginning loading fixtures.'
+    script.fixture do |fixture|
+      FHIR.logger.info 'No ID for static fixture, can not process.' unless fixture.id
+      FHIR.logger.info 'No resource for static fixture, can not process.' unless fixture.resource
 
-      hash[fixture.id] = resource
+      resource = get_resource_from_ref(fixture.resource)
+      FHIR.logger.info 'No reference for static fixture, can not process' unless resource
+
+      FHIR.logger.info "Storing static fixture #{fixture.id}"
+      fixtures[fixture.id] = resource
       type = resource.resourceType
 
-      script.setup.action.unshift action_create(fixture.id, type) if fixture.autocreate
-      script.teardown.action << action_delete(fixture.id, type) if fixture.autodelete
+      autocreate_ids << fixture.id if fixture.autocreate
+      autodelete_ids << fixture.id if fixture.autodelete
     end
+    FHIR.logger.info 'Finishing loading fixtures.'
   end
 
   def get_resource_from_ref reference
@@ -85,40 +201,6 @@ class TestScriptRunnable
     rescue StandardError => e
       warn('badReference', ref)
     end
-  end
-
-  def action_delete(sourceId, type)
-    FHIR::TestScript::Setup::Action.new({
-      operation: FHIR::TestScript::Setup::Action::Operation.new({
-        sourceId: sourceId,
-        resource: type,
-        local_method: 'delete'
-      })
-    })
-  end
-
-  def action_create(sourceId, type)
-    FHIR::TestScript::Setup::Action.new({
-      operation: FHIR::TestScript::Setup::Action::Operation.new({
-        sourceId: sourceId,
-        resource: type,
-        local_method: 'delete'
-      })
-    })
-  end
-
-  def run client = nil
-    client client
-
-    [script.setup, *script.test, script.teardown].each do |section|
-      next unless section
-
-      section.action.each do |action|
-        execute_operation(action.operation) || evaluate(action.try(:assert))
-      end
-    end
-
-    report.finalize
   end
 
   def execute_operation(op)
