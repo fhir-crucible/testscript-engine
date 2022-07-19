@@ -72,18 +72,10 @@ class TestScriptRunnable
 
     autocreate_ids.each do |fixture_id|
       FHIR.logger.info "Auto-creating static fixture #{fixture_id}"
-      execute_operation(action_create(fixture_id))
+      execute_operation(operation_create(fixture_id))
     end
 
     FHIR.logger.info 'Finish pre-processing.'
-  end
-
-  def action_create(sourceId)
-    FHIR::TestScript::Setup::Action::Operation.new({
-      sourceId: sourceId,
-      resource: type,
-      local_method: 'delete'
-    })
   end
 
   def setup_execution
@@ -91,12 +83,36 @@ class TestScriptRunnable
   end
 
   def test_execution
+
   end
 
   def teardown_execution
+
   end
 
   def post_processing
+    FHIR.logger.info 'Begin post-processing.'
+
+    autodelete_ids.each do |fixture_id|
+      FHIR.logger.info "Auto-deleting dynamic fixture #{fixture_id}"
+      execute_operation(operation_delete(fixture_id))
+    end
+
+    FHIR.logger.info 'Finish post-processing.'
+  end
+
+  def operation_create(sourceId)
+    FHIR::TestScript::Setup::Action::Operation.new({
+      sourceId: sourceId,
+      local_method: 'create'
+    })
+  end
+
+  def operation_delete(sourceId)
+    FHIR::TestScript::Setup::Action::Operation.new({
+      targetId: id_map[sourceId],
+      local_method: 'delete'
+    })
   end
 
   def load_fixtures
@@ -134,16 +150,6 @@ class TestScriptRunnable
     rescue StandardError => e
       warn('badReference', ref)
     end
-  end
-
-  def action_delete(sourceId, type)
-    FHIR::TestScript::Setup::Action.new({
-      operation: FHIR::TestScript::Setup::Action::Operation.new({
-        sourceId: sourceId,
-        resource: type,
-        local_method: 'delete'
-      })
-    })
   end
 
   def run client = nil
