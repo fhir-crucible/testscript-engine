@@ -3,20 +3,25 @@
 require 'TestScriptRunnable'
 
 describe TestScriptRunnable do
-  let(:id) { '123' }
-  let(:req_type) { :get }
-  let(:contentType) { 'xml' }
-  let(:sourceId) { 'sourceId' }
-  let(:targetId) { 'patient-create' }
-  let(:resource) { FHIR::Patient.new }
-  let(:relative_url) { 'Patient/123' }
-  let(:params) { '?_lastUpdated=gt2010-10-01' }
-  let(:client) { FHIR::Client.new(absolute_url) }
-  let(:absolute_url) { 'https://example.com/Patient/123' }
-  let(:clientReply) { FHIR::ClientReply.new(nil, nil, client) }
-  let(:operation) { FHIR::TestScript::Setup::Action::Operation.new }
-  let(:runnable) do
-    TestScriptRunnable.new FHIR::TestScript.new(
+  let(:operation) { FHIR::TestScript::Setup::Action::Operation.new(encodeRequestUrl: true) }
+
+  before(:all) do
+    @req_type = :get
+    @serverId = 'server_id'
+    @sourceId = 'source_id'
+    @targetId = 'target_id'
+    @url = 'http://example.com'
+    @resource = FHIR::Patient.new
+    @absolute_url = "#{@url}/#{@path}"
+    @path = "#{@resource_path}/#{@serverId}"
+    @resourceType = @resource.resourceType.to_s
+    @params = '?_outputFormat=application/ndjson'
+    @resource_path = @resource.resourceType.to_s
+    @allergy_resource = FHIR::AllergyIntolerance.new
+    @allergy_resource_path = @allergy_resource.resourceType.to_s
+    @allergy_path = "#{@allergy_resource_path}/#{@serverId}"
+    @response = { code: 200, headers: {}, body: @allergy_resource.to_json }
+    @runnable = TestScriptRunnable.new FHIR::TestScript.new(
       {
         "resourceType": 'TestScript',
         "url": 'http://hl7.org/fhir/TestScript/testscript-example-history',
@@ -24,144 +29,154 @@ describe TestScriptRunnable do
         "status": 'draft'
       }
     )
+    @runnable.id_map[@targetId] = @serverId
+    @runnable.fixtures[@sourceId] = @resource
+    @runnable.response_map[@targetId] = @response
   end
 
-  describe '#extract_path' do
-    context 'with absolute url' do
-      before { allow(runnable).to receive(:replace_variables).and_return(absolute_url) }
-
-      it 'creates the absolute path' do
-        operation.url = absolute_url
-        expect(runnable.extract_path(operation, req_type)).to eq(absolute_url)
-      end
-    end
-
-    context 'with relative url' do
-      before { allow(runnable).to receive(:replace_variables).and_return(relative_url) }
-
-      it 'creates the relative path' do
-        operation.url = relative_url
-        expect(runnable.extract_path(operation, req_type)).to eq(relative_url)
-      end
-    end
-
-    context 'with params' do
+  describe '.extract_path' do
+    context 'given url' do
       before do
-        operation.params = params
-        operation.resource = resource.resourceType
-        allow(runnable).to receive(:replace_variables).and_return(params)
-        allow(runnable).to receive(:requires_type).and_return(false)
+        operation.url = @absolute_url
+        allow(@runnable).to receive(:replace_variables).and_return(@absolute_url)
       end
 
-      context 'for GET search' do
-        context 'with resource' do
-          it 'creates the /[type][?parameters] path' do
-            expect(runnable.extract_path(operation, req_type)).to eq("#{resource.resourceType}#{params}")
-          end
-        end
+      it 'returns url' do
+        result = @runnable.extract_path(operation, @req_type)
 
-        context 'without resource' do
-          before { operation.resource = nil }
-
-          it 'creates the [?parameters] path' do
-            expect(runnable.extract_path(operation, req_type)).to eq(params.to_s)
-          end
-        end
-
-        context 'with mime-type' do
-          before { operation.contentType = contentType }
-
-          it 'creates the /[type][?parameters]{&_format=[mime-type]} path' do
-            expect(runnable.extract_path(operation, req_type))
-              .to eq("#{resource.resourceType}#{params}{&_format=application/fhir+#{contentType}}")
-          end
-        end
-      end
-
-      context 'for POST search' do
-        let(:req_type) { :post }
-
-        context 'with resource' do
-          it 'creates the [type]/_search[?parameters] path' do
-            expect(runnable.extract_path(operation, req_type)).to eq("#{resource.resourceType}/_search#{params}")
-          end
-        end
-
-        context 'without resource' do
-          before { operation.resource = nil }
-
-          it 'creates the /_search[?parameters] path' do
-            expect(runnable.extract_path(operation, req_type)).to eq("/_search#{params}")
-          end
-        end
-
-        context 'with mime-type' do
-          before { operation.contentType = contentType }
-
-          it 'creates the [type]/_search[?parameters]{&_format=[mime-type]} path' do
-            expect(runnable.extract_path(operation, req_type))
-              .to eq("#{resource.resourceType}/_search#{params}{&_format=application/fhir+#{contentType}}")
-          end
-        end
-      end
-
-      context 'with resource type required' do
-        before { allow(runnable).to receive(:requires_type).and_return(true) }
-
-        context 'with resource' do
-          it 'returns /_search[?parameters] path' do
-            expect(runnable.extract_path(operation, req_type)).to eq("#{resource.resourceType}#{params}")
-          end
-        end
-
-        context 'without resource' do
-          before { operation.resource = nil }
-
-          it 'returns nil' do
-            expect(runnable.extract_path(operation, req_type)).to eq(nil)
-          end
-        end
+        expect(result).to eq(@absolute_url)
       end
     end
 
-    context 'with targetId' do
+    context 'given params' do
       before do
-        operation.targetId = targetId
-        clientReply.resource = resource
-        runnable.response_map[targetId] = clientReply
+        operation.params = @params
+        operation.resource = @resourceType
       end
 
-      context 'denoting Resource A' do
-        before { runnable.id_map[targetId] = id }
+      context 'with :get' do
+        it 'returns [resourceType][params] path' do
+          result = @runnable.extract_path(operation, @req_type)
 
-        it 'creates path to Resource A' do
-          expect(runnable.extract_path(operation, req_type)).to eq("#{resource.resourceType}/#{id}")
+          expect(result).to eq("#{@resourceType}#{@params}")
+        end
+
+        context 'and contentType' do
+          before { operation.contentType = 'some_content' }
+
+          it 'returns [resourceType][params][&_format=mime] in path' do
+            result = @runnable.extract_path(operation, @req_type)
+
+            expect(result).to eq("#{@resourceType}#{@params}&_format=some_content")
+          end
+
+          context 'without resource' do
+            it 'returns [params][&_format=mime] in system-level path' do
+              operation.resource = nil
+              result = @runnable.extract_path(operation, @req_type)
+
+              expect(result).to eq("#{@params}&_format=some_content")
+            end
+          end
+        end
+
+        context 'without resource' do
+          it 'returns [params] in system-level path' do
+            operation.resource = nil
+            result = @runnable.extract_path(operation, @req_type)
+
+            expect(result).to eq(@params)
+          end
         end
       end
 
-      context 'not denoting some Resource A' do
-        it 'returns nil' do
-          expect(runnable.extract_path(operation, req_type)).to eq(nil)
+      context 'with :post' do
+        it 'returns /_search[resourceType][params] path' do
+          result = @runnable.extract_path(operation, :post)
+
+          expect(result).to eq("#{@resourceType}/_search#{@params}")
+        end
+
+        context 'and contentType' do
+          before { operation.contentType = 'some_content' }
+
+          it 'returns [resourceType][params][&_format=mime] in path' do
+            result = @runnable.extract_path(operation, :post)
+
+            expect(result).to eq("#{@resourceType}/_search#{@params}&_format=some_content")
+          end
+
+          context 'without resource' do
+            it 'returns [params][&_format=mime] in system-level path' do
+              operation.resource = nil
+              result = @runnable.extract_path(operation, :post)
+
+              expect(result).to eq("/_search#{@params}&_format=some_content")
+            end
+          end
+        end
+
+        context 'without resource' do
+          it 'returns [params] in system-level path' do
+            operation.resource = nil
+            result = @runnable.extract_path(operation, :post)
+
+            expect(result).to eq("/_search#{@params}")
+          end
         end
       end
     end
 
-    context 'with sourceId' do
-      before { operation.sourceId = sourceId }
-
-      context 'denoting some Fixture A' do
-        before { runnable.fixtures[sourceId] = resource }
-
-        it 'returns path to create Fixture A' do
-          expect(runnable.extract_path(operation, req_type)).to eq(resource.resourceType.to_s)
-        end
-      end
-
-      context 'not denoting some Fixture A' do
-        before { runnable.fixtures[sourceId] = nil }
+    context 'given targetId' do
+      context 'denoting nothing' do
+        before { operation.targetId = 'not_target_id' }
 
         it 'returns nil' do
-          expect(runnable.extract_path(operation, req_type)).to eq(nil)
+          result = @runnable.extract_path(operation, @req_type)
+
+          expect(result).to be_nil
+        end
+      end
+
+      context 'denoting dynamic id' do
+        before { operation.targetId = @targetId }
+
+        it 'returns [resourceType]/[id] path' do
+          result = @runnable.extract_path(operation, @req_type)
+
+          expect(result).to eq(@allergy_path)
+        end
+      end
+    end
+
+    context 'given sourceId' do
+      context 'denoting nothing' do
+        before { operation.sourceId = 'not_source_id' }
+
+        it 'returns nil' do
+          result = @runnable.extract_path(operation, @req_type)
+
+          expect(result).to be_nil
+        end
+      end
+
+      context 'denoting static fixture' do
+        before { operation.sourceId = @sourceId }
+
+        it 'returns [resourceType] path' do
+          result = @runnable.extract_path(operation, @req_type)
+
+          expect(result).to eq(@resource_path)
+        end
+      end
+
+      context 'denoting response body' do
+        before { operation.sourceId = @targetId }
+
+        it 'returns [resourceType] path' do
+          result = @runnable.extract_path(operation, @req_type)
+
+          expect(result).to eq(@allergy_resource_path)
         end
       end
     end

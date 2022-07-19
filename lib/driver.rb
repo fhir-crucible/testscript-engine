@@ -2,7 +2,7 @@ require 'pry-nav' # TODO: Remove
 require_relative './TestScriptEngine'
 require './TestScriptRunnable' # TODO: Remove
 
-test_server_url = 'http://hapi.fhir.org/baseR4'
+test_server_url = 'http://server.fire.ly'
 testscript_path = '../TestScripts'
 testscript_file = nil
 
