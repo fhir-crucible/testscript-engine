@@ -3,7 +3,6 @@ require 'pry-nav'
 require 'jsonpath'
 require 'fhir_client'
 require_relative 'assertions'
-require_relative './MessageHandler.rb'
 require_relative './TestReportHandler.rb'
 
 class TestScriptRunnable
@@ -50,8 +49,6 @@ class TestScriptRunnable
   end
 
   def initialize script
-    extend MessageHandler
-
     unless (script.is_a? FHIR::TestScript) && script.valid?
       FHIR.logger.error '[.initialize] Received invalid or non-TestScript resource.'
       raise ArgumentError
