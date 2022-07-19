@@ -31,11 +31,19 @@ class TestScriptRunnable
   end
 
   def fixtures
-    @fixtures ||= load_fixtures
+    @fixtures ||= {}
   end
 
   def report
     @report ||= TestReportHandler.setup(script)
+  end
+
+  def autocreate_ids
+    @autocreate_ids ||= []
+  end
+
+  def autodelete_ids
+    @autocreate_ids ||= []
   end
 
   def script(script = nil)
@@ -55,20 +63,59 @@ class TestScriptRunnable
     end
 
     script(script)
+    pre_processing
+  end
+
+  def pre_processing
+    FHIR.logger.info 'Begin pre-processing.'
+    load_fixtures
+
+    autocreate_ids.each do |fixture_id|
+      FHIR.logger.info "Auto-creating static fixture #{fixture_id}"
+      execute_operation(action_create(fixture_id))
+    end
+
+    FHIR.logger.info 'Finish pre-processing.'
+  end
+
+  def action_create(sourceId)
+    FHIR::TestScript::Setup::Action::Operation.new({
+      sourceId: sourceId,
+      resource: type,
+      local_method: 'delete'
+    })
+  end
+
+  def setup_execution
+
+  end
+
+  def test_execution
+  end
+
+  def teardown_execution
+  end
+
+  def post_processing
   end
 
   def load_fixtures
-    script.fixture.each_with_object({}) do |fixture, hash|
-      next warn 'noFixtureId' unless fixture.id
-      next warn 'noFixtureResource' unless fixture.resource
-      next warn 'badFixtureReference' unless resource = get_resource_from_ref(fixture.resource)
+    FHIR.logger.info 'Beginning loading fixtures.'
+    script.fixture do |fixture|
+      FHIR.logger.info 'No ID for static fixture, can not process.' unless fixture.id
+      FHIR.logger.info 'No resource for static fixture, can not process.' unless fixture.resource
 
-      hash[fixture.id] = resource
+      resource = get_resource_from_ref(fixture.resource)
+      FHIR.logger.info 'No reference for static fixture, can not process' unless resource
+
+      FHIR.logger.info "Storing static fixture #{fixture.id}"
+      fixtures[fixture.id] = resource
       type = resource.resourceType
 
-      script.setup.action.unshift action_create(fixture.id, type) if fixture.autocreate
-      script.teardown.action << action_delete(fixture.id, type) if fixture.autodelete
+      autocreate_ids << fixture.id if fixture.autocreate
+      autodelete_ids << fixture.id if fixture.autodelete
     end
+    FHIR.logger.info 'Finishing loading fixtures.'
   end
 
   def get_resource_from_ref reference
@@ -90,16 +137,6 @@ class TestScriptRunnable
   end
 
   def action_delete(sourceId, type)
-    FHIR::TestScript::Setup::Action.new({
-      operation: FHIR::TestScript::Setup::Action::Operation.new({
-        sourceId: sourceId,
-        resource: type,
-        local_method: 'delete'
-      })
-    })
-  end
-
-  def action_create(sourceId, type)
     FHIR::TestScript::Setup::Action.new({
       operation: FHIR::TestScript::Setup::Action::Operation.new({
         sourceId: sourceId,
