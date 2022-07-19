@@ -51,7 +51,7 @@ class TestScriptRunnable
     @script
   end
 
-  def client client = nil
+  def client(client = nil)
     @client = client if client
     @client ||= FHIR::Client.new('https://localhost:8080')
   end
@@ -64,6 +64,16 @@ class TestScriptRunnable
 
     script(script)
     pre_processing
+  end
+
+  def run(client = nil)
+    client(client)
+
+    setup_execution
+    test_execution
+    teardown_execution
+
+    post_processing
   end
 
   def pre_processing
@@ -88,6 +98,7 @@ class TestScriptRunnable
 
   def teardown_execution
 
+    report.finalize
   end
 
   def post_processing
@@ -150,20 +161,6 @@ class TestScriptRunnable
     rescue StandardError => e
       warn('badReference', ref)
     end
-  end
-
-  def run client = nil
-    client client
-
-    [script.setup, *script.test, script.teardown].each do |section|
-      next unless section
-
-      section.action.each do |action|
-        execute_operation(action.operation) || evaluate(action.try(:assert))
-      end
-    end
-
-    report.finalize
   end
 
   def execute_operation(op)
