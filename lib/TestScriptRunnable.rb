@@ -63,6 +63,7 @@ class TestScriptRunnable
     end
 
     script(script)
+
     pre_processing
   end
 
@@ -74,6 +75,8 @@ class TestScriptRunnable
     teardown_execution
 
     post_processing
+
+    report.finalize
   end
 
   def pre_processing
@@ -89,16 +92,33 @@ class TestScriptRunnable
   end
 
   def setup_execution
+    return unless script.setup
 
+    FHIR.logger.info 'Begin setup.'
+
+    handle_actions(script.setup.action, true)
+
+    FHIR.logger.info 'Finish setup.'
   end
 
   def test_execution
+    return if script.test.empty?
 
+    FHIR.logger.info 'Begin test execution.'
+
+    script.test.each { |test| handle_actions(test.action, false) }
+
+    FHIR.logger.info 'Finish test execution.'
   end
 
   def teardown_execution
+    return unless script.teardown
 
-    report.finalize
+    FHIR.logger.info 'Begin teardown.'
+
+    handle_actions(script.teardown.action, false)
+
+    FHIR.logger.info 'Finish teardown.'
   end
 
   def post_processing
@@ -110,6 +130,26 @@ class TestScriptRunnable
     end
 
     FHIR.logger.info 'Finish post-processing.'
+  end
+
+  def handle_actions(actions, end_on_fail)
+    actions.each do |action|
+      result = begin
+        if action.operation
+          execute_operation(action.operation)
+        elsif action.respond_to?(:assert)
+          evaluate(action.assert)
+        end
+      end
+
+      if result == 'fail' and end_on_fail
+        # TODO: Populate TestReport with fails
+        return
+      else
+        # TODO: Populate TestReport
+        return
+      end
+    end
   end
 
   def operation_create(sourceId)
