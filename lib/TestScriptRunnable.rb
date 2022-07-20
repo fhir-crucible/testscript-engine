@@ -168,7 +168,7 @@ class TestScriptRunnable
 
   def load_fixtures
     FHIR.logger.info 'Beginning loading fixtures.'
-    script.fixture do |fixture|
+    script.fixture.each do |fixture|
       FHIR.logger.info 'No ID for static fixture, can not process.' unless fixture.id
       FHIR.logger.info 'No resource for static fixture, can not process.' unless fixture.resource
 

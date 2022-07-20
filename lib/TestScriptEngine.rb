@@ -43,6 +43,7 @@ class TestScriptEngine
     FHIR.logger.info "[.load_scripts] TestScript Path: [#{root}]"
 
     on_deck.each do |resource|
+      next if resource.include? "/fixtures/"
       next if file_name && !resource.include?(file_name)
 
       begin 
