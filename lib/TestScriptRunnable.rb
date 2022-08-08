@@ -3,10 +3,11 @@ require 'pry-nav'
 require 'jsonpath'
 require 'fhir_client'
 require_relative 'assertions'
-require_relative './TestReportBuilder.rb'
+require_relative './TestReportHandler.rb'
 
 class TestScriptRunnable
   include Assertions
+  include TestReportHandler
 
   REQUEST_TYPES = { 'read' => :get,
                     'create' => :post,
@@ -36,9 +37,14 @@ class TestScriptRunnable
     @fixtures ||= {}
   end
 
-  def report
-    @report ||= TestReportHandler.report(script)
-  end
+  # def report
+  #   @report ||= TestReportHandler.report(script)
+  # end
+  # Storing the report structure and a fresh stack of operations
+  # Anytime this runnable is run, it creates a copy of those things and completes them
+  # To confirm: if I have two instances of a class, and both classes include a module, where that
+  # module itself includes a data structure, do the two instances share the same data structure?
+    # possibly, matters whether the class is included or extended
 
   def autocreate_ids
     @autocreate_ids ||= []

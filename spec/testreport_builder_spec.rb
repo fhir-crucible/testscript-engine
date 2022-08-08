@@ -1,4 +1,4 @@
-require 'TestReportBuilder'
+require 'TestReportHandler'
 
 describe TestReportBuilder do
   before(:all) do
