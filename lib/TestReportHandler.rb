@@ -2,6 +2,20 @@
 require 'pry-nav'
 require 'fhir_client'
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                                                                               #
+#                           TestReportHandler Module                            #
+#                                                                               #
+# The TestReportHandler (handler) module is intended to be imported into the    #
+# TestScriptRunnable (runnable) class. The handler instantiates a               #
+# TestReportBuilder (builder) object tailored to the parent runnable instance.  #
+# In executing a runnable, calls (i.e. 'Pass', 'Fail') are made to the handler  #
+# module -- which then directs the builder instance to update its report        #
+# accordingly. Each time the runnable is executed, it instantiates a new        #
+# builder instance is instantiated, using the initial builder as a template.    #                                                              #
+#                                                                               #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 module TestReportHandler
   def self.included(klass)
     def testreport
@@ -21,7 +35,7 @@ module TestReportHandler
     end
 
     def testreport_builder_template
-      @testreport_builder_template ||= TestReportBuilder.build_report
+      @testreport_builder_template ||= TestReportBuilder.new
     end
 
     def pass
@@ -42,8 +56,7 @@ module TestReportHandler
   end
 
   class TestReportBuilder
-    ### build_report
-    def self.build(script)
+    def self.build_report(script)
       builder = new
       builder.build_report_outline(script)
       builder
@@ -64,12 +77,6 @@ module TestReportHandler
 
     def cloning_in_progress?
       cloning_in_progress
-    end
-
-    def build_report_outline(script)
-      build_setup_outline(script.setup)
-      build_test_outline(script.test)
-      build_teardown_outline(script.teardown)
     end
 
     def report_outline
