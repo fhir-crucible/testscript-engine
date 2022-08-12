@@ -33,8 +33,8 @@ class TestScriptEngine
     end
   end
 
-  def initialize(endpoint = nil, directory_path = nil, file_name = nil)
-    self.endpoint = endpoint
+  def initialize(endpoints = nil, directory_path = nil, file_name = nil)
+    self.endpoints = endpoints
     self.directory_path = directory_path
     self.file_name = file_name
     self.debug_mode = true
