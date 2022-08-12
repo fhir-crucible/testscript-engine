@@ -3,7 +3,7 @@ require 'fhir_client'
 require_relative './TestScriptRunnable'
 
 class TestScriptEngine
-  attr_accessor :endpoint, :directory_path, :file_name
+  attr_accessor :endpoints, :directory_path, :file_name
 
   def scripts
     @scripts ||= {}
@@ -22,11 +22,11 @@ class TestScriptEngine
   end 
 
   def client
-    @client ||= FHIR::Client.new(endpoint || 'localhost:3000') 
+    @client ||= FHIR::Client.new(endpoints[0] || 'localhost:3000') 
   end 
 
-  def initialize(endpoint = nil, directory_path = nil, file_name = nil)
-    self.endpoint = endpoint
+  def initialize(endpoints = nil, directory_path = nil, file_name = nil)
+    self.endpoints = endpoints
     self.directory_path = directory_path
     self.file_name = file_name
   end

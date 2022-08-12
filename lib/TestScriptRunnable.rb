@@ -147,7 +147,7 @@ class TestScriptRunnable
         return
       else
         # TODO: Populate TestReport
-        return
+        # return
       end
     end
   end
@@ -167,7 +167,12 @@ class TestScriptRunnable
   end
 
   def load_fixtures
-    FHIR.logger.info 'Beginning loading fixtures.'
+    if script.fixture.length == 0 
+      then FHIR.logger.info '[.load_fixtures] No fixture found'
+      return
+    end
+
+    FHIR.logger.info 'Beginning loading fixtures.'    
     script.fixture.each do |fixture|
       FHIR.logger.info 'No ID for static fixture, can not process.' unless fixture.id
       FHIR.logger.info 'No resource for static fixture, can not process.' unless fixture.resource
@@ -209,14 +214,20 @@ class TestScriptRunnable
       return 'fail'
     end
 
+    FHIR.logger.info "[.execute_operation] " + op.description
+    FHIR.logger.info "[.execute_operation] Destination: " + op.destination.to_s if op.destination != nil
+
     request = create_request(op)
     if request.nil?
       FHIR.logger.info "[.execute_operation] Unable to create a request, can not execute Operation #{op.label || '[unlabeled]'}."
       return 'fail'
     end
 
+    # FHIR.logger.info "[.execute_operation] Request: " + request.to_s
+
     begin
       client.send(*request)
+      
     rescue StandardError => e
       FHIR.logger.info "[.execute_operation] ERROR: #{e.message} while executing Operation #{op.label || '[unlabeled]'}."
       return 'fail'
@@ -239,6 +250,10 @@ class TestScriptRunnable
     request.compact
   end
 
+  # The assertion to perform
+  # + Rule: Only a single assertion SHALL be present within setup action assert element.
+  # + Rule: Setup action assert SHALL contain either compareToSourceId and compareToSourceExpression, compareToSourceId and compareToSourcePath or neither.
+  # + Rule: Setup action assert response and responseCode SHALL be empty when direction equals request
   def evaluate assertion
     return unless assertion
 
@@ -262,19 +277,34 @@ class TestScriptRunnable
   end
 
   def extract_path(operation, request_type)
+    # If "url" element is defined, then "targetId", "resource", and "params" elements will be ignored. 
+    # Test engines would use whatever is specified in "url" without tampering with the string (beyond encoding the URL for HTTP). 
+    # Test engines do have to look for placeholders (${}) and replace the variable placeholders with the variable values at runtime before sending the request.
     return replace_variables(operation.url) if operation.url
 
+    # If "params" element is specified, then "targetId" element is ignored. 
+    # For FHIR operations that require a resource (e.g. "read" and "vread" operations), the "resource" element must be specified when "params" element is specified. 
     if operation.params
       mime = "&_format=#{get_format(operation.contentType)}" if operation.contentType
       params = "#{replace_variables(operation.params)}#{mime}"
       search = '/_search' if request_type == :post
       "#{operation.resource}#{search}#{params}"
+    # If "url" and "params" elements are absent, then the request url will be constructed from "targetId" fixture if present. 
+    # For "read" operation, the resource and id values will be extracted from "targetId" fixture and used to construct the url.
+    # For "vread" and "history" operations, the versionId value will also be used. 
+    # Test engines would append whatever is specified for "params" to the URL after the resource type without tampering with the string (beyond encoding the URL for HTTP).
+    # The "params" element does not correspond exactly to "search parameters". Nor is it the "path". 
+    # It corresponds to the part of the URL that comes after the [type] (when "resource" element is specified); 
+    # e.g. It corresponds to "/[id]/_history/[vid] {?_format=[mime-type]}" in the following operation: 
+    # GET [base]/[type]/[id]/_history/[vid] {?_format=[mime-type]} 
+    # Test engines do have to look for placeholders (${}) and replace the variable placeholders with the variable values at runtime before sending the request.
     elsif operation.targetId
       resource = response_map[operation.targetId]&.[](:body)
       return unless resource
       type = FHIR.from_contents(resource).resourceType
       id = id_map[operation.targetId]
       return "#{type}/#{id}" unless type.nil? || id.nil?
+    # sourceId: the id of the fixture used as the body of a PUT or POST request
     elsif operation.sourceId
       (fixtures[operation.sourceId] || begin
         resource = response_map[operation.sourceId]&.[](:body)
@@ -320,6 +350,8 @@ class TestScriptRunnable
 
     (reply.resource = FHIR.from_contents(reply.response&.[](:body).to_s)) rescue {}
 
+    FHIR.logger.info "[.execute_operation] Result code: " + reply.response[:code].to_s
+    
     if op.targetId and (reply.request[:method] == :delete) and successful?(reply.response[:code])
       id_map.delete(op.targetId) and return
     end
