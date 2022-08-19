@@ -53,18 +53,36 @@ class TestScriptRunnable
     @script
   end
 
-  def client(client = nil)
-    @client = client if client
-    @client ||= FHIR::Client.new('https://localhost:8080')
+  def client(endpoints, script)
+    if script.destination.length > endpoints.length
+      FHIR.logger.error "[.initialize] Not enough server endpoints (#{endpoints.length}) for destination (#{script.destination.length}) in TestScript"
+      exit
+    end
+
+    @clients = Hash[]
+    if script.destination.length == 0
+      @clients.store (0), (FHIR::Client.new(endpoints[0] || 'localhost:3000'))
+      return
+    end
+
+    script.destination.each do |destination|
+      @clients.store (destination.index), (FHIR::Client.new(endpoints[destination.index-1] || 'localhost:3000'))
+    end
+  end 
+
+  def get_client(destination)
+    return @clients[0] if destination == nil
+    return @clients[destination]
   end
 
-  def initialize script
+  def initialize endpoints, script
     unless (script.is_a? FHIR::TestScript) && script.valid?
       fail(:invalid_script) # TODO: Switch to ERROR
       raise ArgumentError
     end
 
     script(script)
+    client(endpoints, script)
 
     # TODO - move preprocessing to the 'run' method
     # I'll do this in a follow-up PR. The reason is that preprocessing,
@@ -78,11 +96,18 @@ class TestScriptRunnable
     # preprocessing
   end
 
+<<<<<<< HEAD
   def run(client = nil)
     client(client)
     fresh_testreport
 
     preprocessing # TODO: remove this
+=======
+  def run
+    setup_execution
+    test_execution
+    teardown_execution
+>>>>>>> c6f4de8 (Added multi-destination features, example testscript)
 
     setup if script.setup
     test unless script.test.empty?
@@ -153,10 +178,7 @@ class TestScriptRunnable
   end
 
   def load_fixtures
-    if script.fixture.length == 0 
-      then FHIR.logger.info '[.load_fixtures] No fixture found'
-      return
-    end
+    return FHIR.logger.info '[.load_fixtures] No fixture found' if script.fixture.length == 0 
 
     FHIR.logger.info 'Beginning loading fixtures.'    
     script.fixture.each do |fixture|
@@ -200,8 +222,8 @@ class TestScriptRunnable
       return false
     end
 
-    FHIR.logger.info "[.execute_operation] " + op.description
-    FHIR.logger.info "[.execute_operation] Destination: " + op.destination.to_s if op.destination != nil
+    FHIR.logger.info "[.execute_operation] Start operation: #{op.description}"
+    FHIR.logger.info "[.execute_operation] Origin: #{op.origin} ; Destination: #{op.destination}" if op.destination != nil and op.origin != nil 
 
     request = create_request(op)
     if request.nil?
@@ -210,11 +232,13 @@ class TestScriptRunnable
       return false
     end
 
-    # FHIR.logger.info "[.execute_operation] Request: " + request.to_s
-
     begin
+<<<<<<< HEAD
       #binding.pry
       client.send(*request)
+=======
+      get_client(op.destination).send(*request)
+>>>>>>> c6f4de8 (Added multi-destination features, example testscript)
       
     rescue StandardError => e
       fail(:execute_operation_error, (op.label || 'unlabeled'), e.message ) # TODO: Switch to ERROR
@@ -233,7 +257,7 @@ class TestScriptRunnable
     request = [req_type,
                extract_path(op, req_type),
                extract_body(op, req_type),
-               client.fhir_headers(extract_headers(op))]
+               get_client(op.destination).fhir_headers(extract_headers(op))]
 
     return if SENDERS.include?(req_type) && request[2].nil?
 
@@ -335,8 +359,8 @@ class TestScriptRunnable
   end
 
   def storage(op)
-    self.reply = client.reply
-    reply.nil? ? return : client.reply = nil
+    self.reply = get_client(op.destination).reply
+    reply.nil? ? return : get_client(op.destination).reply = nil
 
     request_map[op.requestId] = reply.request if op.requestId
     response_map[op.responseId] = reply.response if op.responseId

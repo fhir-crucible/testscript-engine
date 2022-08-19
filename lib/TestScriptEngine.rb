@@ -24,6 +24,7 @@ class TestScriptEngine
     directory_path || "../TestScripts"
   end
 
+<<<<<<< HEAD
   def client
     @client ||= begin
       info(:begin_initialize_client)
@@ -33,6 +34,8 @@ class TestScriptEngine
     end
   end
 
+=======
+>>>>>>> c6f4de8 (Added multi-destination features, example testscript)
   def initialize(endpoints = nil, directory_path = nil, file_name = nil)
     self.endpoints = endpoints
     self.directory_path = directory_path
@@ -80,6 +83,7 @@ class TestScriptEngine
   def make_runnables script = nil
     begin
       if valid_testscript? script
+<<<<<<< HEAD
         runnables[script.id] = TestScriptRunnable.new script
         info(:made_runnable, script.id)
       else
@@ -88,6 +92,16 @@ class TestScriptEngine
           info(:made_runnable, script.id)
         end
       end
+=======
+        runnables[script.id] = TestScriptRunnable.new endpoints, script
+        FHIR.logger.info "[.make_runnables] Generated runnable from TestScript with id [#{script.id}]."
+      else 
+        scripts.each do |_, script|
+          runnables[script.id] = TestScriptRunnable.new endpoints, script
+          FHIR.logger.info "[.make_runnables] Generated runnable from TestScript with id [#{script.id}]."
+        end 
+      end 
+>>>>>>> c6f4de8 (Added multi-destination features, example testscript)
     rescue => e
       error(:cant_make_runnable, script.id)
     end
@@ -99,14 +113,27 @@ class TestScriptEngine
   def execute_runnables runnable_id = nil
     if runnable_id
       if runnables[runnable_id]
+<<<<<<< HEAD
         reports[runnable_id] = runnable.run client
+=======
+        puts "\nBeggining execution of #{runnable_id}.\n\n"
+        reports[runnable_id] = runnable.execute
+        puts "\nFinished execution of #{runnable_id}. Score: #{reports[runnable_id].score} \n"
+>>>>>>> c6f4de8 (Added multi-destination features, example testscript)
       else
         error(:no_runnable_stored, runnable_id)
       end
     else
       runnables.each do |id, runnable|
+<<<<<<< HEAD
         reports[id] = runnable.run client
       end
+=======
+        puts "\nBeggining execution of #{id}.\n\n"
+        reports[id] = runnable.run
+        puts "\nFinished execution of #{id}. Score: #{reports[id].score} \n"
+      end 
+>>>>>>> c6f4de8 (Added multi-destination features, example testscript)
     end
   end
 
