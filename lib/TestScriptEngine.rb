@@ -21,10 +21,6 @@ class TestScriptEngine
     directory_path || "../TestScripts"
   end 
 
-  def client
-    @client ||= FHIR::Client.new(endpoints[0] || 'localhost:3000') 
-  end 
-
   def initialize(endpoints = nil, directory_path = nil, file_name = nil)
     self.endpoints = endpoints
     self.directory_path = directory_path
@@ -69,11 +65,11 @@ class TestScriptEngine
   def make_runnables script = nil
     begin
       if valid_testscript? script
-        runnables[script.id] = TestScriptRunnable.new script
+        runnables[script.id] = TestScriptRunnable.new endpoints, script
         FHIR.logger.info "[.make_runnables] Generated runnable from TestScript with id [#{script.id}]."
       else 
         scripts.each do |_, script|
-          runnables[script.id] = TestScriptRunnable.new script
+          runnables[script.id] = TestScriptRunnable.new endpoints, script
           FHIR.logger.info "[.make_runnables] Generated runnable from TestScript with id [#{script.id}]."
         end 
       end 
@@ -89,7 +85,7 @@ class TestScriptEngine
     if runnable_id
       if runnables[runnable_id]
         puts "\nBeggining execution of #{runnable_id}.\n\n"
-        reports[runnable_id] = runnable.execute client 
+        reports[runnable_id] = runnable.execute
         puts "\nFinished execution of #{runnable_id}. Score: #{reports[runnable_id].score} \n"
       else
          FHIR.logger.info "[.execute_runnables] No runnable stored with id [#{runnable_id}]." 
@@ -97,7 +93,7 @@ class TestScriptEngine
     else
       runnables.each do |id, runnable|
         puts "\nBeggining execution of #{id}.\n\n"
-        reports[id] = runnable.run client
+        reports[id] = runnable.run
         puts "\nFinished execution of #{id}. Score: #{reports[id].score} \n"
       end 
     end
