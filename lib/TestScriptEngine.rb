@@ -39,7 +39,7 @@ class TestScriptEngine
   # @path [String] Optional, specifies the path to the folder containing the
   #                TestScript Resources to-be loaded into the engine.
   def load_scripts
-    on_deck = Dir.glob("#{root}/**/*.{json, xml}")
+    on_deck = Dir.glob (["#{root}/**/*.{json}", "#{root}/**/*.{xml}"])
     FHIR.logger.info "[.load_scripts] TestScript Path: [#{root}]"
 
     on_deck.each do |resource|
