@@ -2,7 +2,7 @@ require 'pry-nav' # TODO: Remove
 require_relative './TestScriptEngine'
 require './TestScriptRunnable' # TODO: Remove
 
-endpoints = ['https://hapi.fhir.org/baseR4/', 'https://server.fire.ly/', 'https://api.logicahealth.org/TSEngineR4Endpoint1/open', 'https://api.logicahealth.org/TSEngineR4Endpoint2/open', 'https://api.logicahealth.org/TSEngineR4Endpoint3/open', 'https://api.logicahealth.org/TSEngineR4Endpoint4/open', 'https://api.logicahealth.org/TSEngineR4Endpoint5/open']
+endpoints = []
 directory_path = '../TestScripts'
 file_name = nil
 
@@ -10,10 +10,14 @@ parameters = ARGV
 parameters.each do |parameter|
   if parameter.include?('.json') || parameter.include?('.xml')
     file_name = parameter
+  elsif parameter.include?('http')
+    endpoints << parameter
   else
     directory_path = parameter
   end
 end
+
+endpoints = ['https://server.fire.ly/'] if endpoints.length == 0
 
 puts "SERVER: #{endpoints}"
 puts "TESTSCRIPT PATH: #{directory_path}"
