@@ -30,8 +30,11 @@ TestScript Engine is in the early stages of development; it is neither functiona
 
   - `[FHIR Server URL]`
     - Full URL of the FHIR server being tested. Defaults to the public instance of HAPI FHIR.
+    - If a TestScript contains multi destinations, corresponding server URLs need to be entered.
   - `[TestScript Folder]`
     - Relative or full path to a folder of TestScript resources. Defaults to `./TestScripts`
+  - `[TestScript file]`
+    - Specify one or more TestScript file names to be executed.
 
 **Folders and Files:**
   - `./lib`
