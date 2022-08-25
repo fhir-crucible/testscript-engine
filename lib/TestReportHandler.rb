@@ -17,43 +17,41 @@ require 'fhir_client'
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 module TestReportHandler
-  def self.included(klass)
-  end
 
   def testreport
-    testreport_builder.report
+    report_builder.report
   end
 
   def fresh_testreport
-    @testreport_builder = nil
+    @report_builder = nil
   end
 
-  def testreport_builder
-    @testreport_builder ||= fresh_testreport_builder
+  def report_builder
+    @report_builder ||= fresh_builder
   end
 
-  def fresh_testreport_builder
-    testreport_builder_template.clone
+  def fresh_builder
+    builder_template.clone
   end
 
-  def testreport_builder_template
-    @testreport_builder_template ||= TestReportBuilder.new
+  def builder_template
+    @builder_template ||= TestReportBuilder.new
   end
 
   def pass
-    testreport_builder.pass
+    report_builder.pass
   end
 
   def skip(message = nil)
-    testreport_builder.skip(message)
+    report_builder.skip(message)
   end
 
   def warning(message = nil)
-    testreport_builder.skip(message)
+    report_builder.warning(message)
   end
 
   def fail(message = nil)
-    testreport_builder.skip(message)
+    report_builder.fail(message)
   end
 
   def script
