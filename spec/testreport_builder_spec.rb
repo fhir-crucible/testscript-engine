@@ -104,6 +104,42 @@ describe TestReportHandler do
       })
     end
 
+    describe '.clone' do
+      context 'on empty builder' do
+        it 'creates an empty deep clone' do
+          clone = @builder.clone
+
+          expect(clone.fail_count).to eq(@builder.fail_count)
+          expect(clone.action_count).to eq(@builder.action_count)
+          expect(clone.actions).to eq(@builder.actions)
+          expect(clone.report).to eq(@builder.report)
+        end
+      end
+
+      context 'of initialized builder' do
+        before { TestReportBuilderTestClass.script = @script }
+
+        it 'creates a deep clone with distinct objects' do
+          builder = TestReportBuilderTestClass.new
+          clone = builder.clone
+
+          expect(clone.fail_count).to eq(builder.fail_count)
+          expect(clone.action_count).to eq(builder.action_count)
+          expect(clone.actions).to eq(builder.actions)
+          expect(clone.report).to eq(builder.report)
+
+          for i in 0..builder.action_count do
+            clone.actions[i] != builder.actions[i]
+          end
+
+          expect(clone.report.object_id).not_to eq(builder.report.object_id)
+          expect(clone.report.setup.object_id).not_to eq(builder.report.setup.object_id)
+          expect(clone.report.test.object_id).not_to eq(builder.report.test.object_id)
+          expect(clone.report.teardown.object_id).not_to eq(builder.report.teardown.object_id)
+        end
+      end
+    end
+
     describe '.initialize' do
       context 'with script.setup' do
         before do
