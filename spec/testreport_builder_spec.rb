@@ -1,410 +1,326 @@
 require 'TestReportHandler'
 
-class TestReportBuilderTestClass < TestReportHandler::TestReportBuilder
-  class << self
-    attr_accessor :script
-
-    def script
-      @script ||= FHIR::TestScript.new
-    end
-  end
+class TestReportHandlerTestClass
+  include TestReportHandler
 
   def script
-    self.class.script
+    @script ||= FHIR.from_contents(File.read('spec/fixtures/basic_testscript.json'))
   end
 end
 
 describe TestReportHandler do
-
   describe 'TestReportHandler Module' do
+    before(:each) { @handler = TestReportHandlerTestClass.new }
 
+    describe '.testreport' do
+      it 'gets report from report_builder' do
+        expect(@handler.testreport).to eq(@handler.report_builder.report)
+      end
+    end
+
+    describe '.fresh_testreport' do
+      it 'creates and sets a new report' do
+        old_report = @handler.testreport
+        @handler.fresh_testreport
+        new_report = @handler.testreport
+
+        expect(new_report).to eq(old_report)
+        expect(new_report.object_id).not_to eq(old_report.object_id)
+      end
+    end
+
+    describe '.report_builder' do
+      it 'returns the builder' do
+        expect(@handler.report_builder.class)
+          .to eq(TestReportHandler::TestReportBuilder)
+
+        expect(@handler.report_builder.object_id)
+          .to eq(@handler.instance_variable_get(:@report_builder).object_id)
+      end
+
+      it 'generates a new builder, if no builder' do
+        expect(@handler).to receive(:fresh_builder)
+
+        @handler.instance_variable_set(:@report_builder, nil)
+        @handler.report_builder
+      end
+    end
+
+    describe '.fresh_builder' do
+      it 'creates clone of builder template' do
+        clone = @handler.fresh_builder
+
+        expect(clone.report).to eq(@handler.testreport)
+        expect(clone.object_id).not_to eq(@handler.report_builder.object_id)
+      end
+    end
+
+    describe '.builder_template' do
+      it 'returns the builder template' do
+        expect(@handler.builder_template.class)
+          .to eq(TestReportHandler::TestReportBuilder)
+
+        expect(@handler.builder_template.object_id)
+          .to eq(@handler.instance_variable_get(:@builder_template).object_id)
+      end
+
+      it 'creates builder template, if no template' do
+        @handler.instance_variable_set(:@builder_template, nil)
+
+        expect(@handler.builder_template).to be
+      end
+    end
   end
 
   describe TestReportHandler::TestReportBuilder do
-    before(:all) do
-      id = 'test_id'
-      description = 'test_description'
-      @builder = TestReportBuilderTestClass.new
-      @script_operation = FHIR::TestScript::Setup::Action::Operation.new({
-        id: id,
-        description: description
-      })
-      @report_operation = FHIR::TestReport::Setup::Action::Operation.new({
-        id: id,
-        message: description
-      })
-      @script_assert = FHIR::TestScript::Setup::Action::Assert.new({
-        id: id,
-        description: description
-      })
-      @report_assert = FHIR::TestReport::Setup::Action::Assert.new({
-        id: id,
-        message: description
-      })
-      @script_setup_action_op = FHIR::TestScript::Setup::Action.new({
-        operation: @script_operation
-      })
-      @report_setup_action_op = FHIR::TestReport::Setup::Action.new({
-        operation: @report_operation
-      })
-      @script_setup_action_assert = FHIR::TestScript::Setup::Action.new({
-        assert: @script_assert
-      })
-      @report_setup_action_assert = FHIR::TestReport::Setup::Action.new({
-        assert: @report_assert
-      })
-      @script_test_action_op = FHIR::TestScript::Test::Action.new({
-        operation: @script_operation
-      })
-      @report_test_action_op = FHIR::TestReport::Test::Action.new({
-        operation: @report_operation
-      })
-      @script_test_action_assert = FHIR::TestScript::Test::Action.new({
-        assert: @script_assert
-      })
-      @report_test_action_assert = FHIR::TestReport::Test::Action.new({
-        assert: @report_assert
-      })
-      @script_teardown_action_op = FHIR::TestScript::Teardown::Action.new({
-        operation: @script_operation
-      })
-      @report_teardown_action_op = FHIR::TestReport::Teardown::Action.new({
-        operation: @report_operation
-      })
-      @script_setup = FHIR::TestScript::Setup.new({
-        action: [@script_setup_action_op, @script_setup_action_assert, @script_setup_action_assert]
-      })
-      @report_setup = FHIR::TestReport::Setup.new({
-        action: [@report_setup_action_op, @report_setup_action_assert, @report_setup_action_assert]
-      })
-      @script_test = FHIR::TestScript::Test.new({
-        action: [@script_test_action_op, @script_test_action_assert, @script_test_action_assert]
-      })
-      @report_test = FHIR::TestReport::Test.new({
-        action: [@report_test_action_op, @report_test_action_assert, @report_test_action_assert]
-      })
-      @script_teardown = FHIR::TestScript::Teardown.new({
-        action: [@script_teardown_action_op, @script_teardown_action_op]
-      })
-      @report_teardown = FHIR::TestReport::Teardown.new({
-        action: [@report_teardown_action_op, @report_teardown_action_op]
-      })
-      @script = FHIR::TestScript.new({
-        name: 'test-name',
-        id: 'test-id',
-        url: 'test-url',
-        setup: @script_setup,
-        test: [@script_test, @script_test, @script_test],
-        teardown: @script_teardown
-      })
-      @report = FHIR::TestReport.new({
-        setup: @report_setup,
-        test: [@report_test, @report_test, @report_test],
-        teardown: @report_teardown
-      })
-    end
-
-    describe '.clone' do
-      context 'on empty builder' do
-        it 'creates an empty deep clone' do
-          clone = @builder.clone
-
-          expect(clone.fail_count).to eq(@builder.fail_count)
-          expect(clone.action_count).to eq(@builder.action_count)
-          expect(clone.actions).to eq(@builder.actions)
-          expect(clone.report).to eq(@builder.report)
-        end
-      end
-
-      context 'of initialized builder' do
-        before { TestReportBuilderTestClass.script = @script }
-
-        it 'creates a deep clone with distinct objects' do
-          builder = TestReportBuilderTestClass.new
-          clone = builder.clone
-
-          expect(clone.fail_count).to eq(builder.fail_count)
-          expect(clone.action_count).to eq(builder.action_count)
-          expect(clone.actions).to eq(builder.actions)
-          expect(clone.report).to eq(builder.report)
-
-          for i in 0..builder.action_count do
-            clone.actions[i] != builder.actions[i]
-          end
-
-          expect(clone.report.object_id).not_to eq(builder.report.object_id)
-          expect(clone.report.setup.object_id).not_to eq(builder.report.setup.object_id)
-          expect(clone.report.test.object_id).not_to eq(builder.report.test.object_id)
-          expect(clone.report.teardown.object_id).not_to eq(builder.report.teardown.object_id)
-        end
-      end
+    before(:each) do
+      @script = FHIR.from_contents(File.read('spec/fixtures/basic_testscript.json'))
+      @report_outline = FHIR.from_contents(File.read('spec/fixtures/testreport_outline.json'))
+      @script_setup = @script.setup
+      @report_outline_setup = @report_outline.setup
+      @script_test = @script.test
+      @report_outline_test = @report_outline.test
+      @script_teardown = @script.teardown
+      @report_outline_teardown = @report_outline.teardown
+      @builder = described_class.new(@script)
     end
 
     describe '.initialize' do
-      context 'with script.setup' do
+      context 'with just script.setup defined' do
         before do
-          TestReportBuilderTestClass.script = FHIR::TestScript.new({ setup: @script_setup })
-          @report = FHIR::TestReport.new({ setup: @report_setup })
+          @script.test = []
+          @script.teardown = nil
+          @report_outline.test = []
+          @report_outline.teardown = nil
         end
 
         it 'returns builder with report.setup' do
-          builder = TestReportBuilderTestClass.new
+          builder = TestReportHandler::TestReportBuilder.new(@script)
 
-          expect(builder.report).to eq(@report)
+          expect(builder.report).to eq(@report_outline)
         end
       end
 
       context 'with script.test' do
         before do
-          TestReportBuilderTestClass.script = FHIR::TestScript.new({ test: [@script_test, @script_test, @script_test] })
-          @report = FHIR::TestReport.new({ test: [@report_test, @report_test, @report_test] })
+          @script.setup = nil
+          @script.teardown = nil
+          @report_outline.setup = nil
+          @report_outline.teardown = nil
         end
 
         it 'returns builder with report.test' do
-          builder = TestReportBuilderTestClass.new
+          builder = TestReportHandler::TestReportBuilder.new(@script)
 
-          expect(builder.report).to eq(@report)
+          expect(builder.report).to eq(@report_outline)
         end
       end
 
       context 'with script.teardown' do
         before do
-          TestReportBuilderTestClass.script = FHIR::TestScript.new({ teardown: @script_teardown })
-          @report = FHIR::TestReport.new({ teardown: @report_teardown })
+          @script.setup = nil
+          @script.test = []
+          @report_outline.setup = nil
+          @report_outline.test = []
         end
 
         it 'returns builder with report.teardown' do
-          builder = TestReportBuilderTestClass.new
+          builder = TestReportHandler::TestReportBuilder.new(@script)
 
-          expect(builder.report).to eq(@report)
+          expect(builder.report).to eq(@report_outline)
         end
       end
 
       context 'with all script phases' do
-        before { TestReportBuilderTestClass.script = @script }
-
         it 'returns builder with all report phases' do
-          builder = TestReportBuilderTestClass.new
+          builder = TestReportHandler::TestReportBuilder.new(@script)
 
-          expect(builder.report).to eq(@report)
+          expect(builder.report).to eq(@report_outline)
         end
       end
     end
 
-    describe '.outline_setup' do
+    describe '.build_setup' do
       context 'with single operation action' do
-        let(:script_setup) { FHIR::TestScript::Setup.new(action: @script_test_action_op) }
-        let(:report_setup) { FHIR::TestReport::Setup.new(action: @report_test_action_op) }
+        before do
+          @script_setup.action = @script_setup.action.slice(0,1)
+          @report_outline_setup.action = @report_outline_setup.action.slice(0,1)
+        end
 
         it 'returns setup outline with operation' do
-          result = @builder.outline_setup(script_setup)
+          result = @builder.build_setup(@script_setup)
 
-          expect(result).to eq(report_setup)
-        end
-      end
-
-      context 'with several operation actions' do
-        let(:script_setup) { FHIR::TestScript::Setup.new({ action: [@script_setup_action_op, @script_setup_action_op, @script_setup_action_op] }) }
-        let(:report_setup) { FHIR::TestReport::Setup.new({ action: [@report_setup_action_op, @report_setup_action_op, @report_setup_action_op] }) }
-
-        it 'returns setup outline including operations' do
-          result = @builder.outline_setup(script_setup)
-
-          expect(result).to eq(report_setup)
+          expect(result).to eq(@report_outline_setup)
+          expect(result.action.first.operation).to be
         end
       end
 
       context 'with single assert action' do
-        let(:script_setup) { FHIR::TestScript::Setup.new(action: @script_test_action_assert) }
-        let(:report_setup) { FHIR::TestReport::Setup.new(action: @report_test_action_assert) }
+        before do
+          @script_setup.action = @script_setup.action.slice(1,2)
+          @report_outline_setup.action = @report_outline_setup.action.slice(1,2)
+        end
 
         it 'returns setup outline with assert' do
-          result = @builder.outline_setup(script_setup)
+          result = @builder.build_setup(@script_setup)
 
-          expect(result).to eq(report_setup)
-        end
-      end
-
-      context 'with several assert actions' do
-        let(:script_setup) { FHIR::TestScript::Setup.new({ action: [@script_setup_action_assert, @script_setup_action_assert, @script_setup_action_assert] }) }
-        let(:report_setup) { FHIR::TestReport::Setup.new({ action: [@report_setup_action_assert, @report_setup_action_assert, @report_setup_action_assert] }) }
-
-        it 'returns setup outline with asserts' do
-          result = @builder.outline_setup(script_setup)
-
-          expect(result).to eq(report_setup)
+          expect(result).to eq(@report_outline_setup)
+          expect(result.action.first.assert).to be
         end
       end
 
       context 'with operation and assert actions' do
         it 'returns setup outline with both' do
-          result = @builder.outline_setup(@script_setup)
+          result = @builder.build_setup(@script_setup)
 
-          expect(result).to eq(@report_setup)
+          expect(result).to eq(@report_outline_setup)
+          expect(result.action.first.operation).to be
+          expect(result.action.second.assert).to be
         end
       end
     end
 
-    describe '.outline_test' do
+    describe '.build_test' do
       context 'with single test' do
-        context 'and single action' do
-          let(:script_test) { FHIR::TestScript::Test.new({ action: @script_test_action_op }) }
-          let(:report_test) { FHIR::TestReport::Test.new({ action: @report_test_action_op }) }
-
-          it 'returns singleton array containing test outline with action' do
-            result = @builder.outline_test([script_test])
-
-            expect(result).to eq([report_test])
-          end
+        before do
+          @script_test = @script_test.slice(0,1)
+          @report_outline_test = @report_outline_test.slice(0,1)
         end
 
-        context 'and multiple operations' do
-          let(:script_test) { FHIR::TestScript::Test.new({ action: [@script_test_action_op, @script_test_action_op, @script_test_action_op] }) }
-          let(:report_test) { FHIR::TestReport::Test.new({ action: [@report_test_action_op, @report_test_action_op, @report_test_action_op] }) }
-
-          it 'returns singleton array containing test outline with operations' do
-            result = @builder.outline_test([script_test])
-
-            expect(result).to eq([report_test])
+        context 'and action' do
+          before do
+            @script_test.first.action = @script_test.first.action.slice(0,1)
+            @report_outline_test.first.action = @report_outline_test.first.action.slice(0,1)
           end
-        end
 
-        context 'and multiple asserts' do
-          let(:script_test) { FHIR::TestScript::Test.new({ action: [@script_test_action_assert, @script_test_action_assert, @script_test_action_assert] }) }
-          let(:report_test) { FHIR::TestReport::Test.new({ action: [@report_test_action_assert, @report_test_action_assert, @report_test_action_assert] }) }
+          it 'returns singleton array containing action' do
+            result = @builder.build_test(@script_test)
 
-          it 'returns singleton array containing test outline with asserts' do
-            result = @builder.outline_test([script_test])
-
-            expect(result).to eq([report_test])
+            expect(result).to eq(@report_outline_test)
           end
         end
 
         context 'and mix of operations and asserts' do
-          it 'returns singleton array containing test outline with mix' do
-            result = @builder.outline_test([@script_test])
+          it 'returns singleton array containing mix' do
+            result = @builder.build_test(@script_test)
 
-            expect(result).to eq([@report_test])
+            expect(result).to eq(@report_outline_test)
+            expect(result.first.action.first.operation).to be
+            expect(result.first.action.second.assert).to be
           end
         end
       end
 
       context 'with tests' do
-        context 'and single action' do
-          let(:script_test) { FHIR::TestScript::Test.new({ action: @script_test_action_op }) }
-          let(:report_test) { FHIR::TestReport::Test.new({ action: @report_test_action_op }) }
-
-          it 'returns singleton array containing test outline with action' do
-            result = @builder.outline_test([script_test, script_test, script_test])
-
-            expect(result).to eq([report_test, report_test, report_test])
+        context 'and action' do
+          before do
+            @script_test.each { |test| test.action = test.action.slice(0,1) }
+            @report_outline_test.each { |test| test.action = test.action.slice(0,1) }
           end
-        end
 
-        context 'and multiple operations' do
-          let(:script_test) { FHIR::TestScript::Test.new({ action: [@script_test_action_op, @script_test_action_op, @script_test_action_op] }) }
-          let(:report_test) { FHIR::TestReport::Test.new({ action: [@report_test_action_op, @report_test_action_op, @report_test_action_op] }) }
+          it 'returns array of tests containing action' do
+            result = @builder.build_test(@script_test)
 
-          it 'returns singleton array containing test outline with operations' do
-            result = @builder.outline_test([script_test, script_test, script_test])
-
-            expect(result).to eq([report_test, report_test, report_test])
-          end
-        end
-
-        context 'and multiple asserts' do
-          let(:script_test) { FHIR::TestScript::Test.new({ action: [@script_test_action_assert, @script_test_action_assert, @script_test_action_assert] }) }
-          let(:report_test) { FHIR::TestReport::Test.new({ action: [@report_test_action_assert, @report_test_action_assert, @report_test_action_assert] }) }
-
-          it 'returns singleton array containing test outline with asserts' do
-            result = @builder.outline_test([script_test, script_test, script_test])
-
-            expect(result).to eq([report_test, report_test, report_test])
+            expect(result).to eq(@report_outline_test)
           end
         end
 
         context 'and mix of operations and asserts' do
-          it 'returns singleton array containing test outline with actions' do
-            result = @builder.outline_test(@script.test)
+          it 'returns array of tests containing mix' do
+            result = @builder.build_test(@script_test)
 
-            expect(result).to eq(@report.test)
+            expect(result).to eq(@report_outline_test)
+            expect(result.first.action.first.operation).to be
+            expect(result.first.action.second.assert).to be
+            expect(result.second.action.first.operation).to be
+            expect(result.second.action.second.assert).to be
           end
         end
       end
     end
 
-    describe '.outline_teardown' do
-      context 'with single operation action' do
-        let(:script_tear) { FHIR::TestScript::Teardown.new({ action: @script_tear_action_op }) }
-        let(:report_tear) { FHIR::TestReport::Teardown.new({ action: @report_tear_action_op }) }
+    describe '.build_teardown' do
+      context 'with single operation' do
+        before do
+          @script_teardown.action = @script_teardown.action.slice(0,1)
+          @report_outline_teardown.action = @report_outline_teardown.action.slice(0,1)
+        end
 
         it 'returns teardown outline with operation' do
-          result = @builder.outline_teardown(script_tear)
+          result = @builder.build_teardown(@script_teardown)
 
-          expect(result).to eq(report_tear)
+          expect(result).to eq(@report_outline_teardown)
+          expect(result.action.first.operation).to be
         end
       end
 
       context 'with multiple operations' do
         it 'returns teardown outline with operations' do
-          result = @builder.outline_teardown(@script_teardown)
+          result = @builder.build_teardown(@script_teardown)
 
-          expect(result).to eq(@report_teardown)
+          expect(result).to eq(@report_outline_teardown)
+          expect(result.action.first.operation).to be
+          expect(result.action.second.operation).to be
         end
       end
     end
 
-    describe  '.outline_action' do
-      context 'given Setup action' do
-        it 'returns a Setup action outline with operation' do
-          result = @builder.outline_action(@script_setup_action_op)
+    describe  '.build_action' do
+      context 'given Setup' do
+        it 'returns Setup action outline with operation' do
+          result = @builder.build_action(@script_setup.action.first)
 
-          expect(result).to eq(@report_setup_action_op)
+          expect(result).to eq(@report_outline_setup.action.first)
+          expect(result.operation).to be
         end
 
-        it 'returns a Setup action outline with assert' do
-          result = @builder.outline_action(@script_setup_action_assert)
+        it 'returns Setup outline with assert' do
+          result = @builder.build_action(@script_setup.action.second)
 
-          expect(result).to eq(@report_setup_action_assert)
+          expect(result).to eq(@report_outline_setup.action.second)
+          expect(result.assert).to be
         end
       end
 
-      context 'given Test action' do
-        it 'returns a Test action outline with operation' do
-          result = @builder.outline_action(@script_test_action_op)
+      context 'given Test' do
+        it 'returns Test outline with operation' do
+          result = @builder.build_action(@script_test.first.action.first)
 
-          expect(result).to eq(@report_test_action_op)
+          expect(result).to eq(@report_outline_test.first.action.first)
+          expect(result.operation).to be
         end
 
-        it 'returns a Test action outline with assert' do
-          result = @builder.outline_action(@script_test_action_assert)
+        it 'returns Test outline with assert' do
+          result = @builder.build_action(@script_test.first.action.second)
 
-          expect(result).to eq(@report_test_action_assert)
+          expect(result).to eq(@report_outline_test.first.action.second)
+          expect(result.assert).to be
         end
       end
 
       context 'given Teardown action' do
         it 'returns a Teardown action outline with operation' do
-          result = @builder.outline_action(@script_teardown_action_op)
+          result = @builder.build_action(@script_teardown.action.first)
 
-          expect(result).to eq(@report_teardown_action_op)
+          expect(result).to eq(@report_outline_teardown.action.first)
+          expect(result.operation).to be
         end
       end
     end
 
-    describe '.outline_operation' do
-      it 'creates an identical testreport operation' do
-        result = @builder.outline_operation(@script_operation)
+    describe '.build_operation' do
+      it 'creates testreport operation' do
+        result = @builder.build_operation(@script_setup.action.first.operation)
 
-        expect(result).to eq(@report_operation)
+        expect(result).to eq(@report_outline_setup.action.first.operation)
       end
     end
 
-    describe '.outline_assert' do
-      it 'creates an identical testreport operation' do
-        result = @builder.outline_assert(@script_assert)
+    describe '.build_assert' do
+      it 'creates testreport assert' do
+        result = @builder.build_assert(@script_setup.action.first.assert)
 
-        expect(result).to eq(@report_assert)
+        expect(result).to eq(@report_outline_setup.action.first.assert)
       end
     end
 
@@ -412,9 +328,9 @@ describe TestReportHandler do
       before { @builder.actions.clear }
 
       it 'updates the actions array' do
-        @builder.store_action(@report_operation)
+        @builder.store_action(@report_outline_setup.action.first.operation)
 
-        expect(@builder.actions).to eq([@report_operation])
+        expect(@builder.actions).to eq([@report_outline_setup.action.first.operation])
       end
     end
 
@@ -422,15 +338,13 @@ describe TestReportHandler do
       it 'finalizes report if no more actions' do
         expect(@builder).to receive(:finalize_report)
 
-        @builder.next_action
+        (@builder.next_action) while @builder.actions.length > 0
       end
     end
 
     describe '.add_boilerplate' do
-      before { @builder = TestReportBuilderTestClass.new }
-
       it 'updates the report' do
-        @builder.add_boilerplate
+        @builder.add_boilerplate(@script)
 
         expect(@builder.report.name).to be
         expect(@builder.report.id).to be
@@ -442,8 +356,6 @@ describe TestReportHandler do
     end
 
     describe '.finalize_report' do
-      before { @builder = TestReportBuilderTestClass.new }
-
       it 'updates the report' do
         @builder.finalize_report
 
@@ -455,57 +367,91 @@ describe TestReportHandler do
     end
 
     describe '.pass' do
-      before { @builder = TestReportBuilderTestClass.new }
+      let(:builder) { TestReportHandler::TestReportBuilder.new(@script) }
 
       it 'updates the report and removes the action from the internal queue' do
-        pass_action = @builder.action
-        @builder.pass
+        pass_action = builder.action
+        builder.pass
 
-        expect(@builder.actions).not_to eq(pass_action)
-        expect(@builder.actions.length).to eq(13)
-        expect(@builder.report.setup.action.first.operation.result).to eq('pass')
+        expect(builder.actions).not_to eq(pass_action)
+        expect(builder.actions.length).to eq(13)
+        expect(builder.report.setup.action.first.operation.result).to eq('pass')
       end
     end
 
     describe '.skip' do
-      before { @builder = TestReportBuilderTestClass.new }
+      let(:builder) { TestReportHandler::TestReportBuilder.new(@script) }
 
       it 'updates the report and removes the action from the internal queue' do
-        skip_action = @builder.action
-        @builder.skip('test_message')
+        skip_action = builder.action
+        builder.skip('test_message')
 
-        expect(@builder.actions).not_to eq(skip_action)
-        expect(@builder.actions.length).to eq(13)
-        expect(@builder.report.setup.action.first.operation.result).to eq('skip')
-        expect(@builder.report.setup.action.first.operation.message).to eq('test_message')
+        expect(builder.actions).not_to eq(skip_action)
+        expect(builder.actions.length).to eq(13)
+        expect(builder.report.setup.action.first.operation.result).to eq('skip')
+        expect(builder.report.setup.action.first.operation.message).to eq('test_message')
       end
     end
 
     describe '.warning' do
-      before { @builder = TestReportBuilderTestClass.new }
+      let(:builder) { TestReportHandler::TestReportBuilder.new(@script) }
 
       it 'updates the report and removes the action from the internal queue' do
-        warn_action = @builder.action
-        @builder.warning('test_message')
+        warn_action = builder.action
+        builder.warning('test_message')
 
-        expect(@builder.actions).not_to eq(warn_action)
-        expect(@builder.actions.length).to eq(13)
-        expect(@builder.report.setup.action.first.operation.result).to eq('warning')
-        expect(@builder.report.setup.action.first.operation.message).to eq('test_message')
+        expect(builder.actions).not_to eq(warn_action)
+        expect(builder.actions.length).to eq(13)
+        expect(builder.report.setup.action.first.operation.result).to eq('warning')
+        expect(builder.report.setup.action.first.operation.message).to eq('test_message')
       end
     end
 
     describe '.fail' do
-      before { @builder = TestReportBuilderTestClass.new }
+      let(:builder) { TestReportHandler::TestReportBuilder.new(@script) }
 
       it 'updates the report and removes the action from the internal queue' do
         fail_action = @builder.action
-        @builder.fail('test_message')
+        builder.fail('test_message')
 
-        expect(@builder.actions).not_to eq(fail_action)
-        expect(@builder.actions.length).to eq(13)
-        expect(@builder.report.setup.action.first.operation.result).to eq('fail')
-        expect(@builder.report.setup.action.first.operation.message).to eq('test_message')
+        expect(builder.actions).not_to eq(fail_action)
+        expect(builder.actions.length).to eq(13)
+        expect(builder.report.setup.action.first.operation.result).to eq('fail')
+        expect(builder.report.setup.action.first.operation.message).to eq('test_message')
+      end
+    end
+
+    describe '.clone' do
+      context 'on empty builder' do
+        it 'creates an empty deep clone' do
+          clone = @builder.clone
+
+          expect(clone.pass_count).to eq(@builder.pass_count)
+          expect(clone.total_test_count).to eq(@builder.total_test_count)
+          expect(clone.actions).to eq(@builder.actions)
+          expect(clone.report).to eq(@builder.report)
+        end
+      end
+
+      context 'of initialized builder' do
+        it 'creates a deep clone with distinct objects' do
+          builder = TestReportHandler::TestReportBuilder.new(@script)
+          clone = builder.clone
+
+          expect(clone.pass_count).to eq(builder.pass_count)
+          expect(clone.total_test_count).to eq(builder.total_test_count)
+          expect(clone.actions).to eq(builder.actions)
+          expect(clone.report).to eq(builder.report)
+
+          for i in 0..builder.total_test_count do
+            clone.actions[i] != builder.actions[i]
+          end
+
+          expect(clone.report.object_id).not_to eq(builder.report.object_id)
+          expect(clone.report.setup.object_id).not_to eq(builder.report.setup.object_id)
+          expect(clone.report.test.object_id).not_to eq(builder.report.test.object_id)
+          expect(clone.report.teardown.object_id).not_to eq(builder.report.teardown.object_id)
+        end
       end
     end
   end

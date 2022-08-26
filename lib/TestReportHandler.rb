@@ -11,12 +11,15 @@ require 'fhir_client'
 # TestReportBuilder (builder) object tailored to the parent runnable instance.  #
 # In executing a runnable, calls (i.e. 'Pass', 'Fail') are made to the handler  #
 # module -- which then directs the builder instance to update its report        #
-# accordingly. Each time the runnable is executed, it instantiates a new        #
-# builder instance is instantiated, using the initial builder as a template.    #                                                              #
+# accordingly. Think of the handler as the 'API' to interact with the           #
+# TestReport output by the execution of a runnable. Each time the runnable is   #
+# executed, it instantiates a new builder instance, using the initial builder   #
+# as a template.                                                                #
 #                                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 module TestReportHandler
+  attr_accessor :cascade_skips
 
   def testreport
     report_builder.report
@@ -35,11 +38,15 @@ module TestReportHandler
   end
 
   def builder_template
-    @builder_template ||= TestReportBuilder.new
+    @builder_template ||= TestReportBuilder.new(script)
   end
 
   def pass
     report_builder.pass
+  end
+
+  def fail(message = nil)
+    report_builder.fail(message)
   end
 
   def skip(message = nil)
@@ -50,10 +57,14 @@ module TestReportHandler
     report_builder.warning(message)
   end
 
-  def fail(message = nil)
-    report_builder.fail(message)
+  def finalize_report
+    report_builder.finalize_report
+    testreport
   end
 
+  # A 'script' method ought to be defined in the klass
+  # that includes the handler - if 'script' is undefined,
+  # this feeds an empty testscript to the builder
   def script
     begin
       super
@@ -62,29 +73,113 @@ module TestReportHandler
     end
   end
 
-#   # <--- ---> #
-#  In the builder, the script maintained within the parent runnable is called
-#  and each of its phases -- setup, test, and teardown -- are processed in order
-#  to outline the testreport that will result from running the script. This can be doesn
-#  as any action within the script must have a corresponding action within the report.
-
   class TestReportBuilder
-    attr_accessor :fail_count, :action_count
-
-    def action
-      actions.first
-    end
+    attr_accessor :pass_count, :total_test_count
 
     def actions
       @actions ||= []
     end
 
-    def store_action(action)
-      actions.concat(Array(action))
-    end
-
     def report
       @report ||= FHIR::TestReport.new
+    end
+
+    def initialize(testscript_blueprint = nil)
+      add_boilerplate(testscript_blueprint)
+      build_setup(testscript_blueprint.setup)
+      build_test(testscript_blueprint.test)
+      build_teardown(testscript_blueprint.teardown)
+
+      self.pass_count = 0
+      self.total_test_count = actions.length
+    end
+
+    def build_setup(setup_blueprint)
+      return unless setup_blueprint
+
+      actions = setup_blueprint.action.map { |action| build_action(action) }
+      report.setup = FHIR::TestReport::Setup.new(action: actions)
+    end
+
+    def build_test(test_blueprint)
+      return if test_blueprint.empty?
+
+      report.test = test_blueprint.map do |test|
+        actions = test.action.map { |action| build_action(action) }
+        FHIR::TestReport::Test.new(action: actions)
+      end
+    end
+
+    def build_teardown(teardown_blueprint)
+      return unless teardown_blueprint
+
+      actions = teardown_blueprint.action.map { |action| build_action(action) }
+      report.teardown = FHIR::TestReport::Teardown.new(action: actions)
+    end
+
+    def build_action(action_blueprint)
+      phase = action_blueprint.class.to_s.split("::")[2]
+
+      action_definition = {
+        id: action_blueprint.id,
+        operation: build_operation(action_blueprint.operation),
+        assert: (build_assert(action_blueprint.assert) unless phase == 'Teardown')
+      }
+
+      "FHIR::TestReport::#{phase}::Action".constantize.new(action_definition)
+    end
+
+    def build_operation(operation_blueprint)
+      return unless operation_blueprint
+
+      operation_def = {
+        id: operation_blueprint.label || operation_blueprint.id,
+        message: operation_blueprint.description
+      }
+
+      operation = FHIR::TestReport::Setup::Action::Operation.new(operation_def)
+      store_action(operation)
+      operation
+    end
+
+    def build_assert(assert_blueprint)
+      return unless assert_blueprint
+
+      assert_def = {
+        id: assert_blueprint.label || assert_blueprint.id,
+        message: assert_blueprint.description
+      }
+
+      assert = FHIR::TestReport::Setup::Action::Assert.new(assert_def)
+      store_action(assert)
+      assert
+    end
+
+    def add_boilerplate(testscript_blueprint)
+      report.result = 'pending'
+      report.status = 'in-progress'
+      report.tester = 'The MITRE Corporation'
+      report.id = testscript_blueprint.id&.gsub(/(?i)testscript/, 'testreport')
+      report.name = testscript_blueprint.name&.gsub(/(?i)testscript/, 'TestReport')
+      report.testScript = FHIR::Reference.new({
+        reference: testscript_blueprint.url,
+        type: "http://hl7.org/fhir/R4B/testscript.html"
+      })
+    end
+
+    def finalize_report
+      report.issued = DateTime.now.to_s
+      report.status = 'completed'
+      report.score = (self.pass_count.to_f / self.total_test_count).round(2) * 100
+      report.result = (report.result == 100.0 ? 'pass' : 'fail')
+    end
+
+    def action
+      actions.first
+    end
+
+    def store_action(action)
+      actions.concat(Array(action))
     end
 
     def next_action
@@ -92,115 +187,9 @@ module TestReportHandler
       finalize_report if actions.empty?
     end
 
-    def increment_fail_count
-      self.fail_count += 1
-    end
-
-    def clone
-      builder_dup = self.deep_dup
-      builder_dup.actions.clear
-      builder_dup.instance_eval('@report = FHIR::TestReport.new(self.report.to_hash)')
-
-      clone_actions(builder_dup.report.setup, builder_dup)
-      builder_dup.report.test.each { |test| clone_actions(test, builder_dup) }
-      clone_actions(builder_dup.report.teardown, builder_dup)
-
-      builder_dup
-    end
-
-    def clone_actions(report_phase, clone)
-      report_phase.try(:action)&.each do |action|
-        clone.store_action(action.operation || action.assert)
-      end
-    end
-
-    def initialize
-      report.setup = outline_setup(script.setup)
-      report.test = outline_test(script.test)
-      report.teardown = outline_teardown(script.teardown)
-
-      self.action_count = actions.length
-      self.fail_count = 0
-    end
-
-    def outline_setup(setup)
-      return unless setup
-
-      FHIR::TestReport::Setup.new({
-        action: setup.action.map { |action| outline_action(action) }
-      })
-    end
-
-    def outline_test(tests)
-      return if tests.empty?
-
-      tests.map do |test|
-        FHIR::TestReport::Test.new({
-          action: test.action.map { |action| outline_action(action) }
-        })
-      end
-    end
-
-    def outline_teardown(teardown)
-      return unless teardown
-
-      FHIR::TestReport::Teardown.new({
-        action: teardown.action.map { |action| outline_action(action) }
-      })
-    end
-
-    def outline_action(action)
-      action_type = action.class.to_s.split("::")[2]
-
-      "FHIR::TestReport::#{action_type}::Action".constantize.new({
-        id: action.id,
-        operation: outline_operation(action.operation),
-        assert: (outline_assert(action.assert) unless action_type == 'Teardown')
-      })
-    end
-
-    def outline_operation(operation)
-      return unless operation
-
-      operation = FHIR::TestReport::Setup::Action::Operation.new({
-        id: operation.label || operation.id,
-        message: operation.description
-      })
-
-      store_action(operation)
-      operation
-    end
-
-    def outline_assert(assert)
-      return unless assert
-
-      assert = FHIR::TestReport::Setup::Action::Assert.new({
-        id: assert.label || assert.id,
-        message: assert.description
-      })
-
-      store_action(assert)
-      assert
-    end
-
-    def add_boilerplate
-      report.result = 'pending'
-      report.status = 'in-progress'
-      report.testScript = script.url
-      report.tester = 'The MITRE Corporation'
-      report.id = script.id&.gsub(/(?i)testscript/, 'testreport')
-      report.name = script.name&.gsub(/(?i)testscript/, 'TestReport')
-    end
-
-    def finalize_report
-      report.issued = Time.now
-      report.status = 'completed'
-      report.result = (self.fail_count.zero? ? 'pass' : 'fail')
-      report.score = (self.fail_count.to_f / self.action_count).round(2)
-    end
-
     def pass
       action.result = 'pass'
+      self.pass_count += 1
       next_action
     end
 
@@ -219,8 +208,29 @@ module TestReportHandler
     def fail(message = nil)
       action.result = 'fail'
       action.message = message if message
-      increment_fail_count
       next_action
+    end
+
+    def cascade_skips
+      (skip) while actions.length > 0
+    end
+
+    def clone
+      builder_dup = self.deep_dup
+      builder_dup.actions.clear
+      builder_dup.instance_eval('@report = FHIR::TestReport.new(self.report.to_hash)')
+
+      clone_actions(builder_dup.report.setup, builder_dup)
+      builder_dup.report.test.each { |test| clone_actions(test, builder_dup) }
+      clone_actions(builder_dup.report.teardown, builder_dup)
+
+      builder_dup
+    end
+
+    def clone_actions(report_phase, clone)
+      report_phase.try(:action)&.each do |action|
+        clone.store_action(action.operation || action.assert)
+      end
     end
   end
 end
