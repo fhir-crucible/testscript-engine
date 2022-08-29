@@ -10,7 +10,7 @@ parameters = ARGV
 parameters.each do |parameter|
   if parameter.start_with?('http')
     test_server_url = parameter
-  elsif parameter.include?('.json')
+  elsif parameter.include?('.json') || parameter.include?('.xml')
     testscript_file = parameter
   else
     testscript_path = parameter
