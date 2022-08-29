@@ -2,6 +2,7 @@
 require 'pry-nav'
 require 'jsonpath'
 require 'fhir_client'
+require 'logger'
 require_relative 'assertions'
 require_relative './TestReportHandler.rb'
 
@@ -58,6 +59,12 @@ class TestScriptRunnable
     @client ||= FHIR::Client.new('https://localhost:8080')
   end
 
+  def debug_logger(logger = nil)
+    @debug_logger = logger if logger
+    @debug_logger.level = Logger::WARN
+    @debug_logger
+  end
+
   def initialize script
     unless (script.is_a? FHIR::TestScript) && script.valid?
       FHIR.logger.error '[.initialize] Received invalid or non-TestScript resource.'
@@ -65,6 +72,8 @@ class TestScriptRunnable
     end
 
     script(script)
+
+    debug_logger(Logger.new(STDOUT))
 
     pre_processing
   end
@@ -233,6 +242,8 @@ class TestScriptRunnable
                extract_body(op, req_type),
                client.fhir_headers(extract_headers(op))]
 
+    debug_logger.debug('Request: ' + request.to_json)
+
     return if SENDERS.include?(req_type) && request[2].nil?
 
     request.compact
@@ -312,6 +323,8 @@ class TestScriptRunnable
 
   def storage(op)
     self.reply = client.reply
+    debug_logger.debug('Response: ' + self.reply.to_json)
+
     reply.nil? ? return : client.reply = nil
 
     request_map[op.requestId] = reply.request if op.requestId
