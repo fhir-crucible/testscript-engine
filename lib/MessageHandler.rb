@@ -1,53 +1,159 @@
 module MessageHandler
-
-  # FORMAT: Simple issue, reason why it is an issue. Optional action. Additional details.
-  WARNINGS = {
-    'badFixtureReference' => 'Fixture.resource.reference undefined, unable to store fixture. Proceeding to next fixture.',
-    'badReference' => 'Unable to read contents of reference. No reference extracted. Given reference:',
-    'noFixtureId' => 'Fixture.id undefined, unable to store fixture. Proceeding to next fixture.',
-    'noFixtureResource' => 'Fixture.resource undefined, unable to store fixture. Proceeding to next fixture.',
-    'unsupportedRef' => 'Remote reference not supported. No reference extracted. Given remote reference:',
-    nil => 'Some unexpected behavior occurred with unknown message type.'
-  }
-
-  FAILURES = {
-    'invalidAssert' => 'assert is not a valid FHIR::TestScript::Setup::Action::Assert type. Asserts must be of valid type.',
-    'noClient' => 'Client is undefined, unable to test undefined endpoint.',
-    'noId' => 'id_map[operation.targetId] is undefined. The fixture corresponding to operation.targetId must be stored on the target endpoint at a known id.',
-    'noResource' => 'operation.resource is undefined. When Operation uses params, resource must also be defined.',
-    'noRequestType' => 'Both operation.type.code and operation.method are undefined. Operations must have a valid code type or method.',
-    'noSourceFixture' => 'fixtures[operation.sourceId] is undefined. sourceId must correspond to a known fixture.',
-    'noSourceFixtureClass' => 'fixtures[operation.sourceId].class is undefined. Fixture corresponding to sourceId must have its class defined.',
-    'noSourceId' => 'operation.sourceId is undefined. Sender requests must use sourceId to specify a resource to send.',
-    'noTargetFixture' => 'fixtures[operation.targetId] is undefined. targetId must correspond to a known fixture.',
-    'unknownFailure' => 'Exact cause of failure unknown.'
-  }
-
-  SKIP = {
-    'notImplemented' => 'Support for this operation type is not yet implemented.'
-  }
-
-  # TODO: Should these be logged onto command-line?
-
-  def failure type
-    FAILURES[type]
+  def spacing
+    @space ||= ""
   end
 
-  def skip type
-    SKIP[type]
+  def add_spacing
+    spacing << space
   end
 
-  def method
-    caller[1].split("`").pop.gsub("'", "")
+  def space
+    "   "
   end
 
-  def log_error message
-    FHIR.logger.error "[.#{method}] #{message}"
-    return nil
+  def remove_spacing
+    @space = spacing[0...-(space.length)]
   end
 
-  def warn(type, additional = nil)
-    FHIR.logger.warn "[.#{method}] #{WARNINGS[type]} #{additional ? "'#{additional}.'" : ''}"
-    return nil
+  def begin_section_sign
+    " ----->"
   end
+
+  def end_section_sign
+    "<----- "
+  end
+
+  def newline_between_section
+    true
+  end
+
+  def newline_within_section
+    true
+  end
+
+  def setup
+    output_section_message('setup')
+  end
+
+  def test
+    output_section_message('test')
+  end
+
+  def teardown
+    output_section_message('teardown')
+  end
+
+  def execute_operation(operation)
+    if previous_action('operation')
+      add_spacing
+      result = super
+      remove_spacing
+      result
+    end
+    add_spacing
+    puts messages(:action_operation)
+    result = super
+    remove_spacing
+    result
+  end
+
+  def evaluate(assert)
+    return super if previous_action('assert')
+    add_spacing
+    puts messages(:action_assert)
+    result = super
+    remove_spacing
+    result
+  end
+
+  def logger_formats
+    @logger_formats ||= {}
+  end
+
+  def client(*args)
+    client = super
+    format_with_spacing = logger_format
+    FHIR.logger.formatter = format_with_spacing
+    return client
+  end
+
+  def logger_format
+    format_with_spacing = logger_formats[spacing.length]
+    unless format_with_spacing
+      format_with_spacing = proc do |severity, datetime, progname, msg|
+        "#{spacing}#{space}#{severity}: #{msg}\n"
+      end
+      logger_formats[spacing.length] = format_with_spacing
+    end
+    format_with_spacing
+  end
+
+  def previous_action(action_type)
+    return true if @previous_action == action_type
+
+    @previous_action = action_type
+    return false
+  end
+
+  def action_fail(fail_type)
+    add_spacing
+    puts messages(fail_type)
+    remove_spacing
+  end
+
+  def action_error(error_type)
+    add_spacing
+    puts messages(error_type)
+    remove_spacing
+  end
+
+  def output_section_message(section_type)
+    add_spacing
+    puts messages(:begin_section, section_type)
+    puts if newline_within_section
+
+    result = method(section_type.to_sym).super_method.call
+
+    puts if newline_within_section
+    puts messages(:finish_section, section_type)
+    remove_spacing
+    puts if newline_between_section
+
+    result
+  end
+
+  def messages(message, *options)
+    message_text = case message
+    when :action_assert
+      "ASSERT EVALUATION"
+    when :action_operation
+      "OPERATION EXECUTION"
+    when :begin_section
+      "BEGIN #{options[0].upcase}"
+    when :finish_section
+      "FINISHED #{options[0].upcase}."
+    when :invalid_operation
+      "FAIL: Given invalid operation. Can not execute."
+    when :invalid_request
+      "FAIL: Can not create request given operation. Can not execute."
+    when :execution_error
+      "ERROR: Error encountered while executing operation."
+    end
+
+    if message.start_with? "begin"
+      message_text.concat(begin_section_sign)
+    elsif message.start_with? "finish"
+      message_text.prepend(end_section_sign)
+    end
+
+    message_text.prepend(spacing)
+  end
+
+  # Runnable
+    # Get caller function
+    # Log error
+    # Log info
+      # maybe just log when starting new phase? Also log when phase over, use caller function
+        # phase_message
+
 end
