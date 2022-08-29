@@ -4,6 +4,7 @@ require 'jsonpath'
 require 'fhir_client'
 require_relative 'assertions'
 require_relative './TestReportHandler.rb'
+require_relative './MessageHandler.rb'
 
 class TestScriptRunnable
   include Assertions
@@ -18,6 +19,8 @@ class TestScriptRunnable
                     nil => :get }.freeze
 
   attr_accessor :reply
+
+  prepend MessageHandler
 
   # maps fixture ids to server ids
   def id_map
@@ -70,9 +73,9 @@ class TestScriptRunnable
     client(client)
     fresh_testreport # Create a new testreport each time the runnable is executed
 
-    setup_execution
-    test_execution
-    teardown_execution
+    setup if script.setup
+    test unless script.test.empty?
+    teardown if script.teardown
 
     post_processing
 
@@ -94,34 +97,16 @@ class TestScriptRunnable
     FHIR.logger.info 'Finish pre-processing.'
   end
 
-  def setup_execution
-    return unless script.setup
-
-    FHIR.logger.info 'Begin setup.'
-
+  def setup
     handle_actions(script.setup.action, true)
-
-    FHIR.logger.info 'Finish setup.'
   end
 
-  def test_execution
-    return if script.test.empty?
-
-    FHIR.logger.info 'Begin test execution.'
-
+  def test
     script.test.each { |test| handle_actions(test.action, false) }
-
-    FHIR.logger.info 'Finish test execution.'
   end
 
-  def teardown_execution
-    return unless script.teardown
-
-    FHIR.logger.info 'Begin teardown.'
-
+  def teardown
     handle_actions(script.teardown.action, false)
-
-    FHIR.logger.info 'Finish teardown.'
   end
 
   def post_processing
@@ -206,7 +191,7 @@ class TestScriptRunnable
   def execute_operation(op)
     unless op.instance_of?(FHIR::TestScript::Setup::Action::Operation) && op.valid?
       message = '[.execute_operation] Can not execute invalid Operation.'
-      FHIR.logger.info message
+      action_fail(:invalid_operation)
       fail(message)
       return false
     end
@@ -214,7 +199,7 @@ class TestScriptRunnable
     request = create_request(op)
     if request.nil?
       message = "[.execute_operation] Unable to create a request, can not execute Operation #{op.label || '[unlabeled]'}."
-      FHIR.logger.info message
+      action_fail(:invalid_request)
       fail(message)
       return false
     end
@@ -223,7 +208,7 @@ class TestScriptRunnable
       client.send(*request)
     rescue StandardError => e
       message = "[.execute_operation] ERROR: #{e.message} while executing Operation #{op.label || '[unlabeled]'}."
-      FHIR.logger.info message
+      action_error(:execution_error)
       fail(message)
       return false
     end
