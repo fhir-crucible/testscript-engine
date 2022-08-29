@@ -6,6 +6,8 @@ require_relative 'assertions'
 require_relative './TestReportHandler.rb'
 
 class TestScriptRunnable
+  include Assertions
+
   REQUEST_TYPES = { 'read' => :get,
                     'create' => :post,
                     'update' => :put,
@@ -144,9 +146,6 @@ class TestScriptRunnable
 
       if result == 'fail' and end_on_fail
         # TODO: Populate TestReport with fails
-        return
-      else
-        # TODO: Populate TestReport
         return
       end
     end
@@ -399,8 +398,6 @@ class TestScriptRunnable
   end
 
   # <--- Line of Code Review --->
-
-  include Assertions
 
   SENDERS = %i[post put].freeze
   FETCHERS = %i[get destroy search].freeze
