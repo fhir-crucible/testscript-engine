@@ -57,6 +57,10 @@ module TestReportHandler
     report_builder.warning(message)
   end
 
+  def error
+    report_builder.error(message)
+  end
+
   def finalize_report
     report_builder.finalize_report
     testreport
@@ -207,6 +211,12 @@ module TestReportHandler
 
     def fail(message = nil)
       action.result = 'fail'
+      action.message = message if message
+      next_action
+    end
+
+    def error(message = nil)
+      action.result = 'error'
       action.message = message if message
       next_action
     end
