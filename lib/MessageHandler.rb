@@ -27,27 +27,27 @@ module MessageHandler
     'notImplemented' => 'Support for this operation type is not yet implemented.'
   }
 
-  # TODO: Should these be logged onto command-line? 
+  # TODO: Should these be logged onto command-line?
 
   def failure type
     FAILURES[type]
-  end 
+  end
 
   def skip type
-    SKIP[type] 
-  end 
-  
+    SKIP[type]
+  end
+
   def method
     caller[1].split("`").pop.gsub("'", "")
-  end 
+  end
 
   def log_error message
     FHIR.logger.error "[.#{method}] #{message}"
     return nil
-  end 
+  end
 
   def warn(type, additional = nil)
     FHIR.logger.warn "[.#{method}] #{WARNINGS[type]} #{additional ? "'#{additional}.'" : ''}"
     return nil
-  end 
-end 
+  end
+end

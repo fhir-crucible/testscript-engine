@@ -7,6 +7,7 @@ require_relative './TestReportHandler.rb'
 
 class TestScriptRunnable
   include Assertions
+  include TestReportHandler
 
   REQUEST_TYPES = { 'read' => :get,
                     'create' => :post,
@@ -34,10 +35,6 @@ class TestScriptRunnable
 
   def fixtures
     @fixtures ||= {}
-  end
-
-  def report
-    @report ||= TestReportHandler.setup(script)
   end
 
   def autocreate_ids
@@ -71,6 +68,7 @@ class TestScriptRunnable
 
   def run(client = nil)
     client(client)
+    fresh_testreport # Create a new testreport each time the runnable is executed
 
     setup_execution
     test_execution
@@ -78,7 +76,7 @@ class TestScriptRunnable
 
     post_processing
 
-    report.finalize
+    finalize_report
   end
 
   def pre_processing
@@ -87,7 +85,10 @@ class TestScriptRunnable
 
     autocreate_ids.each do |fixture_id|
       FHIR.logger.info "Auto-creating static fixture #{fixture_id}"
-      execute_operation(operation_create(fixture_id))
+      # Modified: Previously, called execute_operation
+      # However, don't want everything that execute_operation does (storing response, updating test report etc.)
+      # So, just simplify and do the sending here without all that extra stuff
+      client.send(*create_request((operation_create(fixture_id))))
     end
 
     FHIR.logger.info 'Finish pre-processing.'
@@ -128,7 +129,7 @@ class TestScriptRunnable
 
     autodelete_ids.each do |fixture_id|
       FHIR.logger.info "Auto-deleting dynamic fixture #{fixture_id}"
-      execute_operation(operation_delete(fixture_id))
+      client.send(*create_request((operation_delete(fixture_id))))
     end
 
     FHIR.logger.info 'Finish post-processing.'
@@ -144,9 +145,9 @@ class TestScriptRunnable
         end
       end
 
-      if result == 'fail' and end_on_fail
-        # TODO: Populate TestReport with fails
-        return
+      if result == false and end_on_fail
+        # TODO: Implement some flow control for ending execution
+        # Already support in report handler -- cascade_skips attr_accessor
       end
     end
   end
@@ -204,25 +205,32 @@ class TestScriptRunnable
 
   def execute_operation(op)
     unless op.instance_of?(FHIR::TestScript::Setup::Action::Operation) && op.valid?
-      FHIR.logger.info '[.execute_operation] Can not execute invalid Operation.'
-      return 'fail'
+      message = '[.execute_operation] Can not execute invalid Operation.'
+      FHIR.logger.info message
+      fail(message)
+      return false
     end
 
     request = create_request(op)
     if request.nil?
-      FHIR.logger.info "[.execute_operation] Unable to create a request, can not execute Operation #{op.label || '[unlabeled]'}."
-      return 'fail'
+      message = "[.execute_operation] Unable to create a request, can not execute Operation #{op.label || '[unlabeled]'}."
+      FHIR.logger.info message
+      fail(message)
+      return false
     end
 
     begin
       client.send(*request)
     rescue StandardError => e
-      FHIR.logger.info "[.execute_operation] ERROR: #{e.message} while executing Operation #{op.label || '[unlabeled]'}."
-      return 'fail'
+      message = "[.execute_operation] ERROR: #{e.message} while executing Operation #{op.label || '[unlabeled]'}."
+      FHIR.logger.info message
+      fail(message)
+      return false
     end
 
     storage(op)
-    'pass'
+    pass
+    return true
   end
 
   def create_request(op)
@@ -241,7 +249,10 @@ class TestScriptRunnable
   def evaluate assertion
     return unless assertion
 
-    return report.fail 'invalidAssert' unless assertion.is_a? FHIR::TestScript::Setup::Action::Assert
+    unless assertion.is_a? FHIR::TestScript::Setup::Action::Assert
+      fail('invalidAssert')
+      return false
+    end
 
     assertTypes = ['compareToSourceExpression', 'compareToSourcePath', 'contentType', 'expression', 'headerField', 'minimumId', 'navigationLinks', 'path', 'requestMethod', 'requestURL', 'response', 'responseCode', 'resource', 'validateProfileId']
 
@@ -251,13 +262,21 @@ class TestScriptRunnable
       self.send(("assert_#{assertType}").to_sym, assertion)
 
     rescue AssertionException => e
-      return assertion.warningOnly ? report.warning(e.message) : report.fail(e.message)
+      if assertion.warningOnly
+        warning(e.message)
+        return true
+      else
+        fail(e.message)
+        return false
+      end
     rescue StandardError => e
-      FHIR.logger.error "Unable to process assertion. Error: #{e.message}"
-      report.error e.message
-      return
+      message = "Unable to process assertion. Error: #{e.message}"
+      FHIR.logger.info message
+      fail(message)
+      return false
     end
-    report.pass
+    pass
+    return true
   end
 
   def extract_path(operation, request_type)
