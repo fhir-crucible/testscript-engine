@@ -148,7 +148,6 @@ class TestScriptRunnable
       if result == false and end_on_fail
         # TODO: Implement some flow control for ending execution
         # Already support in report handler -- cascade_skips attr_accessor
-        return
       end
     end
   end
