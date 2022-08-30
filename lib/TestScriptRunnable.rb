@@ -60,30 +60,40 @@ class TestScriptRunnable
 
   def initialize script
     unless (script.is_a? FHIR::TestScript) && script.valid?
-      FHIR.logger.error '[.initialize] Received invalid or non-TestScript resource.'
+      uncaught_error(:invalid_script)
       raise ArgumentError
     end
 
     script(script)
 
-    pre_processing
+    # TODO - move preprocessing to the 'run' method
+    # I'll do this in a follow-up PR. The reason is that preprocessing,
+    # since it includes autoloading fixtures, can't be done only one. It
+    # needs to be done each time the script is executed i.e. autloading
+    # for any system under test.
+    #
+    # For now, just move the call to preprocessing to the run method to
+    # see how the output will look under regular conditions
+    #
+    # preprocessing
   end
 
   def run(client = nil)
     client(client)
+    binding.pry
     fresh_testreport # Create a new testreport each time the runnable is executed
+    preprocessing # TODO: remove this
 
     setup if script.setup
     test unless script.test.empty?
     teardown if script.teardown
 
-    post_processing
+    postprocessing
 
     finalize_report
   end
 
-  def pre_processing
-    FHIR.logger.info 'Begin pre-processing.'
+  def preprocessing
     load_fixtures
 
     autocreate_ids.each do |fixture_id|
@@ -93,8 +103,6 @@ class TestScriptRunnable
       # So, just simplify and do the sending here without all that extra stuff
       client.send(*create_request((operation_create(fixture_id))))
     end
-
-    FHIR.logger.info 'Finish pre-processing.'
   end
 
   def setup
@@ -109,15 +117,12 @@ class TestScriptRunnable
     handle_actions(script.teardown.action, false)
   end
 
-  def post_processing
-    FHIR.logger.info 'Begin post-processing.'
+  def postprocessing
 
     autodelete_ids.each do |fixture_id|
       FHIR.logger.info "Auto-deleting dynamic fixture #{fixture_id}"
       client.send(*create_request((operation_delete(fixture_id))))
     end
-
-    FHIR.logger.info 'Finish post-processing.'
   end
 
   def handle_actions(actions, end_on_fail)
@@ -208,8 +213,7 @@ class TestScriptRunnable
       client.send(*request)
     rescue StandardError => e
       message = "[.execute_operation] ERROR: #{e.message} while executing Operation #{op.label || '[unlabeled]'}."
-      action_error(:execution_error)
-      fail(message)
+      error(message)
       return false
     end
 

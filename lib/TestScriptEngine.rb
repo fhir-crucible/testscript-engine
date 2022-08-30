@@ -1,8 +1,11 @@
 require 'pry-nav' # TODO: Remove
 require 'fhir_client'
 require_relative './TestScriptRunnable'
+require_relative './MessageHandler'
 
 class TestScriptEngine
+  prepend MessageHandler
+
   attr_accessor :endpoint, :directory_path, :file_name
 
   def scripts
@@ -29,6 +32,7 @@ class TestScriptEngine
     self.endpoint = endpoint
     self.directory_path = directory_path
     self.file_name = file_name
+    self.debug_mode = true
   end
 
   # TODO: Tie-in stronger validation. Possibly, Inferno validator.
@@ -40,8 +44,6 @@ class TestScriptEngine
   #                TestScript Resources to-be loaded into the engine.
   def load_scripts
     on_deck = Dir.glob (["#{root}/**/*.{json}", "#{root}/**/*.{xml}"])
-    FHIR.logger.info "[.load_scripts] TestScript Path: [#{root}]"
-
     on_deck.each do |resource|
       next if resource.include? "/fixtures/"
       next if file_name && !resource.include?(file_name)
@@ -50,14 +52,18 @@ class TestScriptEngine
         script = FHIR.from_contents File.read(resource)
         if valid_testscript? script
           script.url = resource
+          if scripts[script.id]
+            info(:overwrite_existing_script, script.id)
+          else
+            info(:loaded_script, script.id)
+          end
           scripts[script.id] = script
-          FHIR.logger.info "[.load_scripts] TestScript with id [#{script.id}] loaded."
         else
-          FHIR.logger.info "[.load_scripts] Invalid or non-TestScript detected. Skipping resource at #{resource}."
-          FHIR.logger.info "[.load_scripts] Violation: #{script.validate.to_hash}"
+          info(:invalid_script, resource)
+          error(:invalid_dump, script.validate.to_hash)
         end
       rescue
-        FHIR.logger.info "[.load_scripts] Unable to deserialize TestScript resource at #{resource}."
+        info(:cant_deserialize_script, resource)
       end
     end
   end
@@ -70,15 +76,15 @@ class TestScriptEngine
     begin
       if valid_testscript? script
         runnables[script.id] = TestScriptRunnable.new script
-        FHIR.logger.info "[.make_runnables] Generated runnable from TestScript with id [#{script.id}]."
+        info(:made_runnable, script.id)
       else
         scripts.each do |_, script|
           runnables[script.id] = TestScriptRunnable.new script
-          FHIR.logger.info "[.make_runnables] Generated runnable from TestScript with id [#{script.id}]."
+          info(:made_runnable, script.id)
         end
       end
     rescue => e
-      FHIR.logger.error "[.make_runnables] Unable to generate runnable. Caught error: #{e.message}."
+      error(:cant_make_runnable, script.id)
     end
   end
 
@@ -88,17 +94,13 @@ class TestScriptEngine
   def execute_runnables runnable_id = nil
     if runnable_id
       if runnables[runnable_id]
-        puts "\nBeggining execution of #{runnable_id}.\n\n"
-        reports[runnable_id] = runnable.execute client
-        puts "\nFinished execution of #{runnable_id}. Score: #{reports[runnable_id].score} \n"
+        reports[runnable_id] = runnable.run client
       else
-         FHIR.logger.info "[.execute_runnables] No runnable stored with id [#{runnable_id}]."
+        error(:no_runnable_stored, runnable_id)
       end
     else
       runnables.each do |id, runnable|
-        puts "\nBeggining execution of #{id}.\n\n"
         reports[id] = runnable.run client
-        puts "\nFinished execution of #{id}. Score: #{reports[id].score} \n"
       end
     end
   end
