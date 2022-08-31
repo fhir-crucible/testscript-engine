@@ -42,7 +42,7 @@ class TestScriptRunnable
   end
 
   def autodelete_ids
-    @autocreate_ids ||= []
+    @autodelete_ids ||= []
   end
 
   def script(script = nil)
