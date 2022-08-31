@@ -83,7 +83,6 @@ class TestScriptRunnable
     fresh_testreport
     preprocessing # TODO: remove this
 
-    binding.pry
     setup if script.setup
     test unless script.test.empty?
     teardown if script.teardown
@@ -97,7 +96,6 @@ class TestScriptRunnable
     load_fixtures
 
     autocreate_ids.each do |fixture_id|
-      FHIR.logger.info "Auto-creating static fixture #{fixture_id}"
       client.send(*create_request((operation_create(fixture_id))))
     end
   end
@@ -124,7 +122,7 @@ class TestScriptRunnable
 
   def handle_actions(actions, end_on_fail)
     actions.each do |action|
-      result = begin
+      result = begin # TODO: Remove MessageHandler result objects when result no longer used
         if action.operation
           execute_operation(action.operation)
         elsif action.respond_to?(:assert)
@@ -218,6 +216,7 @@ class TestScriptRunnable
   end
 
   def create_request(op)
+    binding.pry
     req_type = op.local_method&.to_sym || REQUEST_TYPES[op.type&.code]
 
     request = [req_type,

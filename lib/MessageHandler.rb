@@ -27,7 +27,7 @@ module MessageHandler
       increase_space
     elsif message.start_with?("FINISH")
     else
-      print space
+      print unit_of_space
     end
     print space
     puts message
@@ -70,33 +70,59 @@ module MessageHandler
     print_out messages(:finish_preprocessing)
   end
 
-  def load_fixtures
-    print_out messages(:begin_loading_fixtures)
+  def setup
+    print_out messages(:begin_setup)
     super
-    print_out messages(:finish_loading_fixtures)
+    print_out messages(:finish_setup)
+  end
+
+  def test
+
+  end
+
+  def teardown
+
+  end
+
+  def postprocessing
+  end
+
+  def execute_operation(*args)
+    print_out messages(:execute_operation) if print_action_header(:operation)
+    super
+  end
+
+  def evaluate(*args)
+    print_out messages(:evaluate_assert) if print_action_header(:assert)
+    super
+  end
+
+  def print_action_header(action_type)
+    return false if @previous_action_type == action_type
+
+    @previous_action_type = action_type
+    true
   end
 
   # < ---- TO REVIEW ---- >
   def client(*args)
     client = super
-    format_with_spacing = logger_format
-    FHIR.logger.formatter = format_with_spacing
+    FHIR.logger.formatter = logger_formatter_with_spacing
     return client
   end
 
-  def logger_formats
-    @logger_formats ||= {}
+  def logger_formatters_with_spacing
+    @logger_formatters_with_spacing ||= {}
   end
 
-  def logger_format
-    format_with_spacing = logger_formats[space.length]
-    unless format_with_spacing
-      format_with_spacing = proc do |severity, datetime, progname, msg|
-        "#{space}#{space}#{severity}: #{msg}\n"
+  def logger_formatter_with_spacing
+    logger_formatters_with_spacing[space.length] || begin
+      new_logger_formatter = proc do |severity, datetime, progname, msg|
+        "#{space}#{unit_of_space}#{msg}\n"
       end
-      logger_formats[space.length] = format_with_spacing
+      logger_formatters_with_spacing[space.length] = new_logger_formatter
+      new_logger_formatter
     end
-    format_with_spacing
   end
 
 
@@ -211,8 +237,6 @@ module MessageHandler
 
   def messages(message, *options)
     message_text = case message
-    when :begin_loading_fixtures
-      "STARTING TO LOAD STATIC FIXTURES"
     when :begin_loading_scripts
       "STARTING TO LOAD TESTSCRIPTS FROM #{options[0]}"
     when :begin_making_runnables
@@ -221,12 +245,16 @@ module MessageHandler
       "STARTING PREPROCESSING"
     when :begin_runnable_execution
       "STARTING TO EXECUTE RUNNABLE: [#{options[0]}]"
+    when :begin_setup
+      "STARTING SETUP EXECUTION"
     when :cant_deserialize_script
       "Could not deserialize resource: [#{options[0]}]"
     when :cant_make_runnable
       "Could not make runnable from TestScript: [#{options[0]}]"
-    when :finish_loading_fixtures
-      "FINISHED LOADING STATIC FIXTURES."
+    when :evaluate_assert
+      "EVALUATING ASSERTION"
+    when :execute_operation
+      "STARTING OPERATION EXECUTION"
     when :finish_loading_scripts
       "FINISHED LOADING TESTSCRIPTS."
     when :finish_making_runnables
@@ -234,7 +262,9 @@ module MessageHandler
     when :finish_preprocessing
       "FINISHED PREPROCESSING."
     when :finish_runnable_execution
-      "FINIShED EXECUTING RUNNABLE."
+      "FINISHED EXECUTING RUNNABLE."
+    when :finish_setup
+      "FINISHED EXECUTING SETUP."
     when :invalid_script
       "Could not load resource: [#{options[0]}]"
     when :invalid_dump
@@ -261,24 +291,24 @@ module MessageHandler
 
 
 
-    when :action_assert
-      "ASSERT EVALUATION"
-    when :action_operation
-      "OPERATION EXECUTION"
-    when :autocreate
-      "INFO: Auto-creating static fixture #{options[0]}."
-    when :begin_section
-      "BEGIN #{options[0].upcase}"
-    when :finish_section
-      "FINISH #{options[0].upcase}."
-    when :invalid_operation
-      "FAIL: Given invalid operation. Can not execute."
-    when :invalid_request
-      "FAIL: Can not create request given operation. Can not execute."
-    when :invalid_script
-      "ERROR: Received invalid or non-TestScript resource. Can not create runnable."
-    when :execution_error
-      "ERROR: Error encountered while executing operation."
+    # when :action_assert
+    #   "ASSERT EVALUATION"
+    # when :action_operation
+    #   "OPERATION EXECUTION"
+    # when :autocreate
+    #   "INFO: Auto-creating static fixture #{options[0]}."
+    # when :begin_section
+    #   "BEGIN #{options[0].upcase}"
+    # when :finish_section
+    #   "FINISH #{options[0].upcase}."
+    # when :invalid_operation
+    #   "FAIL: Given invalid operation. Can not execute."
+    # when :invalid_request
+    #   "FAIL: Can not create request given operation. Can not execute."
+    # when :invalid_script
+    #   "ERROR: Received invalid or non-TestScript resource. Can not create runnable."
+    # when :execution_error
+    #   "ERROR: Error encountered while executing operation."
     end
   end
 end

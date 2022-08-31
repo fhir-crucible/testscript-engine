@@ -82,7 +82,7 @@
   "fixture": [
     {
       "id": "fixture-observation-create",
-      "autocreate": false,
+      "autocreate": true,
       "autodelete": false,
       "resource": {
         "reference": "Observation/example.json",
