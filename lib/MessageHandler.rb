@@ -42,7 +42,6 @@ module MessageHandler
   end
 
   def error(message_type, *options)
-    binding.pry
     return unless debug_mode
     print_out messages(message_type, *options)
   end
@@ -63,6 +62,18 @@ module MessageHandler
     print_out messages(:begin_runnable_execution, script.id)
     super
     print_out messages(:finish_runnable_execution)
+  end
+
+  def preprocessing
+    print_out messages(:begin_preprocessing)
+    super
+    print_out messages(:finish_preprocessing)
+  end
+
+  def load_fixtures
+    print_out messages(:begin_loading_fixtures)
+    super
+    print_out messages(:finish_loading_fixtures)
   end
 
   # < ---- TO REVIEW ---- >
@@ -200,32 +211,48 @@ module MessageHandler
 
   def messages(message, *options)
     message_text = case message
+    when :begin_loading_fixtures
+      "STARTING TO LOAD STATIC FIXTURES"
     when :begin_loading_scripts
       "STARTING TO LOAD TESTSCRIPTS FROM #{options[0]}"
     when :begin_making_runnables
       "STARTING TO MAKE RUNNABLES"
+    when :begin_preprocessing
+      "STARTING PREPROCESSING"
     when :begin_runnable_execution
       "STARTING TO EXECUTE RUNNABLE: [#{options[0]}]"
     when :cant_deserialize_script
       "Could not deserialize resource: [#{options[0]}]"
     when :cant_make_runnable
       "Could not make runnable from TestScript: [#{options[0]}]"
+    when :finish_loading_fixtures
+      "FINISHED LOADING STATIC FIXTURES."
     when :finish_loading_scripts
       "FINISHED LOADING TESTSCRIPTS."
     when :finish_making_runnables
       "FINISHED MAKING RUNNABLES."
+    when :finish_preprocessing
+      "FINISHED PREPROCESSING."
     when :finish_runnable_execution
       "FINIShED EXECUTING RUNNABLE."
     when :invalid_script
       "Could not load resource: [#{options[0]}]"
     when :invalid_dump
       "Validation error: [#{options[0]}]"
+    when :loaded_static_fixture
+      "Loaded static fixture: [#{options[0]}]."
     when :loaded_script
       "Loaded TestScript: [#{options[0]}]"
     when :made_runnable
       "Created runnable from TestScript: [#{options[0]}]"
     when :no_runnable_stored
       "No runnable stored with id: [#{options[0]}]. Can not execute."
+    when :no_static_fixture_id
+      "No ID for static fixture. Can not load."
+    when :no_static_fixture_reference
+      "No reference for static fixture. Can not load."
+    when :no_static_fixture_resource
+      "No resource for static fixture. Can not load."
     when :overwrite_existing_script
       "Overwriting previously loaded TestScript: [#{options[0]}]"
 

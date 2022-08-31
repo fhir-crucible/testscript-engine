@@ -80,10 +80,10 @@ class TestScriptRunnable
 
   def run(client = nil)
     client(client)
-    binding.pry
-    fresh_testreport # Create a new testreport each time the runnable is executed
+    fresh_testreport
     preprocessing # TODO: remove this
 
+    binding.pry
     setup if script.setup
     test unless script.test.empty?
     teardown if script.teardown
@@ -98,9 +98,6 @@ class TestScriptRunnable
 
     autocreate_ids.each do |fixture_id|
       FHIR.logger.info "Auto-creating static fixture #{fixture_id}"
-      # Modified: Previously, called execute_operation
-      # However, don't want everything that execute_operation does (storing response, updating test report etc.)
-      # So, just simplify and do the sending here without all that extra stuff
       client.send(*create_request((operation_create(fixture_id))))
     end
   end
@@ -157,22 +154,20 @@ class TestScriptRunnable
   end
 
   def load_fixtures
-    FHIR.logger.info 'Beginning loading fixtures.'
     script.fixture.each do |fixture|
-      FHIR.logger.info 'No ID for static fixture, can not process.' unless fixture.id
-      FHIR.logger.info 'No resource for static fixture, can not process.' unless fixture.resource
+      info(:no_static_fixture_id) unless fixture.id
+      info(:no_static_fixture_resource) unless fixture.resource
 
       resource = get_resource_from_ref(fixture.resource)
-      FHIR.logger.info 'No reference for static fixture, can not process' unless resource
+      info(:no_static_fixture_reference) unless resource
 
-      FHIR.logger.info "Storing static fixture #{fixture.id}"
+      info(:loaded_static_fixture, fixture.id)
       fixtures[fixture.id] = resource
       type = resource.resourceType
 
       autocreate_ids << fixture.id if fixture.autocreate
       autodelete_ids << fixture.id if fixture.autodelete
     end
-    FHIR.logger.info 'Finishing loading fixtures.'
   end
 
   def get_resource_from_ref reference
