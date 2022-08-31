@@ -155,14 +155,14 @@ class TestScriptRunnable
   def operation_create(sourceId)
     FHIR::TestScript::Setup::Action::Operation.new({
       sourceId: sourceId,
-      local_method: 'create'
+      method: 'post'
     })
   end
 
   def operation_delete(sourceId)
     FHIR::TestScript::Setup::Action::Operation.new({
       targetId: id_map[sourceId],
-      local_method: 'delete'
+      method: 'delete'
     })
   end
 
