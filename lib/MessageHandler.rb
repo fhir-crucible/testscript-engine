@@ -102,9 +102,9 @@ module MessageHandler
     decrease_space
   end
 
-  def pass
-    print_out ("SUCCESS!")
-  end
+  # def pass
+  #   print_out ("SUCCESS!")
+  # end
 
   def fail(message_type, *options)
     message = messages(message_type, *options)
@@ -162,14 +162,32 @@ module MessageHandler
   def outcome_symbol(outcome)
     symbol = begin
       case outcome
+      when "UNKNOWN"
+        "???"
+      when "FATAL"
+        [023042].pack("U*")
+      when "ERROR"
+        [10071].pack("U*")
+      when "WARN"
+        [023220].pack("U*")
       when "INFO"
         [10003].pack("U*")
+      when "DEBUG"
+        [0372415].pack("U*")
       when "FAIL"
         [10007].pack("U*")
       end
     end
 
     "(#{symbol})"
+  end
+
+  def begin_symbol
+    [10551].pack("U*")
+  end
+
+  def finish_symbol
+    [024465].pack("U*")
   end
 
 
@@ -310,7 +328,7 @@ module MessageHandler
     when :execute_operation
       "OPERATION EXECUTION"
     when :execute_operation_error
-      "ERROR: Unable to execute operation: [#{options[0]}]. [#{options[1]}]"
+      "Unable to execute operation. ERROR: [#{options[0]}]. [#{options[1]}]"
     when :finish_loading_scripts
       finish_message_format("LOADING SCRIPTS")
     when :finish_making_runnables

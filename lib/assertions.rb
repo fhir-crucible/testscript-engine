@@ -206,9 +206,16 @@ module Assertions
     compare("Request Method", received, assert.operator, expected)
   end
 
+<<<<<<< HEAD
   def resource(assert)
     received = get_resource(assert.sourceId)
     compare("Resource", received&.resourceType, assert.operator, assert.resource)
+=======
+  def assert_response assertion
+    to_assert_on = response_map[assertion.sourceId] || reply
+    expected = CODE_MAP[assertion.response]
+    assert_operator(to_assert_on&.code, assertion.operator, expected, 'Response:')
+>>>>>>> bee2730 (begin assertion messaging)
   end
 
   def response_code(assert)
@@ -240,11 +247,35 @@ module Assertions
   end
 
 
+<<<<<<< HEAD
   # <--- TO DO: MOVE TO UTILITIES MODULE --->
 
   def get_resource(id)
     if direction == 'request'
       get_request(id)&.[](:payload)
+=======
+    case operator
+    when :equals
+      fail_message += " Expected [#{expected}] but found #{actual}." unless actual == expected
+    when :notEquals
+      fail_message += " Did not expect #{expected} but found #{actual}." unless actual != expected
+    when :in
+      fail_message += " Expected [#{expected}] but found #{actual}." unless expected.split(',').include?(actual)
+    when :notIn
+      fail_message += " Did not expect #{expected} but found #{actual}." if expected.split(',').include?(actual)
+    when :greaterThan
+      fail_message += " Expected greater than #{expected} but found #{actual}." unless actual && expected && actual > expected
+    when :lessThan
+      fail_message += " Expected greater than #{expected} but found #{actual}." unless actual && expected && actual < expected
+    when :empty
+      fail_message += " Expected empty but found #{actual}." unless actual.nil? || actual.length.zero?
+    when :notEmpty
+      fail_message += " Expected not empty but found #{actual}." unless actual&.length&.positive?
+    when :contains
+      fail_message += " Expected #{actual} to contain #{expected}." unless actual&.include?(expected)
+    when :notContains
+      fail_message += " Expected #{actual} to not contain #{expected}." unless actual.nil? || !actual.include?(expected)
+>>>>>>> bee2730 (begin assertion messaging)
     else
       get_response(id)&.[](:body) || fixtures[id]
     end
