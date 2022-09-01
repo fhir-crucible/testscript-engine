@@ -60,8 +60,9 @@ module MessageHandler
 
   def run(*args)
     print_out messages(:begin_runnable_execution, script.id)
-    super
+    result = super
     print_out messages(:finish_runnable_execution)
+    result
   end
 
   def preprocessing
@@ -89,12 +90,45 @@ module MessageHandler
 
   def execute_operation(*args)
     print_out messages(:execute_operation) if print_action_header(:operation)
+    increase_space
     super
+    decrease_space
   end
 
   def evaluate(*args)
     print_out messages(:evaluate_assert) if print_action_header(:assert)
+    increase_space
     super
+    decrease_space
+  end
+
+  def pass
+    print_out ("SUCCESS!")
+  end
+
+  def fail(message_type, *options)
+    message = messages(message_type, *options)
+    super(message)
+    print_out "#{outcome_symbol("FAIL")} #{message}"
+  end
+
+  def skip(message_type, *options)
+    message = messages(message_type, *options)
+    super(message)
+    print_out message
+  end
+
+  def warning(message_type, *options)
+    message = messages(message_type, *options)
+    super(message)
+    print_out ("WARNING: " + message)
+  end
+
+  # TODO: Implement once error support added to TestReportHandler module
+  def error(message_type, *options)
+    message = messages(message_type, *options)
+    super(message)
+    print_out ("ERROR: " + message)
   end
 
   def print_action_header(action_type)
@@ -118,12 +152,26 @@ module MessageHandler
   def logger_formatter_with_spacing
     logger_formatters_with_spacing[space.length] || begin
       new_logger_formatter = proc do |severity, datetime, progname, msg|
-        "#{space}#{unit_of_space}#{msg}\n"
+        "#{space}#{unit_of_space}#{outcome_symbol(severity)} #{msg}\n"
       end
       logger_formatters_with_spacing[space.length] = new_logger_formatter
       new_logger_formatter
     end
   end
+
+  def outcome_symbol(outcome)
+    symbol = begin
+      case outcome
+      when "INFO"
+        [10003].pack("U*")
+      when "FAIL"
+        [10007].pack("U*")
+      end
+    end
+
+    "(#{symbol})"
+  end
+
 
 
 
@@ -237,16 +285,22 @@ module MessageHandler
 
   def messages(message, *options)
     message_text = case message
+    when :assertion_error
+      "ERROR: Unable to process assertion: #{options[0]}"
+    when :assertion_exception
+      "#{options[0]}"
+    when :bad_reference
+      "Unable to read contents of reference: [#{options[0]}]. No reference extracted."
     when :begin_loading_scripts
-      "STARTING TO LOAD TESTSCRIPTS FROM #{options[0]}"
+      start_message_format("LOAD TESTSCRIPTS", options[0])
     when :begin_making_runnables
-      "STARTING TO MAKE RUNNABLES"
+      start_message_format("MAKE RUNNABLE(S)")
     when :begin_preprocessing
-      "STARTING PREPROCESSING"
+      start_message_format("PREPROCESS", options[0])
     when :begin_runnable_execution
-      "STARTING TO EXECUTE RUNNABLE: [#{options[0]}]"
+      start_message_format("EXECUTE RUNNABLE", options[0])
     when :begin_setup
-      "STARTING SETUP EXECUTION"
+      start_message_format("SETUP")
     when :cant_deserialize_script
       "Could not deserialize resource: [#{options[0]}]"
     when :cant_make_runnable
@@ -254,21 +308,29 @@ module MessageHandler
     when :evaluate_assert
       "EVALUATING ASSERTION"
     when :execute_operation
-      "STARTING OPERATION EXECUTION"
+      "OPERATION EXECUTION"
+    when :execute_operation_error
+      "ERROR: Unable to execute operation: [#{options[0]}]. [#{options[1]}]"
     when :finish_loading_scripts
-      "FINISHED LOADING TESTSCRIPTS."
+      finish_message_format("LOADING SCRIPTS")
     when :finish_making_runnables
-      "FINISHED MAKING RUNNABLES."
+      finish_message_format("MAKING RUNNABLE(S)")
     when :finish_preprocessing
-      "FINISHED PREPROCESSING."
+      finish_message_format("PREPROCESSING")
     when :finish_runnable_execution
-      "FINISHED EXECUTING RUNNABLE."
+      finish_message_format("EXECUTING RUNNABLE")
     when :finish_setup
-      "FINISHED EXECUTING SETUP."
-    when :invalid_script
-      "Could not load resource: [#{options[0]}]"
+      finish_message_format("SETUP")
+    when :invalid_assert
+      "Invalid assert. Can not evaluate."
     when :invalid_dump
       "Validation error: [#{options[0]}]"
+    when :invalid_operation
+      "Invalid operation. Can not execute."
+    when :invalid_request
+      "Unable to create a request using operation: [#{options[0]}]. Can not execute."
+    when :invalid_script
+      "Could not load resource: [#{options[0]}]"
     when :loaded_static_fixture
       "Loaded static fixture: [#{options[0]}]."
     when :loaded_script
@@ -285,6 +347,8 @@ module MessageHandler
       "No resource for static fixture. Can not load."
     when :overwrite_existing_script
       "Overwriting previously loaded TestScript: [#{options[0]}]"
+    when :unsupported_ref
+      "Remote reference: [#{options[0]}] not supported. No reference extracted."
 
 
 
@@ -311,4 +375,12 @@ module MessageHandler
     #   "ERROR: Error encountered while executing operation."
     end
   end
+end
+
+def start_message_format(phase, *options)
+  "STARTING TO #{phase}" + (options[0] ? ": [#{options[0]}]" : '')
+end
+
+def finish_message_format(phase)
+  "FINISHED #{phase}."
 end

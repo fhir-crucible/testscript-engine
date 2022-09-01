@@ -36,15 +36,39 @@ module Assertions
   }
 
   def evaluate(assert)
-
     # TODO: Check and fail if assert is nil || not the intended type
+    return unless assert
+
+    unless assert.is_a? FHIR::TestScript::Setup::Action::Assert
+      fail(:invalidAssert)
+      return false
+    end
 
     assert_elements = assert.to_hash.keys
     @direction = assert.direction
     assert_type = determine_assert_type(assert_elements)
 
     # Wrap in Rescue
-    outcome_message = send(assert_type.to_sym, assert)
+    begin
+      outcome_message = send(assert_type.to_sym, assert)
+    rescue StandardError => e
+      fail(e.message) # TODO: Switch to ERROR
+      return false
+    end
+
+    if outcome_message.include? 'As expected'
+      pass
+      return true
+    else
+      if assertion.warningOnly
+        warning(:assertion_exception, e.message)
+        return true
+      else
+        fail(:assertion_exception, e.message)
+        return false
+      end
+    end
+
     # stop Test On Fail Check
     # warning Only Check
     # TODO: What happens if the assertion is poorly formed?

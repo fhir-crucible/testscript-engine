@@ -60,7 +60,7 @@ class TestScriptRunnable
 
   def initialize script
     unless (script.is_a? FHIR::TestScript) && script.valid?
-      uncaught_error(:invalid_script)
+      fail(:invalid_script) # TODO: Switch to ERROR
       raise ArgumentError
     end
 
@@ -172,7 +172,7 @@ class TestScriptRunnable
     return unless reference.is_a? FHIR::Reference
     return unless ref = reference.reference
 
-    return warn('unsupportedRef', ref) if ref.start_with? 'http'
+    return warning(:unsupported_ref, ref) if ref.start_with? 'http'
     return script.contained.find { |r| r.id == ref[1..] } if ref.start_with? '#'
 
     begin
@@ -182,31 +182,26 @@ class TestScriptRunnable
       file.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
       return FHIR.from_contents(file)
     rescue StandardError => e
-      warn('badReference', ref)
+      warning(:bad_reference, ref) # TODO: Switch to ERROR? Or not?
     end
   end
 
   def execute_operation(op)
     unless op.instance_of?(FHIR::TestScript::Setup::Action::Operation) && op.valid?
-      message = '[.execute_operation] Can not execute invalid Operation.'
-      action_fail(:invalid_operation)
-      fail(message)
+      fail(:invalid_operation)
       return false
     end
 
     request = create_request(op)
     if request.nil?
-      message = "[.execute_operation] Unable to create a request, can not execute Operation #{op.label || '[unlabeled]'}."
-      action_fail(:invalid_request)
-      fail(message)
+      fail(:invalid_request, (op.label || "unlabeled"))
       return false
     end
 
     begin
       client.send(*request)
     rescue StandardError => e
-      message = "[.execute_operation] ERROR: #{e.message} while executing Operation #{op.label || '[unlabeled]'}."
-      error(message)
+      fail(:execute_operation_error, (op.label || 'unlabeled'), e.message ) # TODO: Switch to ERROR
       return false
     end
 
@@ -216,7 +211,6 @@ class TestScriptRunnable
   end
 
   def create_request(op)
-    binding.pry
     req_type = op.local_method&.to_sym || REQUEST_TYPES[op.type&.code]
 
     request = [req_type,
