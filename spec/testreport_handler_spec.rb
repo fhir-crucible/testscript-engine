@@ -421,6 +421,20 @@ describe TestReportHandler do
       end
     end
 
+    describe '.error' do
+      let(:builder) { TestReportHandler::TestReportBuilder.new(@script) }
+
+      it 'updates the report and removes the action from the internal queue' do
+        error_action = @builder.action
+        builder.error('test_message')
+
+        expect(builder.actions).not_to eq(error_action)
+        expect(builder.actions.length).to eq(13)
+        expect(builder.report.setup.action.first.operation.result).to eq('error')
+        expect(builder.report.setup.action.first.operation.message).to eq('test_message')
+      end
+    end
+
     describe '.clone' do
       context 'on empty builder' do
         it 'creates an empty deep clone' do
