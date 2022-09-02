@@ -246,39 +246,6 @@ class TestScriptRunnable
     request.compact
   end
 
-  def evaluate assertion
-    return unless assertion
-
-    unless assertion.is_a? FHIR::TestScript::Setup::Action::Assert
-      fail('invalidAssert')
-      return false
-    end
-
-    assertTypes = ['compareToSourceExpression', 'compareToSourcePath', 'contentType', 'expression', 'headerField', 'minimumId', 'navigationLinks', 'path', 'requestMethod', 'requestURL', 'response', 'responseCode', 'resource', 'validateProfileId']
-
-    begin
-      rawType = assertion.to_hash.find { |k, v| assertTypes.include? k }
-      assertType = rawType[0].split(/(?<=\p{Ll})(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})/).map(&:downcase).join('_')
-      self.send(("assert_#{assertType}").to_sym, assertion)
-
-    rescue AssertionException => e
-      if assertion.warningOnly
-        warning(e.message)
-        return true
-      else
-        fail(e.message)
-        return false
-      end
-    rescue StandardError => e
-      message = "Unable to process assertion. Error: #{e.message}"
-      FHIR.logger.info message
-      fail(message)
-      return false
-    end
-    pass
-    return true
-  end
-
   def extract_path(operation, request_type)
     return replace_variables(operation.url) if operation.url
 
@@ -349,6 +316,26 @@ class TestScriptRunnable
     id_map[op.responseId] = dynamic_id if op.responseId and dynamic_id
     id_map[op.sourceId] = dynamic_id if op.sourceId and dynamic_id
     return
+  end
+
+  def response_header(responseId = nil, header_name = nil)
+    response = responseId ? response_map[responseId] : reply&.response
+    return unless response
+
+    headers = response[:headers]
+    return unless headers
+
+    header_name ? headers[header_name] : headers
+  end
+
+  def request_header(requestId = nil, header_name = nil)
+    request = requestId ? request_map[requestId] : reply&.request
+    return unless request
+
+    headers = request[:headers]
+    return unless headers
+
+    header_name ? headers[header_name] : headers
   end
 
   def find_resource id

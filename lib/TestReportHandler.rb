@@ -41,7 +41,8 @@ module TestReportHandler
     @builder_template ||= TestReportBuilder.new(script)
   end
 
-  def pass
+  # TODO: Remove!
+  def pass(message = nil)
     report_builder.pass
   end
 
@@ -57,7 +58,7 @@ module TestReportHandler
     report_builder.warning(message)
   end
 
-  def error
+  def error(message = nil)
     report_builder.error(message)
   end
 
