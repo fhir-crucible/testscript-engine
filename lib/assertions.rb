@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 require 'pry-nav'
+require 'jsonpath'
+require 'active_support'
+
 module Assertions
 
   ASSERT_TYPES_MATCHER = /(?<=\p{Ll})(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})/
@@ -37,6 +40,7 @@ module Assertions
     # TODO: Check and fail if assert is nil || not the intended type
 
     assert_elements = assert.to_hash.keys
+    @direction = assert.direction
     assert_type = determine_assert_type(assert_elements)
 
     # Wrap in Rescue
@@ -52,13 +56,24 @@ module Assertions
     return assert_type.split(ASSERT_TYPES_MATCHER).map(&:downcase).join('_')
   end
 
+  def direction
+    @direction ||= 'response'
+  end
+
+  # TODO: Move to utilities
+  def get_resource(id)
+    response_map[id][:body] || fixtures[id] || reply.resource
+  end
+
   def determine_expected_value(assert)
     if assert.value
       assert.value
     elsif assert.compareToSourceExpression
-      FHIRPath.evaluate(assert.expression, (response_map[assert.compareToSourceId] || fixtures[assert.compareToSourceId]))
+      FHIRPath.evaluate(assert.compareToSourceExpression,
+        get_resource(assert.compareToSourceId).to_hash)
     elsif assert.compareToSourcePath
-      evaluate_path(assert.path, (response_map[assert.compareToSourceId] || fixtures[assert.compareToSourceId]))
+      evaluate_path(assert.compareToSourcePath,
+        get_resource(assert.compareToSourceId))
     end
   end
 
@@ -66,65 +81,86 @@ module Assertions
     case operator
     when 'equals'
       if expected == received
-        pass("#{assert_type}: As expected, #{assert_type} equals #{expected}. Found #{received}.")
+        pass_message(assert_type, received, 'equals', expected)
       else
-        fail("#{assert_type}: Expected #{assert_type} to equal #{expected}, but found #{received}.")
+        fail_message(assert_type, received, 'equals', expected)
       end
     when 'notEquals'
       if expected != received
-        pass("#{assert_type}: As expected, #{assert_type} does not equal #{expected}. Found #{received}.")
+        pass_message(assert_type, received, 'did not equal', expected)
       else
-        fail("#{assert_type}: Expected #{assert_type} to not equal #{expected}, but found #{received}.")
+        fail_message(assert_type, received, 'did not equal', expected)
       end
     when 'in'
-      if expected.split(',').include?(received)
-        pass("#{assert_type}: As expected, #{assert_type} in #{expected}. Found #{received}.")
+      if Array.wrap(expected).split(',').include?(Array.wrap(received))
+        pass_message(assert_type, received, 'in', expected)
       else
-        fail("#{assert_type}: Expected #{assert_type} to be in #{expected}, but found #{received}.")
+        fail_message(assert_type, received, 'be in', expected)
       end
     when 'notIn'
-      if !expected.split(',').include?(received)
-        pass("#{assert_type}: As expected, #{assert_type} not in #{expected}. Found #{received}.")
+      if !Array.wrap(expected).split(',').include?(Array.wrap(received))
+        pass_message(assert_type, received, 'not in', expected)
       else
-        fail("#{assert_type}: Expected #{assert_type} to not be in #{expected}, but found #{received}.")
+        fail_message(assert_type, received, 'not be in', expected)
       end
     when 'greaterThan'
       if received > expected
-        pass("#{assert_type}: As expected, #{assert_type} greater than #{expected}. Found #{received}.")
+        pass_message(assert_type, received, 'greater than', expected)
       else
-        fail("#{assert_type}: Expected #{assert_type} to be greater than #{expected}, but found #{received}.")
+        fail_message(assert_type, received, 'be greater than', expected)
       end
     when 'lessThan'
       if received < expected
-        pass("#{assert_type}: As expected, #{assert_type} less than #{expected}. Found #{received}.")
+        pass_message(assert_type, received, 'less than', expected)
       else
-        fail("#{assert_type}: Expected #{assert_type} to be less than #{expected}, but found #{received}.")
+        fail_message(assert_type, received, 'be less than', expected)
       end
     when 'empty'
-      if received.nil || received.empty?
-        pass("#{assert_type}: As expected, #{assert_type} empty.")
+      if received.blank?
+        pass_message(assert_type, received, 'empty', expected)
       else
-        fail("#{assert_type}: Expected #{assert_type} to be empty, but found #{received}.")
+        fail_message(assert_type, received, 'be empty', expected)
       end
     when 'notEmpty'
-      if received && !received.empty?
-        pass("#{assert_type}: As expected, #{assert_type} not empty. Found #{received}.")
+      if received.present?
+        pass_message(assert_type, received, 'not empty', expected)
       else
-        fail("#{assert_type}: Expected #{assert_type} to not be empty, but found #{received}.")
+        fail_message(assert_type, received, 'not be empty', expected)
       end
     when 'contains'
-      if received.include?(expected)
-        pass("#{assert_type}: As expected, #{assert_type} contains #{expected}. Found #{received}")
+      if Array.wrap(received).split(',').include?(Array.wrap(expected))
+        pass_message(assert_type, received, 'contains', expected)
       else
-        fail("#{assert_type}: Expected #{assert_type} to contain #{expected}, but found #{received}.")
+        fail_message(assert_type, received, 'contain', expected)
       end
     when 'notContains'
-      if !received.include?(expected)
-        pass("#{assert_type}: As expected, #{assert_type} did not contain #{expected}. Found #{received}")
+      if !Array.wrap(received).split(',').include?(Array.wrap(expected))
+        pass_message(assert_type, received, 'did not contain', expected)
       else
-        fail("#{assert_type}: Expected #{assert_type} to not contain #{expected}, but found #{received}.")
+        fail_message(assert_type, received, 'not contain', expected)
       end
     end
+  end
+
+  def compare_message(outcome, ...)
+    if outcome
+      pass_message(...)
+    else
+      fail_message(...)
+    end
+  end
+
+
+  def pass_message(assert_type, received, operator, expected)
+    message = "#{assert_type}: As expected, #{assert_type} #{operator}"
+    message = message + (expected ? " #{expected}."  : '.')
+    message + " Found #{received}." if received
+  end
+
+  def fail_message(assert_type, received, operator, expected)
+    message = "#{assert_type}: Expected #{assert_type} to #{operator}"
+    message = message + " #{expected}" if expected
+    message + ", but found #{received}."
   end
 
   def content_type(assert)
@@ -227,7 +263,6 @@ module Assertions
   end
 
   def request_method(assert)
-    binding.pry
     received = begin
       if assert.sourceId
         request_map[assert.sourceId]
@@ -302,5 +337,39 @@ module Assertions
     end
 
     compare("RequestURL", reply.request[:url], assert.operator, assert.requestURL)
+  end
+
+  # TODO: What should be done here? Make a plan, stick with it
+  # I'm thinking a shared utilities file
+
+  def evaluate_path(path, resource)
+    return unless path and resource
+
+    begin
+      # Then, try xpath if necessary
+      result = extract_xpath_value(resource.to_xml, path)
+    rescue
+      # If xpath fails, see if JSON path will work...
+      result = JsonPath.new(path).first(resource.to_json)
+    end
+    return result
+  end
+
+  def extract_xpath_value(resource_xml, resource_xpath)
+    # Massage the xpath if it doesn't have fhir: namespace or if doesn't end in @value
+    # Also make it look in the entire xml document instead of just starting at the root
+    xpath = resource_xpath.split('/').map do |s|
+      s.start_with?('fhir:') || s.length.zero? || s.start_with?('@') ? s : "fhir:#{s}"
+    end.join('/')
+    xpath = "#{xpath}/@value" unless xpath.end_with? '@value'
+    xpath = "//#{xpath}"
+
+    resource_doc = Nokogiri::XML(resource_xml)
+    resource_doc.root.add_namespace_definition('fhir', 'http://hl7.org/fhir')
+    resource_element = resource_doc.xpath(xpath)
+
+    # This doesn't work on warningOnly; consider putting back in place
+    # raise AssertionException.new("[#{resource_xpath}] resolved to multiple values instead of a single value", resource_element.to_s) if resource_element.length>1
+    resource_element.first.value
   end
 end
