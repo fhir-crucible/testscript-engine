@@ -304,6 +304,7 @@ class TestScriptRunnable
     response_map[op.responseId] = reply.response if op.responseId
 
     (reply.resource = FHIR.from_contents(reply.response&.[](:body).to_s)) rescue {}
+    (reply.response[:body] = reply.resource)
     response_map[op.responseId][:body] = reply.resource if reply.resource and response_map[op.responseId]
 
     if op.targetId and (reply.request[:method] == :delete) and successful?(reply.response[:code])
@@ -317,26 +318,6 @@ class TestScriptRunnable
     id_map[op.responseId] = dynamic_id if op.responseId and dynamic_id
     id_map[op.sourceId] = dynamic_id if op.sourceId and dynamic_id
     return
-  end
-
-  def response_header(responseId = nil, header_name = nil)
-    response = responseId ? response_map[responseId] : reply&.response
-    return unless response
-
-    headers = response[:headers]
-    return unless headers
-
-    header_name ? headers[header_name] : headers
-  end
-
-  def request_header(requestId = nil, header_name = nil)
-    request = requestId ? request_map[requestId] : reply&.request
-    return unless request
-
-    headers = request[:headers]
-    return unless headers
-
-    header_name ? headers[header_name] : headers
   end
 
   def find_resource id

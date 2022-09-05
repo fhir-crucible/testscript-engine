@@ -60,11 +60,6 @@ module Assertions
     @direction ||= 'response'
   end
 
-  # TODO: Move to utilities
-  def get_resource(id)
-    response_map[id][:body] || fixtures[id] || reply.resource
-  end
-
   def determine_expected_value(assert)
     if assert.value
       assert.value
@@ -77,79 +72,39 @@ module Assertions
     end
   end
 
-  def compare(assert_type, received, operator = 'equals', expected = nil)
-    case operator
-    when 'equals'
-      if expected == received
-        pass_message(assert_type, received, 'equals', expected)
-      else
-        fail_message(assert_type, received, 'equals', expected)
-      end
-    when 'notEquals'
-      if expected != received
-        pass_message(assert_type, received, 'did not equal', expected)
-      else
-        fail_message(assert_type, received, 'did not equal', expected)
-      end
-    when 'in'
-      if Array.wrap(expected).split(',').include?(Array.wrap(received))
-        pass_message(assert_type, received, 'in', expected)
-      else
-        fail_message(assert_type, received, 'be in', expected)
-      end
-    when 'notIn'
-      if !Array.wrap(expected).split(',').include?(Array.wrap(received))
-        pass_message(assert_type, received, 'not in', expected)
-      else
-        fail_message(assert_type, received, 'not be in', expected)
-      end
-    when 'greaterThan'
-      if received > expected
-        pass_message(assert_type, received, 'greater than', expected)
-      else
-        fail_message(assert_type, received, 'be greater than', expected)
-      end
-    when 'lessThan'
-      if received < expected
-        pass_message(assert_type, received, 'less than', expected)
-      else
-        fail_message(assert_type, received, 'be less than', expected)
-      end
-    when 'empty'
-      if received.blank?
-        pass_message(assert_type, received, 'empty', expected)
-      else
-        fail_message(assert_type, received, 'be empty', expected)
-      end
-    when 'notEmpty'
-      if received.present?
-        pass_message(assert_type, received, 'not empty', expected)
-      else
-        fail_message(assert_type, received, 'not be empty', expected)
-      end
-    when 'contains'
-      if Array.wrap(received).split(',').include?(Array.wrap(expected))
-        pass_message(assert_type, received, 'contains', expected)
-      else
-        fail_message(assert_type, received, 'contain', expected)
-      end
-    when 'notContains'
-      if !Array.wrap(received).split(',').include?(Array.wrap(expected))
-        pass_message(assert_type, received, 'did not contain', expected)
-      else
-        fail_message(assert_type, received, 'not contain', expected)
+  def compare(assert_type, received, operator, expected = nil)
+    operator = 'equals' unless operator
+    outcome = begin
+      case operator
+      when 'equals'
+        expected == received
+      when 'notEquals'
+        expected != received
+      when 'in'
+        Array.wrap(expected).split(',').include?(Array.wrap(received))
+      when 'notIn'
+        !Array.wrap(expected).split(',').include?(Array.wrap(received))
+      when 'greaterThan'
+        received > expected
+      when 'lessThan'
+        received < expected
+      when 'empty'
+        received.blank?
+      when 'notEmpty'
+        received.present?
+      when 'contains'
+        Array.wrap(received).split(',').include?(Array.wrap(expected))
+      when 'notContains'
+        !Array.wrap(received).split(',').include?(Array.wrap(expected))
       end
     end
-  end
 
-  def compare_message(outcome, ...)
     if outcome
-      pass_message(...)
+      pass_message(assert_type, received, operator, expected)
     else
-      fail_message(...)
+      fail_message(assert_type, received, operator, expected)
     end
   end
-
 
   def pass_message(assert_type, received, operator, expected)
     message = "#{assert_type}: As expected, #{assert_type} #{operator}"
@@ -158,61 +113,37 @@ module Assertions
   end
 
   def fail_message(assert_type, received, operator, expected)
-    message = "#{assert_type}: Expected #{assert_type} to #{operator}"
+    message = "#{assert_type}: Expected #{assert_type} #{operator}"
     message = message + " #{expected}" if expected
     message + ", but found #{received}."
   end
 
   def content_type(assert)
-    received = begin
-      if assert.sourceId
-        request_header(assert.sourceId, 'content-type')
-      else
-        request_header(nil, 'content_type')
-      end
-    end
-
+    received = request_header(assert.sourceId, 'Content-Type')
     expected = determine_expected_value(assert)
     compare("Content-Type", received, assert.operator, expected)
   end
 
   def expression(assert)
-    resource = begin
-      if assert.sourceId
-        if assert.direction == 'request'
-          request_map[assert.sourceId][:payload]
-        else
-          response_map[assert.sourceId].resource&.to_hash
-        end
-      else
-        reply.resource&.to_hash
-      end
-    end
+    resource = get_resource(assert.sourceId)
+    return unless resource
 
     # TODO: Clea-up, once integrated with the MessageHandler
-    error("No static fixture, dynamic fixture with ID: #{assert.sourceId}") unless resource
-    FHIR.logger.error("No static fixture, dynamic fixture with ID: #{assert.sourceId}")
-    return "No static fixture, dynamic fixture with ID: #{assert.sourceId}"
+    # error("No static fixture, dynamic fixture with ID: #{assert.sourceId}")
+    # FHIR.logger.error("No static fixture, dynamic fixture with ID: #{assert.sourceId}")
+    # return "No static or dynamic fixture with ID: #{assert.sourceId}"
 
-    received = FHIRPath.evaluate(assert.expression, resource)
+    received = FHIRPath.evaluate(assert.expression, resource.to_hash)
     expected = determine_expected_value(assert)
     compare("Expression", received, assert.operator, expected)
   end
 
   def header_field(assert)
     received = begin
-      if assert.direction == 'request'
-        if assert.sourceId
-          request_header(assert.sourceId, assert.headerField)
-        else
-          request_header(nil, assert.headerField)
-        end
+      if direction == 'request'
+        request_header(assert.sourceId, assert.headerField)
       else
-        if assert.sourceId
-          response_header(assert.sourceId, assert.headerField)
-        else
-          response_header(nil, assert.headerField)
-        end
+        response_header(assert.sourceId, assert.headerField)
       end
     end
 
@@ -221,126 +152,110 @@ module Assertions
   end
 
   def minimum_id(assert)
-    received = begin
-      if assert.sourceId
-        response_map[assert.sourceId]&.resource || fixtures[assert.sourceId]
-      else
-        reply.resource
-      end
-    end
+    received = get_resource(assert.sourceId)
+
+    return nil # TODO: Return skip
 
     # result = client.validate(received, { profile_uri: assert.validateProfileId })
     # TODO: Clea-up, once integrated with the MessageHandler
-    skip("Can not validate minimumId #{assert.sourceId || "last response"}. Validation not yet functional.")
-    FHIR.logger.error("Can not validate minimumId #{assert.sourceId || "last response"}. Validation not yet functional.")
-    return "Can not validate minimumId #{assert.sourceId || "last response"}. Validation not yet functional."
+    # skip("Can not validate minimumId #{assert.sourceId || "last response"}. Validation not yet functional.")
+    # FHIR.logger.error("Can not validate minimumId #{assert.sourceId || "last response"}. Validation not yet functional.")
+    # return "Can not validate minimumId #{assert.sourceId || "last response"}. Validation not yet functional."
   end
 
   def navigation_links(assert)
-    received = begin
-      if assert.sourceId
-        response_map[assert.sourceId]&.resource || fixtures[assert.sourceId]
-      else
-        reply.resource
-      end
-    end
-
+    received = get_resource(assert.sourceId)
     received&.first_link && received&.last_link && received&.next_link
   end
 
   def path(assert)
-    received = begin
-      if assert.sourceId
-        response_map[assert.sourceId]&.resource || fixtures[assert.sourceId]
-      else
-        reply.resource
-      end
-    end
-
-    received = evaluate_path(assert.path, received)
+    resource = get_resource(assert.sourceId)
+    received = evaluate_path(assert.path, resource)
     expected = determine_expected_value(assert)
     compare("Path", received, assert.operator, expected)
   end
 
   def request_method(assert)
-    received = begin
-      if assert.sourceId
-        request_map[assert.sourceId]
-      else
-        reply.request
-      end
-    end
-
-    compare("Request Method", )
+    request = assert.sourceId ? request_map[assert.sourceId] : reply.request
+    received = request[:method]
+    expected = determine_expected_value(assert)
+    compare("Request Method", received, assert.operator, expected)
   end
 
   def resource(assert)
-    received = begin
-      if assert.sourceId
-        response_map[assert.sourceId]&.resource
-      else
-        reply.resource
-      end
-    end
-
+    received = get_resource(assert.sourceId)
     compare("Resource", received&.resourceType, assert.operator, assert.resource)
   end
 
   def response_code(assert)
-    received = begin
-      if assert.sourceId
-        response_map[assert.sourceId][:code]
-      else
-        reply.response[:code]
-      end
-    end
-
+    received = get_response(assert.sourceId)&.[](:code)
     compare("Response Code", received, assert.operator, assert.responseCode)
   end
 
   def response(assert)
-    received_code = begin
-      if assert.sourceId
-        response_map[assert.sourceId][:code]
-      else
-        reply.response[:code]
-      end
-    end
-
+    received_code = get_response(assert.sourceId)&.[](:code)
     received = CODE_MAP[received_code]
     compare("Response", received, assert.operator, assert.response)
   end
 
   def validate_profile_id(assert)
-    received = begin
-      if assert.sourceId
-        response_map[assert.sourceId]&.resource || fixtures[assert.sourceId]
-      else
-        reply.resource
-      end
-    end
+    received = get_resource(assert.sourceId)
+
+    return nil
 
     # result = client.validate(received, { profile_uri: assert.validateProfileId })
     # TODO: Clea-up, once integrated with the MessageHandler
-    skip("Can not validate #{assert.sourceId || "last response"}. Validation not yet functional.")
-    FHIR.logger.error("Can not validate #{assert.sourceId || "last response"}. Validation not yet functional.")
-    return "Can not validate #{assert.sourceId || "last response"}. Validation not yet functional."
+    # skip("Can not validate #{assert.sourceId || "last response"}. Validation not yet functional.")
+    # FHIR.logger.error("Can not validate #{assert.sourceId || "last response"}. Validation not yet functional.")
+    # return "Can not validate #{assert.sourceId || "last response"}. Validation not yet functional."
   end
 
   def request_url(assert)
-    received = begin
-      if assert.sourceId
-        request_map[assert.sourceId].request[:url]
-      elsif
-        reply.request[:url]
-      end
-    end
-
-    compare("RequestURL", reply.request[:url], assert.operator, assert.requestURL)
+    received = get_request(assert.sourceId)[:url]
+    compare("RequestURL", received, assert.operator, assert.requestURL)
   end
 
-  # TODO: What should be done here? Make a plan, stick with it
-  # I'm thinking a shared utilities file
+
+  # <--- TO DO: MOVE TO UTILITIES MODULE --->
+
+  def get_resource(id)
+    if direction == 'request'
+      get_request(id)&.[](:payload)
+    else
+      get_response(id)&.[](:body) || fixtures[id]
+    end
+  end
+
+  def get_response(id)
+    return response_map[id] if id
+    reply.response
+  end
+
+  def get_request(id)
+    return request_map[id] if id
+    reply.request
+  end
+
+  def response_header(responseId = nil, header_name = nil)
+    response = responseId ? response_map[responseId] : reply&.response
+    return unless response
+
+    headers = response[:headers]
+    return unless headers
+
+    header_name ? headers[header_name] : headers
+  end
+
+  def request_header(requestId = nil, header_name = nil)
+    request = requestId ? request_map[requestId] : reply&.request
+    return unless request
+
+    headers = request[:headers]
+    return unless headers
+
+    header_name ? headers[header_name] : headers
+  end
+
 
   def evaluate_path(path, resource)
     return unless path and resource

@@ -4,29 +4,39 @@ require 'fhir_client'
 
 class AssertionTestClass
   include Assertions
-  attr_accessor :response_map, :fixtures
+  attr_accessor :response_map, :request_map, :fixtures, :reply
 
   def response_map
     @response_map
+  end
+
+  def request_map
+    @request_map
+  end
+
+  def reply
+    @reply
   end
 end
 
 describe Assertions do
   before(:each) do
-    @assert = FHIR::TestScript::Setup::Action::Assert.new
-  end
-  before(:all) do
     @tester = AssertionTestClass.new
     @patient_id = 'patient_id'
     patient = FHIR.from_contents(File.read('spec/fixtures/example_patient.json'))
     url = 'https://example.com'
-    request = { method: :get, url: url, path: "Patient/123" }
-    response = { code: 200, headers: {}, body: patient.to_json }
+    header = { 'Content-Type' => 'content-type-value' }
+    request = { method: :get, url: url, path: "Patient/123", headers: header }
+    response = { code: 200, headers: header, body: patient.to_json }
     client = FHIR::Client.new(url)
-    client_reply = FHIR::ClientReply.new(request, response, client)
-    client_reply.resource = patient
-    client_reply.response[:body] = patient
-    @tester.response_map = { @patient_id => client_reply.response }
+    @client_reply = FHIR::ClientReply.new(request, response, client)
+    @client_reply.resource = patient
+    @client_reply.response[:body] = patient
+    @tester.reply = @client_reply.deep_dup
+    @assert = FHIR::TestScript::Setup::Action::Assert.new
+    @tester.request_map = { @patient_id => @client_reply.request }
+    @tester.response_map = { @patient_id => @client_reply.response }
+    @tester.fixtures = {}
   end
 
   # TODO
@@ -131,7 +141,7 @@ describe Assertions do
     end
   end
 
-  describe 'compare' do
+  describe '.compare' do
     context "given 'equals' operator" do
       let(:assert_type) { 'Response Code' }
       let(:operator) { 'equals' }
@@ -141,7 +151,7 @@ describe Assertions do
         expected = 0
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.pass_message(assert_type, received, 'equals', expected))
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
       end
 
       it 'returns fail message if received and expected are not equal' do
@@ -149,7 +159,7 @@ describe Assertions do
         expected = 0
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.fail_message(assert_type, received, 'equals', expected))
+        expect(message).to eq(@tester.fail_message(assert_type, received, operator, expected))
       end
     end
 
@@ -162,7 +172,7 @@ describe Assertions do
         expected = 0
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.pass_message(assert_type, received, 'did not equal', expected))
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
       end
 
       it 'returns fail message if received and expected are equal' do
@@ -170,7 +180,7 @@ describe Assertions do
         expected = 0
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.fail_message(assert_type, received, 'did not equal', expected))
+        expect(message).to eq(@tester.fail_message(assert_type, received, operator, expected))
       end
     end
 
@@ -183,7 +193,7 @@ describe Assertions do
         expected = [0]
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.pass_message(assert_type, received, 'in', expected))
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
       end
 
       it 'returns fail message if received not in expected' do
@@ -191,7 +201,7 @@ describe Assertions do
         expected = [0]
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.fail_message(assert_type, received, 'be in', expected))
+        expect(message).to eq(@tester.fail_message(assert_type, received, operator, expected))
       end
     end
 
@@ -204,7 +214,7 @@ describe Assertions do
         expected = [0]
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.pass_message(assert_type, received, 'not in', expected))
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
       end
 
       it 'returns fail message if received in expected' do
@@ -212,7 +222,7 @@ describe Assertions do
         expected = [0]
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.fail_message(assert_type, received, 'not be in', expected))
+        expect(message).to eq(@tester.fail_message(assert_type, received, operator, expected))
       end
     end
 
@@ -225,7 +235,7 @@ describe Assertions do
         expected = 0
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.pass_message(assert_type, received, 'greater than', expected))
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
       end
 
       it 'returns fail message if received not > expected' do
@@ -233,7 +243,7 @@ describe Assertions do
         expected = 0
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.fail_message(assert_type, received, 'be greater than', expected))
+        expect(message).to eq(@tester.fail_message(assert_type, received, operator, expected))
       end
     end
 
@@ -246,7 +256,7 @@ describe Assertions do
         expected = 1
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.pass_message(assert_type, received, 'less than', expected))
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
       end
 
       it 'returns fail message if received not < expected' do
@@ -254,7 +264,7 @@ describe Assertions do
         expected = 0
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.fail_message(assert_type, received, 'be less than', expected))
+        expect(message).to eq(@tester.fail_message(assert_type, received, operator, expected))
       end
     end
 
@@ -266,14 +276,14 @@ describe Assertions do
         received = []
         message = @tester.compare(assert_type, received, operator, nil)
 
-        expect(message).to eq(@tester.pass_message(assert_type, received, 'empty', nil))
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, nil))
       end
 
       it 'returns fail message if received not empty' do
         received = 0
         message = @tester.compare(assert_type, received, operator, nil)
 
-        expect(message).to eq(@tester.fail_message(assert_type, received, 'be empty', nil))
+        expect(message).to eq(@tester.fail_message(assert_type, received, operator, nil))
       end
     end
 
@@ -285,14 +295,14 @@ describe Assertions do
         received = [1]
         message = @tester.compare(assert_type, received, operator, nil)
 
-        expect(message).to eq(@tester.pass_message(assert_type, received, 'not empty', nil))
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, nil))
       end
 
       it 'returns fail message if received empty' do
         received = []
         message = @tester.compare(assert_type, received, operator, nil)
 
-        expect(message).to eq(@tester.fail_message(assert_type, received, 'not be empty', nil))
+        expect(message).to eq(@tester.fail_message(assert_type, received, operator, nil))
       end
     end
 
@@ -305,7 +315,7 @@ describe Assertions do
         expected = 1
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.pass_message(assert_type, received, 'contains', expected))
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
       end
 
       it 'returns fail message if received does not contain expected' do
@@ -313,7 +323,7 @@ describe Assertions do
         expected = 1
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.fail_message(assert_type, received, 'contain', expected))
+        expect(message).to eq(@tester.fail_message(assert_type, received, operator, expected))
       end
     end
 
@@ -326,7 +336,7 @@ describe Assertions do
         expected = 1
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.pass_message(assert_type, received, 'did not contain', expected))
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
       end
 
       it 'returns fail message if received does contain expected' do
@@ -334,7 +344,243 @@ describe Assertions do
         expected = 0
         message = @tester.compare(assert_type, received, operator, expected)
 
-        expect(message).to eq(@tester.fail_message(assert_type, received, 'not contain', expected))
+        expect(message).to eq(@tester.fail_message(assert_type, received, operator, expected))
+      end
+    end
+  end
+
+  describe '.response_header' do
+    it 'uses header from response_map matching ID' do
+      result = @tester.response_header(@patient_id, 'Content-Type')
+
+      expect(result).to eq('content-type-value')
+    end
+
+    it 'returns nil if no response_map matching ID' do
+      @tester.response_map = {}
+
+      result = @tester.response_header(@patient_id, 'Content-Type')
+
+      expect(result).to be(nil)
+    end
+
+    it 'returns nil if no headers in response' do
+      @tester.response_map[@patient_id].delete(:headers)
+
+      result = @tester.response_header(@patient_id, 'Content-Type')
+
+      expect(result).to be(nil)
+    end
+
+    it 'returns nil if header_name input and no match in request headers' do
+      result = @tester.response_header(@patient_id, 'unmatched-header-key')
+
+      expect(result).to be(nil)
+    end
+
+    it 'returns all headers if no header_name input' do
+      result = @tester.response_header(@patient_id, nil)
+
+      expect(result).to be(@tester.reply.request[:headers])
+    end
+  end
+
+  describe '.request_header' do
+    it 'uses header from request_map matching ID' do
+      result = @tester.request_header(@patient_id, 'Content-Type')
+
+      expect(result).to eq('content-type-value')
+    end
+
+    it 'returns nil if no headers in request' do
+      @tester.request_map[@patient_id].delete(:headers)
+
+      result = @tester.request_header(@patient_id, 'Content-Type')
+
+      expect(result).to be(nil)
+    end
+
+    it 'returns nil if header_name input and no match in request headers' do
+      result = @tester.request_header(@patient_id, 'unmatched-header-key')
+
+      expect(result).to be(nil)
+    end
+
+    it 'returns all headers if no header_name input' do
+      result = @tester.request_header(@patient_id, nil)
+
+      expect(result).to be(@tester.reply.request[:headers])
+    end
+  end
+
+  describe '.content_type' do
+    before do
+      @assert.value = @tester.request_map[@patient_id][:headers]['Content-Type']
+    end
+
+    context 'with sourceId' do
+      before { @assert.sourceId = @patient_id }
+
+      it 'pass if expected content-type header in the stored sourceId request' do
+        expect(@tester).to receive(:pass_message)
+
+        @tester.content_type(@assert)
+      end
+
+      it 'fail if no content-type header in the stored sourceId request' do
+        @tester.request_map[@patient_id][:headers].delete('Content-Type')
+
+        expect(@tester).to receive(:fail_message)
+
+        @tester.content_type(@assert)
+      end
+
+      it 'fail if unexpected content-type header in the stored sourceId request' do
+        @tester.request_map[@patient_id][:headers]['Content-Type'] = 'random'
+
+        expect(@tester).to receive(:fail_message)
+
+        @tester.content_type(@assert)
+      end
+    end
+
+    context 'with no sourceId' do
+      it 'pass if expected content-type header in the last request' do
+        expect(@tester).to receive(:pass_message)
+
+        @tester.content_type(@assert)
+      end
+
+      it 'fail if no content-type header in the last request' do
+        @tester.reply.request[:headers].delete('Content-Type')
+
+        expect(@tester).to receive(:fail_message)
+
+        @tester.content_type(@assert)
+      end
+
+      it 'fail if unexpected content-type header in the last request' do
+        @tester.reply.request[:headers]['Content-Type'] = 'random'
+
+        expect(@tester).to receive(:fail_message)
+
+        @tester.content_type(@assert)
+      end
+    end
+  end
+
+  describe '.expression' do
+    before do
+      @assert.value = 'Rainbow'
+      @assert.expression = 'Patient.address.first().district'
+    end
+
+    context 'with sourceId' do
+      before { @assert.sourceId = @patient_id }
+
+      it 'pass if expected expression in the stored sourceId fixture' do
+        expect(@tester).to receive(:pass_message)
+
+        @tester.expression(@assert)
+      end
+
+      it 'fail if unexpected expression in the stored sourceId fixture' do
+        @assert.value = 'unexpected'
+
+        expect(@tester).to receive(:fail_message)
+
+        @tester.expression(@assert)
+      end
+
+      it 'returns nil if no stored sourceId fixture' do
+        @assert.sourceId = 'bad_source_id'
+
+        result = @tester.expression(@assert)
+
+        expect(result).to be(nil)
+      end
+    end
+
+    context 'with no sourceId' do
+      before { @assert.sourceId = nil }
+
+      it 'pass if expected expression in the last response' do
+        expect(@tester).to receive(:pass_message)
+
+        @tester.expression(@assert)
+      end
+
+      it 'fail if unexpected expression in the last response' do
+        @assert.value = 'unexpected'
+
+        expect(@tester).to receive(:fail_message)
+
+        @tester.expression(@assert)
+      end
+
+      it 'returns nil if no last response' do
+        @tester.reply.response = nil
+
+        result = @tester.expression(@assert)
+
+        expect(result).to be(nil)
+      end
+    end
+  end
+
+  describe '.header_field' do
+    before do
+      @assert.headerField = 'Content-Type'
+      @assert.value = @tester.request_map[@patient_id][:headers]['Content-Type']
+    end
+
+    context 'with sourceId' do
+      before { @assert.sourceId = @patient_id }
+
+      it 'pass if expected header in the stored sourceId response' do
+        expect(@tester).to receive(:pass_message)
+
+        @tester.header_field(@assert)
+      end
+
+      it 'fail if expected header not in the stored sourceId response' do
+        @tester.request_map[@patient_id][:headers].delete('Content-Type')
+
+        expect(@tester).to receive(:fail_message)
+
+        @tester.header_field(@assert)
+      end
+
+      it 'fail if unexpected header value in the stored sourceId response' do
+        @tester.request_map[@patient_id][:headers]['Content-Type'] = 'random'
+
+        expect(@tester).to receive(:fail_message)
+
+        @tester.header_field(@assert)
+      end
+    end
+
+    context 'with no sourceId' do
+      it 'pass if expected header in the last response' do
+        expect(@tester).to receive(:pass_message)
+
+        @tester.header_field(@assert)
+      end
+
+      it 'fail if expected header not in the last response' do
+        @tester.reply.request[:headers].delete('Content-Type')
+
+        expect(@tester).to receive(:fail_message)
+
+        @tester.header_field(@assert)
+      end
+
+      it 'fail if unexpected content-type header in the last request' do
+        @tester.reply.request[:headers]['Content-Type'] = 'random'
+
+        expect(@tester).to receive(:fail_message)
+
+        @tester.header_field(@assert)
       end
     end
   end
