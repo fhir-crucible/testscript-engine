@@ -178,6 +178,7 @@
           "compareToSourceId": "fixture-observation-create",
           "compareToSourceExpression": "Observation.valueQuantity.value",
           "operator": "equals",
+          "expression": "Observation.valueQuantity.value",
           "warningOnly": false
         }
       }

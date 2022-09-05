@@ -246,39 +246,6 @@ class TestScriptRunnable
     request.compact
   end
 
-  def evaluate assertion
-    return unless assertion
-
-    unless assertion.is_a? FHIR::TestScript::Setup::Action::Assert
-      fail('invalidAssert')
-      return false
-    end
-
-    assertTypes = ['compareToSourceExpression', 'compareToSourcePath', 'contentType', 'expression', 'headerField', 'minimumId', 'navigationLinks', 'path', 'requestMethod', 'requestURL', 'response', 'responseCode', 'resource', 'validateProfileId']
-
-    begin
-      rawType = assertion.to_hash.find { |k, v| assertTypes.include? k }
-      assertType = rawType[0].split(/(?<=\p{Ll})(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})/).map(&:downcase).join('_')
-      self.send(("assert_#{assertType}").to_sym, assertion)
-
-    rescue AssertionException => e
-      if assertion.warningOnly
-        warning(e.message)
-        return true
-      else
-        fail(e.message)
-        return false
-      end
-    rescue StandardError => e
-      message = "Unable to process assertion. Error: #{e.message}"
-      FHIR.logger.info message
-      fail(message)
-      return false
-    end
-    pass
-    return true
-  end
-
   def extract_path(operation, request_type)
     return replace_variables(operation.url) if operation.url
 
@@ -337,6 +304,8 @@ class TestScriptRunnable
     response_map[op.responseId] = reply.response if op.responseId
 
     (reply.resource = FHIR.from_contents(reply.response&.[](:body).to_s)) rescue {}
+    (reply.response[:body] = reply.resource)
+    response_map[op.responseId][:body] = reply.resource if reply.resource and response_map[op.responseId]
 
     if op.targetId and (reply.request[:method] == :delete) and successful?(reply.response[:code])
       id_map.delete(op.targetId) and return
@@ -383,37 +352,6 @@ class TestScriptRunnable
     return unless expression and resource
 
     return FHIRPath.evaluate(expression, resource.to_hash)
-  end
-
-  def evaluate_path(path, resource)
-    return unless path and resource
-
-    begin
-      # Then, try xpath if necessary
-      result = extract_xpath_value(resource.to_xml, path)
-    rescue
-      # If xpath fails, see if JSON path will work...
-      result = JsonPath.new(path).first(resource.to_json)
-    end
-    return result
-  end
-
-  def extract_xpath_value(resource_xml, resource_xpath)
-    # Massage the xpath if it doesn't have fhir: namespace or if doesn't end in @value
-    # Also make it look in the entire xml document instead of just starting at the root
-    xpath = resource_xpath.split('/').map do |s|
-      s.starts_with?('fhir:') || s.length.zero? || s.starts_with?('@') ? s : "fhir:#{s}"
-    end.join('/')
-    xpath = "#{xpath}/@value" unless xpath.ends_with? '@value'
-    xpath = "//#{xpath}"
-
-    resource_doc = Nokogiri::XML(resource_xml)
-    resource_doc.root.add_namespace_definition('fhir', 'http://hl7.org/fhir')
-    resource_element = resource_doc.xpath(xpath)
-
-    # This doesn't work on warningOnly; consider putting back in place
-    # raise AssertionException.new("[#{resource_xpath}] resolved to multiple values instead of a single value", resource_element.to_s) if resource_element.length>1
-    resource_element.first.try(:value)
   end
 
   # <--- Line of Code Review --->
