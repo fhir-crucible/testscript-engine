@@ -176,7 +176,7 @@ module TestReportHandler
       report.issued = DateTime.now.to_s
       report.status = 'completed'
       report.score = (self.pass_count.to_f / self.total_test_count).round(2) * 100
-      report.result = (report.result == 100.0 ? 'pass' : 'fail')
+      report.result = (report.score == 100.0 ? 'pass' : 'fail')
     end
 
     def action
@@ -201,6 +201,7 @@ module TestReportHandler
     def skip(message = nil)
       action.result = 'skip'
       action.message = message if message
+      self.total_test_count -= 1
       next_action
     end
 

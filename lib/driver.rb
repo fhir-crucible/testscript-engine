@@ -3,7 +3,7 @@ require_relative './MessageHandler'
 
 include MessageHandler
 
-test_server_url = 'http://server.fire.ly'
+test_server_url = "http://hapi.fhir.org/baseR4" #'http://server.fire.ly' # #
 testscript_path = '../TestScripts'
 testscript_file = nil
 

@@ -13,7 +13,7 @@ class TestScriptRunnable
   REQUEST_TYPES = { 'read' => :get,
                     'create' => :post,
                     'update' => :put,
-                    'delete' => :destroy,
+                    'delete' => :delete,
                     'search' => :get,
                     'history' => :get,
                     nil => :get }.freeze
@@ -81,6 +81,7 @@ class TestScriptRunnable
   def run(client = nil)
     client(client)
     fresh_testreport
+
     preprocessing # TODO: remove this
 
     setup if script.setup
@@ -189,24 +190,28 @@ class TestScriptRunnable
   def execute_operation(op)
     unless op.instance_of?(FHIR::TestScript::Setup::Action::Operation) && op.valid?
       fail(:invalid_operation)
+      reply = nil
       return false
     end
 
     request = create_request(op)
     if request.nil?
       fail(:invalid_request, (op.label || "unlabeled"))
+      reply = nil
       return false
     end
 
     begin
+      #binding.pry
       client.send(*request)
     rescue StandardError => e
       fail(:execute_operation_error, (op.label || 'unlabeled'), e.message ) # TODO: Switch to ERROR
+      reply = nil
       return false
     end
 
     storage(op)
-    pass
+    pass(:pass_execute_operation, op.label || 'unlabeled')
     return true
   end
 
@@ -227,14 +232,24 @@ class TestScriptRunnable
     return replace_variables(operation.url) if operation.url
 
     if operation.params
-      mime = "&_format=#{get_format(operation.contentType)}" if operation.contentType
-      params = "#{replace_variables(operation.params)}#{mime}"
-      search = '/_search' if request_type == :post
-      "#{operation.resource}#{search}#{params}"
+      mime = "_format=#{get_format(operation.contentType)}" if operation.contentType
+      params = "#{replace_variables(operation.params)}"
+      params = "?_#{params}" if params and !params.start_with?('/')
+      if mime
+        if params
+          mime = "&#{mime}"
+        else
+          mime = "?#{mime}"
+        end
+      end
+      search = '/_search' if request_type == :post and params.start_with?("?")
+      "#{operation.resource}#{search}#{params}#{mime}"
     elsif operation.targetId
       resource = response_map[operation.targetId]&.[](:body)
-      return unless resource
-      type = FHIR.from_contents(resource).resourceType
+      return if (resource.nil? and SENDERS.include?(request_type))
+      type = operation.resource
+      type = FHIR.from_contents(resource).resourceType if type.nil? and resource
+      return unless type
       id = id_map[operation.targetId]
       return "#{type}/#{id}" unless type.nil? || id.nil?
     elsif operation.sourceId
@@ -257,6 +272,7 @@ class TestScriptRunnable
     headers = {}
     headers.merge!({ 'Accept' => get_format(operation.accept) }) if operation.accept
     headers.merge!({ 'Content-Type' => get_format(operation.contentType) }) if operation.contentType
+    headers['Content-Type'] = 'application/fhir+json' unless headers['Content-Type']
 
     headers.merge! Hash[operation.requestHeader.map do |header|
       [header.field, replace_variables(header.value)]

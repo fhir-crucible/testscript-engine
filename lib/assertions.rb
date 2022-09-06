@@ -40,7 +40,7 @@ module Assertions
     return unless assert
 
     unless assert.is_a? FHIR::TestScript::Setup::Action::Assert
-      fail(:invalidAssert)
+      fail(:invalid_assert)
       return false
     end
 
@@ -48,23 +48,24 @@ module Assertions
     @direction = assert.direction
     assert_type = determine_assert_type(assert_elements)
 
-    # Wrap in Rescue
     begin
       outcome_message = send(assert_type.to_sym, assert)
     rescue StandardError => e
-      fail(e.message) # TODO: Switch to ERROR
+      error(:eval_assert_result, e.message)
       return false
     end
 
-    if outcome_message.include? 'As expected'
-      pass
+    if outcome_message&.include? 'As expected'
+      pass(:eval_assert_result, outcome_message)
       return true
+    elsif outcome_message.start_with? 'SKIP'
+      skip(:eval_assert_result, outcome_message)
     else
-      if assertion.warningOnly
-        warning(:assertion_exception, e.message)
+      if assert.warningOnly
+        warning(:eval_assert_result, outcome_message)
         return true
       else
-        fail(:assertion_exception, e.message)
+        fail(:eval_assert_result, outcome_message)
         return false
       end
     end
@@ -105,9 +106,9 @@ module Assertions
       when 'notEquals'
         expected != received
       when 'in'
-        Array.wrap(expected).split(',').include?(Array.wrap(received))
+        expected.split(',').include? received
       when 'notIn'
-        !Array.wrap(expected).split(',').include?(Array.wrap(received))
+        !expected.split(',').include? received
       when 'greaterThan'
         received > expected
       when 'lessThan'
@@ -117,9 +118,9 @@ module Assertions
       when 'notEmpty'
         received.present?
       when 'contains'
-        Array.wrap(received).split(',').include?(Array.wrap(expected))
+        received.include? expected
       when 'notContains'
-        !Array.wrap(received).split(',').include?(Array.wrap(expected))
+        !received.include? expected
       end
     end
 
@@ -144,8 +145,7 @@ module Assertions
 
   def content_type(assert)
     received = request_header(assert.sourceId, 'Content-Type')
-    expected = determine_expected_value(assert)
-    compare("Content-Type", received, assert.operator, expected)
+    compare("Content-Type", received, assert.operator, assert.contentType)
   end
 
   def expression(assert)
@@ -165,9 +165,9 @@ module Assertions
   def header_field(assert)
     received = begin
       if direction == 'request'
-        request_header(assert.sourceId, assert.headerField)
+        request_header(assert.sourceId, assert.headerField.downcase)
       else
-        response_header(assert.sourceId, assert.headerField)
+        response_header(assert.sourceId, assert.headerField.downcase)
       end
     end
 
@@ -178,7 +178,7 @@ module Assertions
   def minimum_id(assert)
     received = get_resource(assert.sourceId)
 
-    return nil # TODO: Return skip
+    return 'SKIP: minimumId assert not yet supported.'
 
     # result = client.validate(received, { profile_uri: assert.validateProfileId })
     # TODO: Clea-up, once integrated with the MessageHandler
@@ -189,7 +189,8 @@ module Assertions
 
   def navigation_links(assert)
     received = get_resource(assert.sourceId)
-    received&.first_link && received&.last_link && received&.next_link
+    result = received&.first_link && received&.last_link && received&.next_link
+    result ? "Navigation Links: As expected, all navigation links found." : "Navigation Links: Expected all navigation links, but did not receive."
   end
 
   def path(assert)
@@ -206,25 +207,18 @@ module Assertions
     compare("Request Method", received, assert.operator, expected)
   end
 
-<<<<<<< HEAD
   def resource(assert)
     received = get_resource(assert.sourceId)
     compare("Resource", received&.resourceType, assert.operator, assert.resource)
-=======
-  def assert_response assertion
-    to_assert_on = response_map[assertion.sourceId] || reply
-    expected = CODE_MAP[assertion.response]
-    assert_operator(to_assert_on&.code, assertion.operator, expected, 'Response:')
->>>>>>> bee2730 (begin assertion messaging)
   end
 
   def response_code(assert)
-    received = get_response(assert.sourceId)&.[](:code)
+    received = get_response(assert.sourceId)&.[](:code).to_s
     compare("Response Code", received, assert.operator, assert.responseCode)
   end
 
   def response(assert)
-    received_code = get_response(assert.sourceId)&.[](:code)
+    received_code = get_response(assert.sourceId)&.[](:code).to_s
     received = CODE_MAP[received_code]
     compare("Response", received, assert.operator, assert.response)
   end
@@ -232,7 +226,7 @@ module Assertions
   def validate_profile_id(assert)
     received = get_resource(assert.sourceId)
 
-    return nil
+    return 'SKIP: validateProfileId assert not yet supported.'
 
     # result = client.validate(received, { profile_uri: assert.validateProfileId })
     # TODO: Clea-up, once integrated with the MessageHandler
@@ -246,36 +240,11 @@ module Assertions
     compare("RequestURL", received, assert.operator, assert.requestURL)
   end
 
-
-<<<<<<< HEAD
   # <--- TO DO: MOVE TO UTILITIES MODULE --->
 
   def get_resource(id)
     if direction == 'request'
       get_request(id)&.[](:payload)
-=======
-    case operator
-    when :equals
-      fail_message += " Expected [#{expected}] but found #{actual}." unless actual == expected
-    when :notEquals
-      fail_message += " Did not expect #{expected} but found #{actual}." unless actual != expected
-    when :in
-      fail_message += " Expected [#{expected}] but found #{actual}." unless expected.split(',').include?(actual)
-    when :notIn
-      fail_message += " Did not expect #{expected} but found #{actual}." if expected.split(',').include?(actual)
-    when :greaterThan
-      fail_message += " Expected greater than #{expected} but found #{actual}." unless actual && expected && actual > expected
-    when :lessThan
-      fail_message += " Expected greater than #{expected} but found #{actual}." unless actual && expected && actual < expected
-    when :empty
-      fail_message += " Expected empty but found #{actual}." unless actual.nil? || actual.length.zero?
-    when :notEmpty
-      fail_message += " Expected not empty but found #{actual}." unless actual&.length&.positive?
-    when :contains
-      fail_message += " Expected #{actual} to contain #{expected}." unless actual&.include?(expected)
-    when :notContains
-      fail_message += " Expected #{actual} to not contain #{expected}." unless actual.nil? || !actual.include?(expected)
->>>>>>> bee2730 (begin assertion messaging)
     else
       get_response(id)&.[](:body) || fixtures[id]
     end

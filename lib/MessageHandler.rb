@@ -61,6 +61,7 @@ module MessageHandler
   def run(*args)
     print_out messages(:begin_runnable_execution, script.id)
     result = super
+    puts
     print_out messages(:finish_runnable_execution)
     result
   end
@@ -78,11 +79,15 @@ module MessageHandler
   end
 
   def test
-
+    print_out messages(:begin_test)
+    super
+    print_out messages(:finish_test)
   end
 
   def teardown
-
+    print_out messages(:begin_teardown)
+    super
+    print_out messages(:finish_teardown)
   end
 
   def postprocessing
@@ -102,9 +107,11 @@ module MessageHandler
     decrease_space
   end
 
-  # def pass
-  #   print_out ("SUCCESS!")
-  # end
+  def pass(message_type, *options)
+    message = messages(message_type, *options)
+    super()
+    print_out "#{outcome_symbol("INFO")} #{message}"
+  end
 
   def fail(message_type, *options)
     message = messages(message_type, *options)
@@ -115,16 +122,15 @@ module MessageHandler
   def skip(message_type, *options)
     message = messages(message_type, *options)
     super(message)
-    print_out message
+    print_out "#{outcome_symbol("WARN")} #{message}"
   end
 
   def warning(message_type, *options)
     message = messages(message_type, *options)
     super(message)
-    print_out ("WARNING: " + message)
+    print_out message
   end
 
-  # TODO: Implement once error support added to TestReportHandler module
   def error(message_type, *options)
     message = messages(message_type, *options)
     super(message)
@@ -142,7 +148,7 @@ module MessageHandler
   def client(*args)
     client = super
     FHIR.logger.formatter = logger_formatter_with_spacing
-    return client
+    client
   end
 
   def logger_formatters_with_spacing
@@ -152,7 +158,7 @@ module MessageHandler
   def logger_formatter_with_spacing
     logger_formatters_with_spacing[space.length] || begin
       new_logger_formatter = proc do |severity, datetime, progname, msg|
-        "#{space}#{unit_of_space}#{outcome_symbol(severity)} #{msg}\n"
+        "#{space}#{unit_of_space}#{msg}\n"
       end
       logger_formatters_with_spacing[space.length] = new_logger_formatter
       new_logger_formatter
@@ -163,7 +169,7 @@ module MessageHandler
     symbol = begin
       case outcome
       when "UNKNOWN"
-        "???"
+        "?¿?"
       when "FATAL"
         [023042].pack("U*")
       when "ERROR"
@@ -190,117 +196,6 @@ module MessageHandler
     [024465].pack("U*")
   end
 
-
-
-
-  # < --- Line of Code Review ---> #
-  # def begin_section_sign
-  #   " ----->"
-  # end
-
-  # def end_section_sign
-  #   "<----- "
-  # end
-
-  # def newline_between_section
-  #   true
-  # end
-
-  # def newline_within_section
-  #   true
-  # end
-
-  # def newline_between_actions
-  #   true
-  # end
-
-  # # TODO: Add in pre and post processing, once flow is cleaned up
-  # #
-  # # def preprocessing
-  # #   output_section_message('preprocessing')
-  # # end
-
-  # def setup
-  #   output_section_message('setup')
-  # end
-
-  # def test
-  #   output_section_message('test')
-  # end
-
-  # def teardown
-  #   output_section_message('teardown')
-  # end
-
-  # # def postprocessing
-  # #   output_section_message('postprocessing')
-  # # end
-
-  # def execute_operation(operation)
-  #   if previous_action('operation')
-  #     add_spacing
-  #     result = super
-  #     remove_spacing
-  #     result
-  #   end
-  #   add_spacing
-  #   puts messages(:action_operation)
-  #   result = super
-  #   remove_spacing
-  #   result
-  # end
-
-  # def evaluate(assert)
-  #   return super if previous_action('assert')
-  #   add_spacing
-  #   puts messages(:action_assert)
-  #   result = super
-  #   remove_spacing
-  #   result
-  # end
-
-
-  # def previous_action(action_type)
-  #   return true if @previous_action == action_type
-
-  #   @previous_action = action_type
-  #   puts if newline_between_actions
-  #   return false
-  # end
-
-  # def uncaught_error(error_type)
-  #   puts
-  #   messages(error_type)
-  #   puts
-  # end
-
-  # def action_fail(fail_type)
-  #   add_spacing
-  #   puts messages(fail_type)
-  #   remove_spacing
-  # end
-
-  # def action_error(error_type)
-  #   add_spacing
-  #   puts messages(error_type)
-  #   remove_spacing
-  # end
-
-  # def output_section_message(section_type)
-  #   add_spacing
-  #   puts messages(:begin_section, section_type)
-  #   puts if newline_within_section
-
-  #   result = method(section_type.to_sym).super_method.call
-
-  #   puts if newline_within_section
-  #   puts messages(:finish_section, section_type)
-  #   remove_spacing
-  #   puts if newline_between_section
-
-  #   result
-  # end
-
   def messages(message, *options)
     message_text = case message
     when :assertion_error
@@ -309,6 +204,8 @@ module MessageHandler
       "#{options[0]}"
     when :bad_reference
       "Unable to read contents of reference: [#{options[0]}]. No reference extracted."
+    when :begin_initialize_client
+      start_message_format("INITIALIZE CLIENT(S)")
     when :begin_loading_scripts
       start_message_format("LOAD TESTSCRIPTS", options[0])
     when :begin_making_runnables
@@ -319,16 +216,24 @@ module MessageHandler
       start_message_format("EXECUTE RUNNABLE", options[0])
     when :begin_setup
       start_message_format("SETUP")
+    when :begin_teardown
+      start_message_format("TEARDOWN")
+    when :begin_test
+      start_message_format("TEST")
     when :cant_deserialize_script
       "Could not deserialize resource: [#{options[0]}]"
     when :cant_make_runnable
       "Could not make runnable from TestScript: [#{options[0]}]"
+    when :eval_assert_result
+      "#{options[0]}"
     when :evaluate_assert
       "EVALUATING ASSERTION"
     when :execute_operation
       "OPERATION EXECUTION"
     when :execute_operation_error
       "Unable to execute operation. ERROR: [#{options[0]}]. [#{options[1]}]"
+    when :finish_initialize_client
+      finish_message_format("INITIALIZING CLIENT(S)")
     when :finish_loading_scripts
       finish_message_format("LOADING SCRIPTS")
     when :finish_making_runnables
@@ -336,9 +241,13 @@ module MessageHandler
     when :finish_preprocessing
       finish_message_format("PREPROCESSING")
     when :finish_runnable_execution
-      finish_message_format("EXECUTING RUNNABLE")
+      finish_message_format("EXECUTING RUNNABLE. FINAL EXECUTION SCORE: [#{testreport.score}]")
     when :finish_setup
       finish_message_format("SETUP")
+    when :finish_teardown
+      finish_message_format("TEARDOWN")
+    when :finish_test
+      finish_message_format("TEST")
     when :invalid_assert
       "Invalid assert. Can not evaluate."
     when :invalid_dump
@@ -365,32 +274,10 @@ module MessageHandler
       "No resource for static fixture. Can not load."
     when :overwrite_existing_script
       "Overwriting previously loaded TestScript: [#{options[0]}]"
+    when :pass_execute_operation
+      "Executed Operation: [#{options[0]}]"
     when :unsupported_ref
       "Remote reference: [#{options[0]}] not supported. No reference extracted."
-
-
-
-
-
-
-    # when :action_assert
-    #   "ASSERT EVALUATION"
-    # when :action_operation
-    #   "OPERATION EXECUTION"
-    # when :autocreate
-    #   "INFO: Auto-creating static fixture #{options[0]}."
-    # when :begin_section
-    #   "BEGIN #{options[0].upcase}"
-    # when :finish_section
-    #   "FINISH #{options[0].upcase}."
-    # when :invalid_operation
-    #   "FAIL: Given invalid operation. Can not execute."
-    # when :invalid_request
-    #   "FAIL: Can not create request given operation. Can not execute."
-    # when :invalid_script
-    #   "ERROR: Received invalid or non-TestScript resource. Can not create runnable."
-    # when :execution_error
-    #   "ERROR: Error encountered while executing operation."
     end
   end
 end

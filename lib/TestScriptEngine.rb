@@ -25,7 +25,12 @@ class TestScriptEngine
   end
 
   def client
-    @client ||= FHIR::Client.new(endpoint || 'localhost:3000')
+    @client ||= begin
+      info(:begin_initialize_client)
+      client = FHIR::Client.new(endpoint || 'localhost:3000')
+      info(:finish_initialize_client)
+      client
+    end
   end
 
   def initialize(endpoint = nil, directory_path = nil, file_name = nil)
