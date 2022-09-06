@@ -36,15 +36,40 @@ module Assertions
   }
 
   def evaluate(assert)
-
     # TODO: Check and fail if assert is nil || not the intended type
+    return unless assert
+
+    unless assert.is_a? FHIR::TestScript::Setup::Action::Assert
+      fail(:invalid_assert)
+      return false
+    end
 
     assert_elements = assert.to_hash.keys
     @direction = assert.direction
     assert_type = determine_assert_type(assert_elements)
 
-    # Wrap in Rescue
-    outcome_message = send(assert_type.to_sym, assert)
+    begin
+      outcome_message = send(assert_type.to_sym, assert)
+    rescue StandardError => e
+      error(:eval_assert_result, e.message)
+      return false
+    end
+
+    if outcome_message&.include? 'As expected'
+      pass(:eval_assert_result, outcome_message)
+      return true
+    elsif outcome_message.start_with? 'SKIP'
+      skip(:eval_assert_result, outcome_message)
+    else
+      if assert.warningOnly
+        warning(:eval_assert_result, outcome_message)
+        return true
+      else
+        fail(:eval_assert_result, outcome_message)
+        return false
+      end
+    end
+
     # stop Test On Fail Check
     # warning Only Check
     # TODO: What happens if the assertion is poorly formed?
@@ -81,9 +106,9 @@ module Assertions
       when 'notEquals'
         expected != received
       when 'in'
-        Array.wrap(expected).split(',').include?(Array.wrap(received))
+        expected.split(',').include? received
       when 'notIn'
-        !Array.wrap(expected).split(',').include?(Array.wrap(received))
+        !expected.split(',').include? received
       when 'greaterThan'
         received > expected
       when 'lessThan'
@@ -93,9 +118,9 @@ module Assertions
       when 'notEmpty'
         received.present?
       when 'contains'
-        Array.wrap(received).split(',').include?(Array.wrap(expected))
+        received.include? expected
       when 'notContains'
-        !Array.wrap(received).split(',').include?(Array.wrap(expected))
+        !received.include? expected
       end
     end
 
@@ -120,8 +145,7 @@ module Assertions
 
   def content_type(assert)
     received = request_header(assert.sourceId, 'Content-Type')
-    expected = determine_expected_value(assert)
-    compare("Content-Type", received, assert.operator, expected)
+    compare("Content-Type", received, assert.operator, assert.contentType)
   end
 
   def expression(assert)
@@ -141,9 +165,9 @@ module Assertions
   def header_field(assert)
     received = begin
       if direction == 'request'
-        request_header(assert.sourceId, assert.headerField)
+        request_header(assert.sourceId, assert.headerField.downcase)
       else
-        response_header(assert.sourceId, assert.headerField)
+        response_header(assert.sourceId, assert.headerField.downcase)
       end
     end
 
@@ -154,7 +178,7 @@ module Assertions
   def minimum_id(assert)
     received = get_resource(assert.sourceId)
 
-    return nil # TODO: Return skip
+    return 'SKIP: minimumId assert not yet supported.'
 
     # result = client.validate(received, { profile_uri: assert.validateProfileId })
     # TODO: Clea-up, once integrated with the MessageHandler
@@ -165,7 +189,8 @@ module Assertions
 
   def navigation_links(assert)
     received = get_resource(assert.sourceId)
-    received&.first_link && received&.last_link && received&.next_link
+    result = received&.first_link && received&.last_link && received&.next_link
+    result ? "Navigation Links: As expected, all navigation links found." : "Navigation Links: Expected all navigation links, but did not receive."
   end
 
   def path(assert)
@@ -188,12 +213,12 @@ module Assertions
   end
 
   def response_code(assert)
-    received = get_response(assert.sourceId)&.[](:code)
+    received = get_response(assert.sourceId)&.[](:code).to_s
     compare("Response Code", received, assert.operator, assert.responseCode)
   end
 
   def response(assert)
-    received_code = get_response(assert.sourceId)&.[](:code)
+    received_code = get_response(assert.sourceId)&.[](:code).to_s
     received = CODE_MAP[received_code]
     compare("Response", received, assert.operator, assert.response)
   end
@@ -201,7 +226,7 @@ module Assertions
   def validate_profile_id(assert)
     received = get_resource(assert.sourceId)
 
-    return nil
+    return 'SKIP: validateProfileId assert not yet supported.'
 
     # result = client.validate(received, { profile_uri: assert.validateProfileId })
     # TODO: Clea-up, once integrated with the MessageHandler
@@ -214,7 +239,6 @@ module Assertions
     received = get_request(assert.sourceId)[:url]
     compare("RequestURL", received, assert.operator, assert.requestURL)
   end
-
 
   # <--- TO DO: MOVE TO UTILITIES MODULE --->
 

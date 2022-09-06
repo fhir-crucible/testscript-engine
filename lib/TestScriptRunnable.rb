@@ -4,6 +4,7 @@ require 'jsonpath'
 require 'fhir_client'
 require_relative 'assertions'
 require_relative './TestReportHandler.rb'
+require_relative './MessageHandler.rb'
 
 class TestScriptRunnable
   include Assertions
@@ -12,12 +13,14 @@ class TestScriptRunnable
   REQUEST_TYPES = { 'read' => :get,
                     'create' => :post,
                     'update' => :put,
-                    'delete' => :destroy,
+                    'delete' => :delete,
                     'search' => :get,
                     'history' => :get,
                     nil => :get }.freeze
 
   attr_accessor :reply
+
+  prepend MessageHandler
 
   # maps fixture ids to server ids
   def id_map
@@ -57,87 +60,70 @@ class TestScriptRunnable
 
   def initialize script
     unless (script.is_a? FHIR::TestScript) && script.valid?
-      FHIR.logger.error '[.initialize] Received invalid or non-TestScript resource.'
+      fail(:invalid_script) # TODO: Switch to ERROR
       raise ArgumentError
     end
 
     script(script)
 
-    pre_processing
+    # TODO - move preprocessing to the 'run' method
+    # I'll do this in a follow-up PR. The reason is that preprocessing,
+    # since it includes autoloading fixtures, can't be done only one. It
+    # needs to be done each time the script is executed i.e. autloading
+    # for any system under test.
+    #
+    # For now, just move the call to preprocessing to the run method to
+    # see how the output will look under regular conditions
+    #
+    # preprocessing
   end
 
   def run(client = nil)
     client(client)
-    fresh_testreport # Create a new testreport each time the runnable is executed
+    fresh_testreport
 
-    setup_execution
-    test_execution
-    teardown_execution
+    preprocessing # TODO: remove this
 
-    post_processing
+    setup if script.setup
+    test unless script.test.empty?
+    teardown if script.teardown
+
+    postprocessing
 
     finalize_report
   end
 
-  def pre_processing
-    FHIR.logger.info 'Begin pre-processing.'
+  def preprocessing
     load_fixtures
 
     autocreate_ids.each do |fixture_id|
-      FHIR.logger.info "Auto-creating static fixture #{fixture_id}"
-      # Modified: Previously, called execute_operation
-      # However, don't want everything that execute_operation does (storing response, updating test report etc.)
-      # So, just simplify and do the sending here without all that extra stuff
       client.send(*create_request((operation_create(fixture_id))))
     end
-
-    FHIR.logger.info 'Finish pre-processing.'
   end
 
-  def setup_execution
-    return unless script.setup
-
-    FHIR.logger.info 'Begin setup.'
-
+  def setup
     handle_actions(script.setup.action, true)
-
-    FHIR.logger.info 'Finish setup.'
   end
 
-  def test_execution
-    return if script.test.empty?
-
-    FHIR.logger.info 'Begin test execution.'
-
+  def test
     script.test.each { |test| handle_actions(test.action, false) }
-
-    FHIR.logger.info 'Finish test execution.'
   end
 
-  def teardown_execution
-    return unless script.teardown
-
-    FHIR.logger.info 'Begin teardown.'
-
+  def teardown
     handle_actions(script.teardown.action, false)
-
-    FHIR.logger.info 'Finish teardown.'
   end
 
-  def post_processing
-    FHIR.logger.info 'Begin post-processing.'
+  def postprocessing
 
     autodelete_ids.each do |fixture_id|
       FHIR.logger.info "Auto-deleting dynamic fixture #{fixture_id}"
       client.send(*create_request((operation_delete(fixture_id))))
     end
-
-    FHIR.logger.info 'Finish post-processing.'
   end
 
   def handle_actions(actions, end_on_fail)
     actions.each do |action|
-      result = begin
+      result = begin # TODO: Remove MessageHandler result objects when result no longer used
         if action.operation
           execute_operation(action.operation)
         elsif action.respond_to?(:assert)
@@ -167,29 +153,27 @@ class TestScriptRunnable
   end
 
   def load_fixtures
-    FHIR.logger.info 'Beginning loading fixtures.'
     script.fixture.each do |fixture|
-      FHIR.logger.info 'No ID for static fixture, can not process.' unless fixture.id
-      FHIR.logger.info 'No resource for static fixture, can not process.' unless fixture.resource
+      info(:no_static_fixture_id) unless fixture.id
+      info(:no_static_fixture_resource) unless fixture.resource
 
       resource = get_resource_from_ref(fixture.resource)
-      FHIR.logger.info 'No reference for static fixture, can not process' unless resource
+      info(:no_static_fixture_reference) unless resource
 
-      FHIR.logger.info "Storing static fixture #{fixture.id}"
+      info(:loaded_static_fixture, fixture.id)
       fixtures[fixture.id] = resource
       type = resource.resourceType
 
       autocreate_ids << fixture.id if fixture.autocreate
       autodelete_ids << fixture.id if fixture.autodelete
     end
-    FHIR.logger.info 'Finishing loading fixtures.'
   end
 
   def get_resource_from_ref reference
     return unless reference.is_a? FHIR::Reference
     return unless ref = reference.reference
 
-    return warn('unsupportedRef', ref) if ref.start_with? 'http'
+    return warning(:unsupported_ref, ref) if ref.start_with? 'http'
     return script.contained.find { |r| r.id == ref[1..] } if ref.start_with? '#'
 
     begin
@@ -199,37 +183,35 @@ class TestScriptRunnable
       file.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
       return FHIR.from_contents(file)
     rescue StandardError => e
-      warn('badReference', ref)
+      warning(:bad_reference, ref) # TODO: Switch to ERROR? Or not?
     end
   end
 
   def execute_operation(op)
     unless op.instance_of?(FHIR::TestScript::Setup::Action::Operation) && op.valid?
-      message = '[.execute_operation] Can not execute invalid Operation.'
-      FHIR.logger.info message
-      fail(message)
+      fail(:invalid_operation)
+      reply = nil
       return false
     end
 
     request = create_request(op)
     if request.nil?
-      message = "[.execute_operation] Unable to create a request, can not execute Operation #{op.label || '[unlabeled]'}."
-      FHIR.logger.info message
-      fail(message)
+      fail(:invalid_request, (op.label || "unlabeled"))
+      reply = nil
       return false
     end
 
     begin
+      #binding.pry
       client.send(*request)
     rescue StandardError => e
-      message = "[.execute_operation] ERROR: #{e.message} while executing Operation #{op.label || '[unlabeled]'}."
-      FHIR.logger.info message
-      fail(message)
+      fail(:execute_operation_error, (op.label || 'unlabeled'), e.message ) # TODO: Switch to ERROR
+      reply = nil
       return false
     end
 
     storage(op)
-    pass
+    pass(:pass_execute_operation, op.label || 'unlabeled')
     return true
   end
 
@@ -250,14 +232,24 @@ class TestScriptRunnable
     return replace_variables(operation.url) if operation.url
 
     if operation.params
-      mime = "&_format=#{get_format(operation.contentType)}" if operation.contentType
-      params = "#{replace_variables(operation.params)}#{mime}"
-      search = '/_search' if request_type == :post
-      "#{operation.resource}#{search}#{params}"
+      mime = "_format=#{get_format(operation.contentType)}" if operation.contentType
+      params = "#{replace_variables(operation.params)}"
+      params = "?_#{params}" if params and !params.start_with?('/')
+      if mime
+        if params
+          mime = "&#{mime}"
+        else
+          mime = "?#{mime}"
+        end
+      end
+      search = '/_search' if request_type == :post and params.start_with?("?")
+      "#{operation.resource}#{search}#{params}#{mime}"
     elsif operation.targetId
       resource = response_map[operation.targetId]&.[](:body)
-      return unless resource
-      type = FHIR.from_contents(resource).resourceType
+      return if (resource.nil? and SENDERS.include?(request_type))
+      type = operation.resource
+      type = FHIR.from_contents(resource).resourceType if type.nil? and resource
+      return unless type
       id = id_map[operation.targetId]
       return "#{type}/#{id}" unless type.nil? || id.nil?
     elsif operation.sourceId
@@ -280,6 +272,7 @@ class TestScriptRunnable
     headers = {}
     headers.merge!({ 'Accept' => get_format(operation.accept) }) if operation.accept
     headers.merge!({ 'Content-Type' => get_format(operation.contentType) }) if operation.contentType
+    headers['Content-Type'] = 'application/fhir+json' unless headers['Content-Type']
 
     headers.merge! Hash[operation.requestHeader.map do |header|
       [header.field, replace_variables(header.value)]

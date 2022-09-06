@@ -82,7 +82,7 @@
   "fixture": [
     {
       "id": "fixture-observation-create",
-      "autocreate": false,
+      "autocreate": true,
       "autodelete": false,
       "resource": {
         "reference": "Observation/example.json",
@@ -132,7 +132,7 @@
         "operation": {
           "type": {
             "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
-            "code": "update"
+            "code": "create"
           },
           "resource": "Observation",
           "label": "SetupCreateObservation",
@@ -140,7 +140,6 @@
           "accept": "json",
           "contentType": "json",
           "encodeRequestUrl": true,
-          "params": "/${createResourceId}",
           "sourceId": "fixture-observation-create"
         }
       },
@@ -148,7 +147,7 @@
         "assert": {
           "description": "Confirm that the returned HTTP status is 201(Created).",
           "direction": "response",
-          "responseCode": "200",
+          "responseCode": "201",
           "warningOnly": false
         }
       },
