@@ -33,7 +33,7 @@ TestScript Engine is in the early stages of development; it is neither functiona
     - If a TestScript contains multiple destinations, corresponding base endpoints need to be entered at run time.
   - `[TestScript Folder]`
     - Relative or full path to a folder of TestScript resources. Defaults to `./TestScripts`
-  - `[TestScript file]`
+  - `[TestScript File]`
     - Specify one or more TestScript file names to be executed.
 
 **Folders and Files:**
