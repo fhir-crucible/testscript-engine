@@ -353,7 +353,13 @@ class TestScriptRunnable
   end
 
   def storage(op)
-    self.reply = get_client(op.destination).reply
+    def client
+         @client
+    end
+    
+    set_client(operation.destination) # at the top of execute_operation, but instead of returning client, just set the @client instance
+    
+    self.reply = client.reply
     reply.nil? ? return : get_client(op.destination).reply = nil
 
     request_map[op.requestId] = reply.request if op.requestId
