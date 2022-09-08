@@ -1,9 +1,12 @@
 require 'pry-nav' # TODO: Remove
 require 'fhir_client'
 require_relative './TestScriptRunnable'
+require_relative './MessageHandler'
 
 class TestScriptEngine
-  attr_accessor :endpoints, :directory_path, :file_name
+prepend MessageHandler
+
+attr_accessor :endpoints, :directory_path, :file_name
 
   def scripts
     @scripts ||= {}
@@ -11,72 +14,85 @@ class TestScriptEngine
 
   def runnables
     @runnables ||= {}
-  end 
+  end
 
   def reports
     @reports ||= {}
-  end 
+  end
 
   def root
     directory_path || "../TestScripts"
-  end 
+  end
+
+  def client
+    @client ||= begin
+      info(:begin_initialize_client)
+      client = FHIR::Client.new(endpoint || 'localhost:3000')
+      info(:finish_initialize_client)
+      client
+    end
+  end
 
   def initialize(endpoints = nil, directory_path = nil, file_name = nil)
     self.endpoints = endpoints
+
     self.directory_path = directory_path
     self.file_name = file_name
+    self.debug_mode = true
   end
 
   # TODO: Tie-in stronger validation. Possibly, Inferno validator.
   def valid_testscript? script
     return (script.is_a? FHIR::TestScript) && script.valid?
-  end 
+  end
 
-  # @path [String] Optional, specifies the path to the folder containing the 
-  #                TestScript Resources to-be loaded into the engine. 
-  def load_scripts 
-    on_deck = Dir.glob "#{root}/**/*.{json, xml}"
-    FHIR.logger.info "[.load_scripts] TestScript Path: [#{root}]"
-
+  # @path [String] Optional, specifies the path to the folder containing the
+  #                TestScript Resources to-be loaded into the engine.
+  def load_scripts
+    on_deck = Dir.glob (["#{root}/**/*.{json}", "#{root}/**/*.{xml}"])
     on_deck.each do |resource|
       next if resource.include? "/fixtures/"
       next if file_name && !resource.include?(file_name)
 
-      begin 
+      begin
         script = FHIR.from_contents File.read(resource)
         if valid_testscript? script
           script.url = resource
-          scripts[script.id] = script 
-          FHIR.logger.info "[.load_scripts] TestScript with id [#{script.id}] loaded."
+          if scripts[script.id]
+            info(:overwrite_existing_script, script.id)
+          else
+            info(:loaded_script, script.id)
+          end
+          scripts[script.id] = script
         else
-          FHIR.logger.info "[.load_scripts] Invalid or non-TestScript detected. Skipping resource at #{resource}."
-          FHIR.logger.info "[.load_scripts] Violation: #{script.validate.to_hash}"
-        end 
+          info(:invalid_script, resource)
+          error(:invalid_dump, script.validate.to_hash)
+        end
       rescue
-        FHIR.logger.info "[.load_scripts] Unable to deserialize TestScript resource at #{resource}."
-      end 
-    end 
+        info(:cant_deserialize_script, resource)
+      end
+    end
   end
 
-  # @script [FHIR::TestScript] Optional, a singular TestScript resource to be 
-  #                            transformed into a runnable. If no resource is 
-  #                            given, all stored TestScript are by default 
-  #                            transformed into and stored as runnables. 
+  # @script [FHIR::TestScript] Optional, a singular TestScript resource to be
+  #                            transformed into a runnable. If no resource is
+  #                            given, all stored TestScript are by default
+  #                            transformed into and stored as runnables.
   def make_runnables script = nil
     begin
       if valid_testscript? script
-        runnables[script.id] = TestScriptRunnable.new endpoints, script
-        FHIR.logger.info "[.make_runnables] Generated runnable from TestScript with id [#{script.id}]."
-      else 
+        runnables[script.id] = TestScriptRunnable.new script
+        info(:made_runnable, script.id)
+      else
         scripts.each do |_, script|
-          runnables[script.id] = TestScriptRunnable.new endpoints, script
-          FHIR.logger.info "[.make_runnables] Generated runnable from TestScript with id [#{script.id}]."
-        end 
-      end 
+          runnables[script.id] = TestScriptRunnable.new script
+          info(:made_runnable, script.id)
+        end
+      end
     rescue => e
-      FHIR.logger.error "[.make_runnables] Unable to generate runnable. Caught error: #{e.message}."
-    end 
-  end 
+      error(:cant_make_runnable, script.id)
+    end
+  end
 
   # TODO: Clean-up, possibly modularize into a pretty_print type method
   # @runnable_id [String] Optional, specifies the id of the runnable to be
@@ -87,28 +103,30 @@ class TestScriptEngine
         puts "\nBeggining execution of #{runnable_id}.\n\n"
         reports[runnable_id] = runnable.execute
         puts "\nFinished execution of #{runnable_id}. Score: #{reports[runnable_id].score} \n"
+
       else
-         FHIR.logger.info "[.execute_runnables] No runnable stored with id [#{runnable_id}]." 
-      end 
+        error(:no_runnable_stored, runnable_id)
+      end
     else
       runnables.each do |id, runnable|
-        puts "\nBeggining execution of #{id}.\n\n"
+    
+    puts "\nBeggining execution of #{id}.\n\n"
         reports[id] = runnable.run
         puts "\nFinished execution of #{id}. Score: #{reports[id].score} \n"
       end 
     end
-  end 
+  end
 
-  # @path [String] Optional, specifies the path to the folder which the 
+  # @path [String] Optional, specifies the path to the folder which the
   #                TestReport resources should be written to.
   def write_reports path = nil
     report_directory = path || "#{root.split('/')[0...-1].join}/TestReports"
     FileUtils.mkdir_p report_directory
 
-    reports.each do |_, report| 
+    reports.each do |_, report|
       File.open("#{report_directory}/#{report.name.downcase.split(' ')[1...].join('_')}.json", 'w') do |f|
         f.write(report.to_json)
-      end 
-    end 
-  end 
+      end
+    end
+  end
 end

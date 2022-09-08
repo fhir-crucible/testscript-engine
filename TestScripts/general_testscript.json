@@ -186,6 +186,7 @@
           "description": "Confirm that the returned Patient contains the expected family name 'Chalmers'. Uses explicit compareToSourceId reference to fixture-patient-create used to create the Patient.",
           "compareToSourceId": "fixture-patient-create",
           "compareToSourceExpression": "Patient.name.first().family",
+          "expression": "Patient.name.first().family",
           "operator": "equals",
           "warningOnly": false
         }

@@ -1,6 +1,7 @@
-require 'pry-nav' # TODO: Remove
 require_relative './TestScriptEngine'
-require './TestScriptRunnable' # TODO: Remove
+require_relative './MessageHandler'
+
+include MessageHandler
 
 endpoints = []
 directory_path = '../TestScripts'
