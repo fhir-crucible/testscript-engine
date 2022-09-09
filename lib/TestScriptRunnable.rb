@@ -62,7 +62,7 @@ class TestScriptRunnable
     @endpoints
   end
 
-  def clients(script)
+  def client(script)
     if script.destination.length > endpoints.length
       FHIR.logger.error "[.initialize] Not enough server endpoints (#{endpoints.length}) for destination (#{script.destination.length}) in TestScript"
       exit
@@ -109,7 +109,7 @@ class TestScriptRunnable
   end
 
   def run
-    clients(script)
+    client(script)
     fresh_testreport
 
     preprocessing # TODO: remove this
