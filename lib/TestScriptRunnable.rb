@@ -44,6 +44,10 @@ class TestScriptRunnable
     @autocreate_ids ||= []
   end
 
+  def eps
+    @eps ||= []
+  end
+
   def autodelete_ids
     @autodelete_ids ||= []
   end
@@ -53,11 +57,18 @@ class TestScriptRunnable
     @script
   end
 
-  def client(endpoints, script)
+  def endpoints(endpoints = nil)
+    @endpoints = endpoints if endpoints
+    @endpoints
+  end
+
+  def clients(script)
     if script.destination.length > endpoints.length
       FHIR.logger.error "[.initialize] Not enough server endpoints (#{endpoints.length}) for destination (#{script.destination.length}) in TestScript"
       exit
     end
+
+    info(:begin_initialize_client)
 
     @clients = Hash[]
     if script.destination.length == 0
@@ -68,21 +79,22 @@ class TestScriptRunnable
     script.destination.each do |destination|
       @clients.store (destination.index), (FHIR::Client.new(endpoints[destination.index-1] || 'localhost:3000'))
     end
+
+    info(:finish_initialize_client)
   end 
 
-  def get_client(destination)
+  def get_client(destination = nil)
     return @clients[0] if destination == nil
     return @clients[destination]
   end
 
-  def initialize endpoints, script
+  def initialize script
     unless (script.is_a? FHIR::TestScript) && script.valid?
       fail(:invalid_script) # TODO: Switch to ERROR
       raise ArgumentError
     end
 
     script(script)
-    client(endpoints, script)
 
     # TODO - move preprocessing to the 'run' method
     # I'll do this in a follow-up PR. The reason is that preprocessing,
@@ -96,8 +108,8 @@ class TestScriptRunnable
     # preprocessing
   end
 
-  def run(client = nil)
-    client(client)
+  def run
+    clients(script)
     fresh_testreport
 
     preprocessing # TODO: remove this
@@ -115,7 +127,7 @@ class TestScriptRunnable
     load_fixtures
 
     autocreate_ids.each do |fixture_id|
-      client.send(*create_request((operation_create(fixture_id))))
+      get_client.send(*create_request((operation_create(fixture_id))))
     end
   end
 
@@ -132,10 +144,9 @@ class TestScriptRunnable
   end
 
   def postprocessing
-
     autodelete_ids.each do |fixture_id|
       FHIR.logger.info "Auto-deleting dynamic fixture #{fixture_id}"
-      client.send(*create_request((operation_delete(fixture_id))))
+      get_client.send(*create_request((operation_delete(fixture_id))))
     end
   end
 
@@ -322,14 +333,9 @@ class TestScriptRunnable
   end
 
   def storage(op)
-    def client
-         @client
-    end
-    
-    set_client(operation.destination) # at the top of execute_operation, but instead of returning client, just set the @client instance
-    
+    client = get_client(op.destination)
     self.reply = client.reply
-    reply.nil? ? return : get_client(op.destination).reply = nil
+    reply.nil? ? return : client.reply = nil
 
     request_map[op.requestId] = reply.request if op.requestId
     response_map[op.responseId] = reply.response if op.responseId

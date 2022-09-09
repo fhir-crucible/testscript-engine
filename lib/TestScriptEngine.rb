@@ -24,18 +24,17 @@ attr_accessor :endpoints, :directory_path, :file_name
     directory_path || "../TestScripts"
   end
 
-  def client
-    @client ||= begin
-      info(:begin_initialize_client)
-      client = FHIR::Client.new(endpoint || 'localhost:3000')
-      info(:finish_initialize_client)
-      client
-    end
-  end
+  # def client
+  #   @client ||= begin
+  #     info(:begin_initialize_client)
+  #     client = FHIR::Client.new(endpoint || 'localhost:3000')
+  #     info(:finish_initialize_client)
+  #     client
+  #   end
+  # end
 
   def initialize(endpoints = nil, directory_path = nil, file_name = nil)
     self.endpoints = endpoints
-
     self.directory_path = directory_path
     self.file_name = file_name
     self.debug_mode = true
@@ -109,8 +108,8 @@ attr_accessor :endpoints, :directory_path, :file_name
       end
     else
       runnables.each do |id, runnable|
-    
-    puts "\nBeggining execution of #{id}.\n\n"
+        puts "\nBeggining execution of #{id}.\n\n"
+        runnable.endpoints(endpoints)
         reports[id] = runnable.run
         puts "\nFinished execution of #{id}. Score: #{reports[id].score} \n"
       end 
