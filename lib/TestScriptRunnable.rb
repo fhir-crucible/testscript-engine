@@ -5,22 +5,15 @@ require 'fhir_client'
 require_relative 'assertions'
 require_relative './TestReportHandler.rb'
 require_relative './MessageHandler.rb'
+require_relative './Operations.rb'
 
 class TestScriptRunnable
   include Assertions
+  prepend MessageHandler
   include TestReportHandler
-
-  REQUEST_TYPES = { 'read' => :get,
-                    'create' => :post,
-                    'update' => :put,
-                    'delete' => :delete,
-                    'search' => :get,
-                    'history' => :get,
-                    nil => :get }.freeze
+  include Operation
 
   attr_accessor :reply
-
-  prepend MessageHandler
 
   # maps fixture ids to server ids
   def id_map
@@ -97,7 +90,7 @@ class TestScriptRunnable
     load_fixtures
 
     autocreate_ids.each do |fixture_id|
-      client.send(*create_request((operation_create(fixture_id))))
+      client.send(*build_request((operation_create(fixture_id))))
     end
   end
 
@@ -117,7 +110,7 @@ class TestScriptRunnable
 
     autodelete_ids.each do |fixture_id|
       FHIR.logger.info "Auto-deleting dynamic fixture #{fixture_id}"
-      client.send(*create_request((operation_delete(fixture_id))))
+      client.send(*build_request((operation_delete(fixture_id))))
     end
   end
 
@@ -125,7 +118,7 @@ class TestScriptRunnable
     actions.each do |action|
       result = begin # TODO: Remove MessageHandler result objects when result no longer used
         if action.operation
-          execute_operation(action.operation)
+          execute(action.operation)
         elsif action.respond_to?(:assert)
           evaluate(action.assert)
         end
@@ -136,20 +129,6 @@ class TestScriptRunnable
         # Already support in report handler -- cascade_skips attr_accessor
       end
     end
-  end
-
-  def operation_create(sourceId)
-    FHIR::TestScript::Setup::Action::Operation.new({
-      sourceId: sourceId,
-      method: 'post'
-    })
-  end
-
-  def operation_delete(sourceId)
-    FHIR::TestScript::Setup::Action::Operation.new({
-      targetId: id_map[sourceId],
-      method: 'delete'
-    })
   end
 
   def load_fixtures
@@ -185,108 +164,6 @@ class TestScriptRunnable
     rescue StandardError => e
       warning(:bad_reference, ref) # TODO: Switch to ERROR? Or not?
     end
-  end
-
-  def execute_operation(op)
-    unless op.instance_of?(FHIR::TestScript::Setup::Action::Operation) && op.valid?
-      fail(:invalid_operation)
-      reply = nil
-      return false
-    end
-
-    request = create_request(op)
-    if request.nil?
-      fail(:invalid_request, (op.label || "unlabeled"))
-      reply = nil
-      return false
-    end
-
-    begin
-      #binding.pry
-      client.send(*request)
-    rescue StandardError => e
-      fail(:execute_operation_error, (op.label || 'unlabeled'), e.message ) # TODO: Switch to ERROR
-      reply = nil
-      return false
-    end
-
-    storage(op)
-    pass(:pass_execute_operation, op.label || 'unlabeled')
-    return true
-  end
-
-  def create_request(op)
-    req_type = op.local_method&.to_sym || REQUEST_TYPES[op.type&.code]
-
-    request = [req_type,
-               extract_path(op, req_type),
-               extract_body(op, req_type),
-               client.fhir_headers(extract_headers(op))]
-
-    return if SENDERS.include?(req_type) && request[2].nil?
-
-    request.compact
-  end
-
-  def extract_path(operation, request_type)
-    return replace_variables(operation.url) if operation.url
-
-    if operation.params
-      mime = "_format=#{get_format(operation.contentType)}" if operation.contentType
-      params = "#{replace_variables(operation.params)}"
-      params = "?_#{params}" if params and !params.start_with?('/')
-      if mime
-        if params
-          mime = "&#{mime}"
-        else
-          mime = "?#{mime}"
-        end
-      end
-      search = '/_search' if request_type == :post and params.start_with?("?")
-      "#{operation.resource}#{search}#{params}#{mime}"
-    elsif operation.targetId
-      resource = response_map[operation.targetId]&.[](:body)
-      return if (resource.nil? and SENDERS.include?(request_type))
-      type = operation.resource
-      type = FHIR.from_contents(resource).resourceType if type.nil? and resource
-      return unless type
-      id = id_map[operation.targetId]
-      return "#{type}/#{id}" unless type.nil? || id.nil?
-    elsif operation.sourceId
-      (fixtures[operation.sourceId] || begin
-        resource = response_map[operation.sourceId]&.[](:body)
-        return unless resource
-        FHIR.from_contents(resource)
-      end).resourceType
-    end
-  end
-
-  def extract_body(operation, request_type)
-    return unless SENDERS.include?(request_type)
-    return unless operation.sourceId || operation.targetId
-
-    fixtures[operation.sourceId] or response_map[operation.targetId]&.resource
-  end
-
-  def extract_headers(operation)
-    headers = {}
-    headers.merge!({ 'Accept' => get_format(operation.accept) }) if operation.accept
-    headers.merge!({ 'Content-Type' => get_format(operation.contentType) }) if operation.contentType
-    headers['Content-Type'] = 'application/fhir+json' unless headers['Content-Type']
-
-    headers.merge! Hash[operation.requestHeader.map do |header|
-      [header.field, replace_variables(header.value)]
-    end]
-
-    headers.empty? ? nil : headers
-  end
-
-  def get_format format
-    FORMAT_MAP[format] || format
-  end
-
-  def successful? code
-    [200, 202, 204].include? code
   end
 
   def storage(op)
@@ -346,14 +223,4 @@ class TestScriptRunnable
 
     return FHIRPath.evaluate(expression, resource.to_hash)
   end
-
-  # <--- Line of Code Review --->
-
-  SENDERS = %i[post put].freeze
-  FETCHERS = %i[get destroy search].freeze
-
-  FORMAT_MAP = {
-    'json' => FHIR::Formats::ResourceFormat::RESOURCE_JSON,
-    'xml' => FHIR::Formats::ResourceFormat::RESOURCE_XML
-  }.freeze
 end
