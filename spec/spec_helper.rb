@@ -4,7 +4,8 @@ require 'webmock/rspec'
 WebMock.enable!
 
 RSpec.configure do |config|
-  config.before do
+  config.before(:all) do
     FHIR.logger = Logger.new('/dev/null')
+    $stdout = File.open(File::NULL, "w")
   end
 end

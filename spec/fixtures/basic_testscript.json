@@ -3,6 +3,17 @@
   "url": "spec/fixtures/basic_testscript",
   "name": "Basic TestScript",
   "status": "draft",
+  "fixture": [
+    {
+      "id": "fixture-patient-create",
+      "autocreate": true,
+      "autodelete": false,
+      "resource": {
+        "reference": "Patient/example.json",
+        "display": "Peter Chalmers"
+      }
+    }
+  ],
   "setup": {
     "action": [
       {

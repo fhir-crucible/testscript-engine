@@ -119,15 +119,11 @@ class TestScriptRunnable
 
   def load_fixtures
     script.fixture.each do |fixture|
-      info(:no_static_fixture_id) unless fixture.id
-      info(:no_static_fixture_resource) unless fixture.resource
+      next warning(:no_static_fixture_id) unless fixture.id
+      next warning(:no_static_fixture_resource) unless fixture.resource
 
       resource = get_resource_from_ref(fixture.resource)
-      info(:no_static_fixture_reference) unless resource
-
-      info(:loaded_static_fixture, fixture.id)
       fixtures[fixture.id] = resource
-      type = resource.resourceType
 
       autocreate_ids << fixture.id if fixture.autocreate
       autodelete_ids << fixture.id if fixture.autodelete
@@ -146,7 +142,9 @@ class TestScriptRunnable
       filepath = File.expand_path(ref, File.absolute_path(fixtures_path))
       file = File.open(filepath, 'r:UTF-8', &:read)
       file.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
-      return FHIR.from_contents(file)
+      resource = FHIR.from_contents(file)
+      info(:loaded_static_fixture, resource.id)
+      return resource
     rescue StandardError => e
       warning(:bad_reference, ref) # TODO: Switch to ERROR? Or not?
     end
