@@ -57,16 +57,7 @@ class TestScriptRunnable
 
     script(script)
 
-    # TODO - move preprocessing to the 'run' method
-    # I'll do this in a follow-up PR. The reason is that preprocessing,
-    # since it includes autoloading fixtures, can't be done only one. It
-    # needs to be done each time the script is executed i.e. autloading
-    # for any system under test.
-    #
-    # For now, just move the call to preprocessing to the run method to
-    # see how the output will look under regular conditions
-    #
-    # preprocessing
+    load_fixtures
   end
 
   def run(client = nil)
@@ -85,8 +76,6 @@ class TestScriptRunnable
   end
 
   def preprocessing
-    load_fixtures
-
     autocreate_ids.each do |fixture_id|
       client.send(*build_request((operation_create(fixture_id))))
     end
