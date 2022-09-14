@@ -5,7 +5,7 @@ require 'fhir_client'
 require_relative 'assertion'
 require_relative 'testreport_handler'
 require_relative 'message_handler'
-require_relative './Operation.rb'
+require_relative 'operation'
 
 class TestScriptRunnable
   include Assertion
