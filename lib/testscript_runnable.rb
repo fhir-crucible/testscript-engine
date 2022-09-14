@@ -2,13 +2,13 @@
 require 'pry-nav'
 require 'jsonpath'
 require 'fhir_client'
-require_relative 'assertions'
+require_relative 'assertion'
 require_relative 'testreport_handler'
 require_relative 'message_handler'
 require_relative './Operation.rb'
 
 class TestScriptRunnable
-  include Assertions
+  include Assertion
   prepend MessageHandler
   include TestReportHandler
   include Operation
