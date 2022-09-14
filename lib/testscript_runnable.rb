@@ -2,35 +2,33 @@
 require 'pry-nav'
 require 'jsonpath'
 require 'fhir_client'
-require_relative 'assertion'
-require_relative 'testreport_handler'
-require_relative 'message_handler'
 require_relative 'operation'
+require_relative 'assertion'
+require_relative 'message_handler'
+require_relative 'testreport_handler'
 
 class TestScriptRunnable
+  include Operation
   include Assertion
   prepend MessageHandler
   include TestReportHandler
-  include Operation
 
   attr_accessor :reply
 
-  # maps fixture ids to server ids
   def id_map
     @id_map ||= {}
   end
 
-  # maps operation.responseid to responses
-  def response_map
-    @response_map ||= {}
+  def fixtures
+    @fixtures ||= {}
   end
 
   def request_map
     @request_map ||= {}
   end
 
-  def fixtures
-    @fixtures ||= {}
+  def response_map
+    @response_map ||= {}
   end
 
   def autocreate_ids
