@@ -90,10 +90,10 @@ module Operation
   end
 
   def get_payload(operation, interaction)
+    return unless INTERACTION_NEEDS_PAYLOAD.include?(interaction)
+
     payload = get_resource(operation.sourceId)
-
     raise OperationException, :noPayload if INTERACTION_NEEDS_PAYLOAD.include?(interaction) && !payload
-
     payload
   end
 
