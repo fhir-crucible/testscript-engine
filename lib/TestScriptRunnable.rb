@@ -5,7 +5,7 @@ require 'fhir_client'
 require_relative 'assertions'
 require_relative './TestReportHandler.rb'
 require_relative './MessageHandler.rb'
-require_relative './Operations.rb'
+require_relative './Operation.rb'
 
 class TestScriptRunnable
   include Assertions
@@ -177,7 +177,7 @@ class TestScriptRunnable
     (reply.response[:body] = reply.resource)
     response_map[op.responseId][:body] = reply.resource if reply.resource and response_map[op.responseId]
 
-    if op.targetId and (reply.request[:method] == :delete) and successful?(reply.response[:code])
+    if op.targetId and (reply.request[:method] == :delete) and ['200', '201', '204'].include?(reply.response[:code])
       id_map.delete(op.targetId) and return
     end
 
