@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'Operation'
+require 'operation'
 
 class OperationsTestClass
   include Operation
