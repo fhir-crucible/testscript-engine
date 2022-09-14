@@ -16,8 +16,8 @@ describe TestScriptRunnable do
         expect { TestScriptRunnable.new(0) }.to raise_error(TypeError)
         expect { TestScriptRunnable.new('notTestScript') }.to raise_error(TypeError)
         expect { TestScriptRunnable.new(FHIR::TestReport.new) }.to raise_error(TypeError)
-      end 
-    end 
+      end
+    end
 
     context 'with valid TestScript given' do
       it 'initializes expected attributes' do
@@ -30,19 +30,19 @@ describe TestScriptRunnable do
         expect(runnable.autocreate).to be_a(Array)
         expect(runnable.autodelete).to be_a(Array)
         expect(runnable.client.instance_variable_get(:@base_service_url)).to eq(default_url)
-      end 
+      end
 
       it 'calls load_fixtures' do
         expect_any_instance_of(TestScriptRunnable).to receive(:load_fixture)
         TestScriptRunnable.new(tScript)
-      end 
+      end
 
       it 'returns a runnable' do
         runnable = TestScriptRunnable.new(tScript)
         expect(runnable).to be_a(TestScriptRunnable)
-      end 
+      end
     end
-  end 
+  end
 
   context '.execution' do
     context 'with an invalid TestScript given' do
@@ -53,8 +53,8 @@ describe TestScriptRunnable do
         expect { TestScriptRunnable.execute(0) }.to raise_error(TypeError)
         expect { TestScriptRunnable.execute('notTestScript') }.to raise_error(TypeError)
         expect { TestScriptRunnable.execute(FHIR::TestReport.new) }.to raise_error(TypeError)
-      end 
-    end 
+      end
+    end
 
     context 'without a client given' do
       it 'sets the client attribute to the default localhost value' do
@@ -62,21 +62,21 @@ describe TestScriptRunnable do
 
         expect(report.participant[1].type == 'Client')
         expect(report.participant[1].type == default_url)
-      end 
-    end 
-    
+      end
+    end
+
     context 'with a client given' do
       it 'sets the client attribute' do
         report = TestScriptRunnable.execute(tScript)
 
         expect(report.participant[1].type == 'Client')
         expect(report.participant[1].type == url)
-      end 
+      end
 
       it 'returns a report' do
         runnable = TestScriptRunnable.execute(tScript)
         expect(runnable).to be_a(FHIR::TestReport)
-      end 
-    end 
-  end 
-end 
+      end
+    end
+  end
+end

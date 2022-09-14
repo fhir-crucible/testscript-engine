@@ -39,24 +39,25 @@ class TestScriptRunnable
     @autodelete_ids ||= []
   end
 
+  # TODO: Edit
   def script(script = nil)
     @script = script if script
     @script
   end
 
+  # TODO: Edit
   def client(client = nil)
     @client = client if client
     @client ||= FHIR::Client.new('https://localhost:8080')
   end
 
-  def initialize script
+  def initialize(script)
     unless (script.is_a? FHIR::TestScript) && script.valid?
       fail(:invalid_script) # TODO: Switch to ERROR
       raise ArgumentError
     end
 
     script(script)
-
     load_fixtures
   end
 
