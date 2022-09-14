@@ -1,4 +1,4 @@
-require_relative 'TestReportHandler'
+require_relative 'testreport_handler'
 
 
 class Tester
