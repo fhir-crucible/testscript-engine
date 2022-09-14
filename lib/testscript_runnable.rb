@@ -3,7 +3,7 @@ require 'pry-nav'
 require 'jsonpath'
 require 'fhir_client'
 require_relative 'assertions'
-require_relative './TestReportHandler.rb'
+require_relative 'testreport_handler'
 require_relative 'message_handler'
 require_relative './Operation.rb'
 
