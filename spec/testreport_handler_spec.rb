@@ -1,4 +1,4 @@
-require 'TestReportHandler'
+require_relative '../lib/testreport_handler'
 
 class TestReportHandlerTestClass
   include TestReportHandler

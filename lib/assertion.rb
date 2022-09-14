@@ -3,7 +3,7 @@ require 'pry-nav'
 require 'jsonpath'
 require 'active_support'
 
-module Assertions
+module Assertion
 
   ASSERT_TYPES_MATCHER = /(?<=\p{Ll})(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})/
   ASSERT_TYPES = [

@@ -1,5 +1,5 @@
-require_relative './TestScriptEngine'
-require_relative './MessageHandler'
+require_relative 'testscript_engine'
+require_relative 'message_handler'
 
 include MessageHandler
 
