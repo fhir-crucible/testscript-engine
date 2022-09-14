@@ -1,4 +1,4 @@
-require 'Assertions'
+require_relative '../lib/assertion'
 require 'fhir_models'
 require 'fhir_client'
 

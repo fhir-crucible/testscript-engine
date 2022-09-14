@@ -1,5 +1,5 @@
 require 'pry'
-require 'TestScriptRunnable'
+require_relative '../lib/testscript_runnable'
 
 describe TestScriptRunnable do
   let(:vname) { 'variable' }

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'TestScriptRunnable'
+require_relative '../lib/testscript_runnable'
 
 describe TestScriptRunnable do
   let(:serverId) { 'server_id' }
