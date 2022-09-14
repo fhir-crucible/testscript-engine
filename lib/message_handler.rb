@@ -35,16 +35,18 @@ module MessageHandler
     if message.start_with?("FINISH")
       decrease_space
     end
+    nil
   end
 
   def info(message_type, *options)
     print_out messages(message_type, *options)
   end
 
-  def error(message_type, *options)
-    return unless debug_mode
-    print_out messages(message_type, *options)
-  end
+  # TODO: What's going on here?
+  # def error(message_type, *options)
+  #   return unless debug_mode
+  #   print_out messages(message_type, *options)
+  # end
 
   def load_scripts
     print_out messages(:begin_loading_scripts, root)
@@ -133,7 +135,7 @@ module MessageHandler
 
   def error(message_type, *options)
     message = messages(message_type, *options)
-    super(message)
+    super(message) unless [:bad_script, :invalid_script].include?(message_type)
     print_out ("ERROR: " + message)
   end
 
@@ -204,6 +206,8 @@ module MessageHandler
       "#{options[0]}"
     when :bad_reference
       "Unable to read contents of reference: [#{options[0]}]. No reference extracted."
+    when :bad_script
+      "Did not receive TestScript resource as expected. Unable to create runnable."
     when :begin_initialize_client
       start_message_format("INITIALIZE CLIENT(S)")
     when :begin_loading_scripts
@@ -257,7 +261,7 @@ module MessageHandler
     when :invalid_request
       "Unable to create a request using operation: [#{options[0]}]. Can not execute."
     when :invalid_script
-      "Could not load resource: [#{options[0]}]"
+      "Could not load TestScript resource" + (options[0] ? "[#{options[0]}]." : ".")
     when :loaded_static_fixture
       "Loaded static fixture: [#{options[0]}]."
     when :loaded_script

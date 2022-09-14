@@ -1,81 +1,37 @@
 # frozen_string_literal: true
-require 'TestScriptRunnable'
+require_relative '../lib/testscript_runnable'
+require_relative '../lib/message_handler'
+
+include MessageHandler
 
 describe TestScriptRunnable do
-  let(:tScript) { FHIR::TestScript.new }
-  let(:url) { 'https://some_url' }
-  let(:client) { FHIR::Client.new(url) }
-  let(:default_url) { 'https://localhost:4567' }
-
-  describe '.initialize' do
-    context 'with an invalid TestScript given' do
-      it 'logs and raises an error' do
-        expect(FHIR.logger).to receive(:error).exactly(4).times.with '[.initialize] Received invalid TestScript resource. Unable to create TestScriptRunnable.'
-
-        expect { TestScriptRunnable.new(nil) }.to raise_error(TypeError)
-        expect { TestScriptRunnable.new(0) }.to raise_error(TypeError)
-        expect { TestScriptRunnable.new('notTestScript') }.to raise_error(TypeError)
-        expect { TestScriptRunnable.new(FHIR::TestReport.new) }.to raise_error(TypeError)
-      end
-    end
-
-    context 'with valid TestScript given' do
-      it 'initializes expected attributes' do
-        runnable = TestScriptRunnable.new(tScript)
-
-        expect(runnable.tScript).to eq(tScript)
-        expect(runnable.report).to be_a(FHIR::TestReport)
-        expect(runnable.fixtures).to be_a(Hash)
-        expect(runnable.id_map).to be_a(Hash)
-        expect(runnable.autocreate).to be_a(Array)
-        expect(runnable.autodelete).to be_a(Array)
-        expect(runnable.client.instance_variable_get(:@base_service_url)).to eq(default_url)
-      end
-
-      it 'calls load_fixtures' do
-        expect_any_instance_of(TestScriptRunnable).to receive(:load_fixture)
-        TestScriptRunnable.new(tScript)
-      end
-
-      it 'returns a runnable' do
-        runnable = TestScriptRunnable.new(tScript)
-        expect(runnable).to be_a(TestScriptRunnable)
-      end
-    end
+  before(:all) do
+    @invalid_script = FHIR::TestScript.new
+    @script = FHIR.from_contents(File.read('spec/fixtures/basic_testscript.json'))
   end
 
-  context '.execution' do
-    context 'with an invalid TestScript given' do
-      it 'logs and raises an error' do
-        expect(FHIR.logger).to receive(:error).exactly(4).times.with '[.initialize] Received invalid TestScript resource. Unable to create TestScriptRunnable.'
-
-        expect { TestScriptRunnable.execute(nil) }.to raise_error(TypeError)
-        expect { TestScriptRunnable.execute(0) }.to raise_error(TypeError)
-        expect { TestScriptRunnable.execute('notTestScript') }.to raise_error(TypeError)
-        expect { TestScriptRunnable.execute(FHIR::TestReport.new) }.to raise_error(TypeError)
-      end
+  describe '.initialize' do
+    it 'given non-TestScript input raises an error' do
+      expect { TestScriptRunnable.new(nil) }
+        .to raise_error(ArgumentError, messages(:bad_script))
     end
 
-    context 'without a client given' do
-      it 'sets the client attribute to the default localhost value' do
-        report = TestScriptRunnable.execute(tScript)
-
-        expect(report.participant[1].type == 'Client')
-        expect(report.participant[1].type == default_url)
-      end
+    it 'given invalid TestScript input raises an error' do
+      expect { TestScriptRunnable.new(@invalid_script) }
+        .to raise_error(ArgumentError, messages(:invalid_script))
     end
 
-    context 'with a client given' do
-      it 'sets the client attribute' do
-        report = TestScriptRunnable.execute(tScript)
+    context 'given valid TestScript' do
+      it 'stores script' do
+        result = TestScriptRunnable.new(@script)
 
-        expect(report.participant[1].type == 'Client')
-        expect(report.participant[1].type == url)
+        expect(result.script).to be(@script)
       end
 
-      it 'returns a report' do
-        runnable = TestScriptRunnable.execute(tScript)
-        expect(runnable).to be_a(FHIR::TestReport)
+      it 'calls load fixtures' do
+        expect_any_instance_of(described_class).to receive(:load_fixtures)
+
+        TestScriptRunnable.new(@script)
       end
     end
   end

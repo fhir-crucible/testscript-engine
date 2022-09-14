@@ -52,10 +52,8 @@ class TestScriptRunnable
   end
 
   def initialize(script)
-    unless (script.is_a? FHIR::TestScript) && script.valid?
-      fail(:invalid_script) # TODO: Switch to ERROR
-      raise ArgumentError
-    end
+    raise ArgumentError.new(messages(:bad_script)) unless script.is_a?(FHIR::TestScript)
+    raise ArgumentError.new(messages(:invalid_script)) unless script.valid?
 
     script(script)
     load_fixtures
