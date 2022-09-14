@@ -1,7 +1,7 @@
 require 'pry-nav' # TODO: Remove
 require 'fhir_client'
 require_relative './TestScriptRunnable'
-require_relative './MessageHandler'
+require_relative 'message_handler'
 
 class TestScriptEngine
   prepend MessageHandler
