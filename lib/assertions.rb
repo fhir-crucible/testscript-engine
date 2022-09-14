@@ -252,12 +252,12 @@ module Assertions
 
   def get_response(id)
     return response_map[id] if id
-    reply.response
+    reply&.response
   end
 
   def get_request(id)
     return request_map[id] if id
-    reply.request
+    reply&.request
   end
 
   def response_header(responseId = nil, header_name = nil)
