@@ -62,13 +62,15 @@ class TestScriptRunnable
   end
 
   def preprocess
+    return info(:no_preprocess) if autocreate_ids.empty?
+
     autocreate_ids.each do |fixture_id|
       client.send(*build_request((operation_create(fixture_id))))
     end
   end
 
   def setup
-    return unless script.setup
+    return info(:no_setup) unless script.setup
     handle_actions(script.setup.action, true)
   end
 
@@ -77,6 +79,7 @@ class TestScriptRunnable
   end
 
   def teardown
+    return info(:no_teardown) unless script.teardown
     handle_actions(script.teardown.action, false)
   end
 
@@ -89,6 +92,8 @@ class TestScriptRunnable
   end
 
   def handle_actions(actions, end_on_fail)
+    #turn on report modification
+
     actions.each do |action|
       result = begin # TODO: Remove MessageHandler result objects when result no longer used
         if action.operation

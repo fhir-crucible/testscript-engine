@@ -272,16 +272,22 @@ module MessageHandler
       "Created runnable from TestScript: [#{options[0]}]"
     when :no_contained_resource
       "Reference [#{options[0]}] refers to a contained resource that does not exist. Moving on."
+    when :no_preprocess
+      "No preprocess to perform."
     when :no_reference
       "Reference element of reference object is nil. Can not get resource from reference."
     when :no_runnable_stored
       "No runnable stored with id: [#{options[0]}]. Can not execute."
+    when :no_setup
+      "No setup to perform."
     when :no_static_fixture_id
       "No ID for static fixture. Can not load."
     when :no_static_fixture_reference
       "No reference for static fixture. Can not load."
     when :no_static_fixture_resource
       "No resource for static fixture. Can not load."
+    when :no_teardown
+      "No teardown to perform."
     when :overwrite_existing_script
       "Overwriting previously loaded TestScript: [#{options[0]}]"
     when :pass_execute_operation
