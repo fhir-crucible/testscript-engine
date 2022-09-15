@@ -86,9 +86,15 @@ class TestScriptRunnable
     autodelete_ids.each do |fixture_id|
       client.send(*build_request((delete_operation(fixture_id))))
     end
+
+    @ended = nil
+    @id_map = {}
+    @request_map = {}
+    @response_map = {}
   end
 
   def handle_actions(actions, end_on_fail)
+    cascade_skips(actions.length) if @ended
     @modify_report = true
     current_action = 0
 
@@ -98,14 +104,25 @@ class TestScriptRunnable
         if action.operation
           execute(action.operation)
         elsif action.respond_to?(:assert)
-          evaluate(action.assert)
+          begin
+            evaluate(action.assert)
+          rescue AssertionException => ae
+            if ae.outcome == :skip
+              skip(:eval_assert_result, ae.details)
+            elsif ae.outcome == :fail
+              next warning(:eval_assert_result, ae.details) if action.warningOnly
+              fail(:eval_assert_result, ae.details)
+              if end_on_fail
+                @ended = true
+                cascade_skips(actions.length - current_action)
+              end
+            end
+          end
         end
       end
     rescue OperationException => oe
       error(oe.details)
       cascade_skips(actions.length - current_action)
-    rescue AssertionException => ae
-      cascade_skips(actions.length - current_action) if end_on_fail
     rescue => e
       error(:uncaught_error, e.message)
       cascade_skips(actions.length - current_action)

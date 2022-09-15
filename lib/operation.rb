@@ -32,7 +32,12 @@ module Operation
 
   def execute(operation)
     request = build_request(operation)
-    client.send(*request)
+
+    begin
+      client.send(*request)
+    rescue
+      raise OperationException, :bad_request
+    end
 
     storage(operation)
     pass(:pass_execute_operation, operation.label || 'unlabeled')

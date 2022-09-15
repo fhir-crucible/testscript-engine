@@ -5,15 +5,17 @@ require 'active_support'
 
 module Assertion
   class AssertionException < StandardError
-    attr_reader :details
+    attr_reader :details, :outcome
 
-    def initialize(details)
+    def initialize(details, outcome)
       @details = details
-			super()
+      @outcome = outcome
+			super(details)
     end
   end
 
   ASSERT_TYPES_MATCHER = /(?<=\p{Ll})(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})/
+
   ASSERT_TYPES = [
     "contentType",
     "expression",
@@ -26,8 +28,9 @@ module Assertion
     "responseCode",
     "response",
     "validateProfileId",
-    "requestURL" # TODO: Discuss this being classified as an 'assert'
+    "requestURL"
   ]
+
   CODE_MAP = {
     '200' => 'okay',
     '201' => 'created',
@@ -44,44 +47,13 @@ module Assertion
   }
 
   def evaluate(assert)
-    # TODO: Check and fail if assert is nil || not the intended type
-    return unless assert
-
-    unless assert.is_a? FHIR::TestScript::Setup::Action::Assert
-      fail(:invalid_assert)
-      return false
-    end
-
-    assert_elements = assert.to_hash.keys
     @direction = assert.direction
+    assert_elements = assert.to_hash.keys
     assert_type = determine_assert_type(assert_elements)
 
-    begin
-      outcome_message = send(assert_type.to_sym, assert)
-    rescue StandardError => e
-      error(:eval_assert_result, e.message)
-      return false
-    end
+    outcome_message = send(assert_type.to_sym, assert)
 
-    if outcome_message&.include? 'As expected'
-      pass(:eval_assert_result, outcome_message)
-      return true
-    elsif outcome_message.start_with? 'SKIP'
-      skip(:eval_assert_result, outcome_message)
-    else
-      if assert.warningOnly
-        warning(:eval_assert_result, outcome_message)
-        return true
-      else
-        fail(:eval_assert_result, outcome_message)
-        return false
-      end
-    end
-
-    # stop Test On Fail Check
-    # warning Only Check
-    # TODO: What happens if the assertion is poorly formed?
-      # like, it only uses CompareToSourceID? Do we catch/throw?
+    pass(:eval_assert_result, outcome_message)
   end
 
   def determine_assert_type(all_elements)
@@ -118,24 +90,25 @@ module Assertion
       when 'notIn'
         !expected.split(',').include? received
       when 'greaterThan'
-        received > expected
+        received.to_i > expected.to_i
       when 'lessThan'
-        received < expected
+        received.to_i < expected.to_i
       when 'empty'
         received.blank?
       when 'notEmpty'
         received.present?
       when 'contains'
-        received.include? expected
+        received&.include? expected
       when 'notContains'
-        !received.include? expected
+        !received&.include? expected
       end
     end
 
     if outcome
       pass_message(assert_type, received, operator, expected)
     else
-      fail_message(assert_type, received, operator, expected)
+      fail_message = fail_message(assert_type, received, operator, expected)
+      raise AssertionException.new(fail_message, :fail)
     end
   end
 
@@ -158,12 +131,7 @@ module Assertion
 
   def expression(assert)
     resource = get_resource(assert.sourceId)
-    return unless resource
-
-    # TODO: Clea-up, once integrated with the MessageHandler
-    # error("No static fixture, dynamic fixture with ID: #{assert.sourceId}")
-    # FHIR.logger.error("No static fixture, dynamic fixture with ID: #{assert.sourceId}")
-    # return "No static or dynamic fixture with ID: #{assert.sourceId}"
+    raise AssertionException.new('No resource given by sourceId.', :fail) unless resource
 
     received = FHIRPath.evaluate(assert.expression, resource.to_hash)
     expected = determine_expected_value(assert)
@@ -186,19 +154,17 @@ module Assertion
   def minimum_id(assert)
     received = get_resource(assert.sourceId)
 
-    return 'SKIP: minimumId assert not yet supported.'
-
+    raise AssertionException, 'minimumId assert not yet supported.', :skip
     # result = client.validate(received, { profile_uri: assert.validateProfileId })
-    # TODO: Clea-up, once integrated with the MessageHandler
-    # skip("Can not validate minimumId #{assert.sourceId || "last response"}. Validation not yet functional.")
-    # FHIR.logger.error("Can not validate minimumId #{assert.sourceId || "last response"}. Validation not yet functional.")
-    # return "Can not validate minimumId #{assert.sourceId || "last response"}. Validation not yet functional."
   end
 
   def navigation_links(assert)
     received = get_resource(assert.sourceId)
     result = received&.first_link && received&.last_link && received&.next_link
-    result ? "Navigation Links: As expected, all navigation links found." : "Navigation Links: Expected all navigation links, but did not receive."
+
+    return "Navigation Links: As expected, all navigation links found." if result
+
+    raise AssertionException, "Navigation Links: Expected all navigation links, but did not receive.", :fail
   end
 
   def path(assert)
@@ -234,13 +200,8 @@ module Assertion
   def validate_profile_id(assert)
     received = get_resource(assert.sourceId)
 
-    return 'SKIP: validateProfileId assert not yet supported.'
-
+    raise AssertionException, 'validateProfileId assert not yet supported.', :skip
     # result = client.validate(received, { profile_uri: assert.validateProfileId })
-    # TODO: Clea-up, once integrated with the MessageHandler
-    # skip("Can not validate #{assert.sourceId || "last response"}. Validation not yet functional.")
-    # FHIR.logger.error("Can not validate #{assert.sourceId || "last response"}. Validation not yet functional.")
-    # return "Can not validate #{assert.sourceId || "last response"}. Validation not yet functional."
   end
 
   def request_url(assert)
@@ -275,7 +236,8 @@ module Assertion
     headers = response[:headers]
     return unless headers
 
-    header_name ? headers[header_name] : headers
+    headers.transform_keys!(&:downcase)
+    header_name ? headers[header_name.downcase] : headers
   end
 
   def request_header(requestId = nil, header_name = nil)
@@ -285,9 +247,9 @@ module Assertion
     headers = request[:headers]
     return unless headers
 
-    header_name ? headers[header_name] : headers
+    headers.transform_keys!(&:downcase)
+    header_name ? headers[header_name.downcase] : headers
   end
-
 
   def evaluate_path(path, resource)
     return unless path and resource
