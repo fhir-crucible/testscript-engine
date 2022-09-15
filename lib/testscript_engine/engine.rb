@@ -1,3 +1,5 @@
+require 'fhir_client'
+require 'fhir_models'
 require_relative 'testscript_runnable'
 require_relative 'message_handler'
 
