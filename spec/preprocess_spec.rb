@@ -15,15 +15,17 @@ describe TestScriptRunnable do
 				.to_return(status: 200, body: "", headers: {})
 
 			@runnable.fixtures[@script.fixture.first.id] = @patient
-			@runnable.autocreate_ids << @script.fixture.first.id
+			@runnable.autocreate << @script.fixture.first.id
 
 			@runnable.preprocess
 		end
 
 		it 'creates nothing if no autocreates stored' do
+			expect(@runnable).to receive(:info).with(:no_preprocess)
+
 			expect(@runnable).not_to receive(:client)
 
-			@runnable.autocreate_ids.clear
+			@runnable.autocreate.clear
 
 			@runnable.preprocess
 		end

@@ -11,7 +11,7 @@ describe TestScriptRunnable do
 
   before(:each) do
     @fixture = @script.fixture.first.deep_dup
-    @runnable.autocreate_ids.clear
+    @runnable.autocreate.clear
   end
 
   describe '.load_fixtures' do
@@ -23,7 +23,7 @@ describe TestScriptRunnable do
 
       @runnable.load_fixtures
 
-      expect(@runnable.autocreate_ids).to be_empty
+      expect(@runnable.autocreate).to be_empty
     end
 
     it "given fixture without resource logs warning" do
@@ -34,7 +34,7 @@ describe TestScriptRunnable do
 
       @runnable.load_fixtures
 
-      expect(@runnable.autocreate_ids).to be_empty
+      expect(@runnable.autocreate).to be_empty
     end
 
     it 'given fixture with bad reference logs warning' do
@@ -42,7 +42,7 @@ describe TestScriptRunnable do
 
       @runnable.load_fixtures
 
-      expect(@runnable.autocreate_ids).to be_empty
+      expect(@runnable.autocreate).to be_empty
       expect(@runnable.autodelete_ids).to be_empty
     end
 
@@ -66,7 +66,7 @@ describe TestScriptRunnable do
         @runnable.load_fixtures
 
         expect(@fixture.id).to be
-        expect(@runnable.autocreate_ids).to eq([@fixture.id])
+        expect(@runnable.autocreate).to eq([@fixture.id])
       end
 
       it 'denotes fixture for autocreation' do
@@ -76,7 +76,7 @@ describe TestScriptRunnable do
         @runnable.load_fixtures
 
         expect(@fixture.id).to be
-        expect(@runnable.autocreate_ids).to eq([@fixture.id])
+        expect(@runnable.autocreate).to eq([@fixture.id])
         expect(@runnable.autodelete_ids).to eq([@fixture.id])
       end
     end

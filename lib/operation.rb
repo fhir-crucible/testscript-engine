@@ -144,14 +144,14 @@ module Operation
     end
   end
 
-  def operation_create(source_id)
+  def create_operation(source_id)
     FHIR::TestScript::Setup::Action::Operation.new({
                                                      sourceId: source_id,
                                                      method: 'post'
                                                    })
   end
 
-  def operation_delete(source_id)
+  def delete_operation(source_id)
     FHIR::TestScript::Setup::Action::Operation.new({
                                                      targetId: id_map[source_id],
                                                      method: 'delete'

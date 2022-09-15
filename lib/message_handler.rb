@@ -274,6 +274,8 @@ module MessageHandler
       "Reference [#{options[0]}] refers to a contained resource that does not exist. Moving on."
     when :no_preprocess
       "No preprocess to perform."
+    when :no_postprocess
+      "No postprocess to perform."
     when :no_reference
       "Reference element of reference object is nil. Can not get resource from reference."
     when :no_runnable_stored

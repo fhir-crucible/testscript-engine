@@ -31,8 +31,8 @@ class TestScriptRunnable
     @response_map ||= {}
   end
 
-  def autocreate_ids
-    @autocreate_ids ||= []
+  def autocreate
+    @autocreate ||= []
   end
 
   def autodelete_ids
@@ -62,11 +62,8 @@ class TestScriptRunnable
   end
 
   def preprocess
-    return info(:no_preprocess) if autocreate_ids.empty?
-
-    autocreate_ids.each do |fixture_id|
-      client.send(*build_request((operation_create(fixture_id))))
-    end
+    return info(:no_preprocess) if autocreate.empty?
+    autocreate.each { |fixture| client.send(*build_request((create_operation(fixture)))) }
   end
 
   def setup
@@ -84,10 +81,10 @@ class TestScriptRunnable
   end
 
   def postprocessing
+    return info(:no_postprocess) if autocreate.empty?
 
     autodelete_ids.each do |fixture_id|
-      FHIR.logger.info "Auto-deleting dynamic fixture #{fixture_id}"
-      client.send(*build_request((operation_delete(fixture_id))))
+      client.send(*build_request((delete_operation(fixture_id))))
     end
   end
 
@@ -119,7 +116,7 @@ class TestScriptRunnable
       next warning(:bad_static_fixture_reference) unless resource
 
       fixtures[fixture.id] = resource
-      autocreate_ids << fixture.id if fixture.autocreate
+      autocreate << fixture.id if fixture.autocreate
       autodelete_ids << fixture.id if fixture.autodelete
     end
   end
