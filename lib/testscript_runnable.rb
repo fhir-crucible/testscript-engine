@@ -48,7 +48,7 @@ class TestScriptRunnable
   # TODO: Edit
   def client(client = nil)
     @client = client if client
-    @client ||= FHIR::Client.new('https://localhost:8080')
+    @client ||= FHIR::Client.new('')
   end
 
   def initialize(script)
@@ -63,7 +63,7 @@ class TestScriptRunnable
     client(client)
     fresh_testreport
 
-    preprocessing # TODO: remove this
+    preprocess
 
     setup if script.setup
     test unless script.test.empty?
@@ -74,7 +74,7 @@ class TestScriptRunnable
     finalize_report
   end
 
-  def preprocessing
+  def preprocess
     autocreate_ids.each do |fixture_id|
       client.send(*build_request((operation_create(fixture_id))))
     end

@@ -68,10 +68,10 @@ module MessageHandler
     result
   end
 
-  def preprocessing
-    print_out messages(:begin_preprocessing)
+  def preprocess
+    print_out messages(:begin_preprocess)
     super
-    print_out messages(:finish_preprocessing)
+    print_out messages(:finish_preprocess)
   end
 
   def setup
@@ -214,7 +214,7 @@ module MessageHandler
       start_message_format("LOAD TESTSCRIPTS", options[0])
     when :begin_making_runnables
       start_message_format("MAKE RUNNABLE(S)")
-    when :begin_preprocessing
+    when :begin_preprocess
       start_message_format("PREPROCESS", options[0])
     when :begin_runnable_execution
       start_message_format("EXECUTE RUNNABLE", options[0])
@@ -242,8 +242,8 @@ module MessageHandler
       finish_message_format("LOADING SCRIPTS")
     when :finish_making_runnables
       finish_message_format("MAKING RUNNABLE(S)")
-    when :finish_preprocessing
-      finish_message_format("PREPROCESSING")
+    when :finish_preprocess
+      finish_message_format("preprocess")
     when :finish_runnable_execution
       finish_message_format("EXECUTING RUNNABLE. FINAL EXECUTION SCORE: [#{testreport.score}]")
     when :finish_setup
