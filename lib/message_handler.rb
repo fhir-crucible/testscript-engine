@@ -1,5 +1,5 @@
 module MessageHandler
-  attr_accessor :debug_mode
+  attr_accessor :debug_mode, :modify_report
 
   def space
     @space ||= ''

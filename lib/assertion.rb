@@ -4,6 +4,14 @@ require 'jsonpath'
 require 'active_support'
 
 module Assertion
+  class AssertionException < StandardError
+    attr_reader :details
+
+    def initialize(details)
+      @details = details
+			super()
+    end
+  end
 
   ASSERT_TYPES_MATCHER = /(?<=\p{Ll})(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})/
   ASSERT_TYPES = [

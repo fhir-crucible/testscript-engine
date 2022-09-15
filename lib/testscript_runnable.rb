@@ -88,23 +88,30 @@ class TestScriptRunnable
     end
   end
 
-  def handle_actions(actions, end_on_fail)
-    #turn on report modification
+  # All operations in a setup section (including assertions) must complete successfully
+  # for the subsequent tests to be executed. If an assertion operation in the setup
+  # section fails, then execution and evaluation of the tests in the TestScript should
+  # be skipped. Technically, any operation (see the operations table for a complete listing)
+  # can be included in the setup section, but typical operations will be
+  # create, update, read, and vread.
 
-    actions.each do |action|
-      result = begin # TODO: Remove MessageHandler result objects when result no longer used
+  def handle_actions(actions, end_on_fail)
+    @modify_report = true
+
+    begin
+      actions.each do |action|
         if action.operation
           execute(action.operation)
         elsif action.respond_to?(:assert)
           evaluate(action.assert)
         end
       end
-
-      if result == false and end_on_fail
-        # TODO: Implement some flow control for ending execution
-        # Already support in report handler -- cascade_skips attr_accessor
-      end
+    rescue OperationException => e
+    rescue => e
+      # TODO: Raise UNCAUGHT error
     end
+
+    @modify_report = false
   end
 
   def load_fixtures
