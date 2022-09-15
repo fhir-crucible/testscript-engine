@@ -42,6 +42,10 @@ module MessageHandler
     print_out messages(message_type, *options)
   end
 
+  def cascade_skips(number_to_skip)
+    print_out "#{outcome_symbol("WARN")} #{messages(:cascade_skips, number_to_skip)}"
+  end
+
   # TODO: What's going on here?
   # def error(message_type, *options)
   #   return unless debug_mode
@@ -230,6 +234,8 @@ module MessageHandler
       "Could not deserialize resource: [#{options[0]}]"
     when :cant_make_runnable
       "Could not make runnable from TestScript: [#{options[0]}]"
+    when :cascade_skips
+      "Due to the preceeding action failure or error, skipping the next #{options[0]} action(s)."
     when :eval_assert_result
       "#{options[0]}"
     when :evaluate_assert
@@ -272,6 +278,8 @@ module MessageHandler
       "Created runnable from TestScript: [#{options[0]}]"
     when :no_contained_resource
       "Reference [#{options[0]}] refers to a contained resource that does not exist. Moving on."
+    when :no_path
+      "Unable to extract path from operation."
     when :no_preprocess
       "No preprocess to perform."
     when :no_postprocess
@@ -296,6 +304,8 @@ module MessageHandler
       "Executed Operation: [#{options[0]}]"
     when :resource_extraction
       "Unable to extract resource referenced by [#{options[0]}]. Encountered: [#{options[1]}]."
+    when :uncaught_error
+      "Uncaught error: [#{options[0]}]."
     when :unsupported_ref
       "Remote reference: [#{options[0]}] not supported. No reference extracted."
     end

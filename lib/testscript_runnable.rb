@@ -88,27 +88,27 @@ class TestScriptRunnable
     end
   end
 
-  # All operations in a setup section (including assertions) must complete successfully
-  # for the subsequent tests to be executed. If an assertion operation in the setup
-  # section fails, then execution and evaluation of the tests in the TestScript should
-  # be skipped. Technically, any operation (see the operations table for a complete listing)
-  # can be included in the setup section, but typical operations will be
-  # create, update, read, and vread.
-
   def handle_actions(actions, end_on_fail)
     @modify_report = true
+    current_action = 0
 
     begin
       actions.each do |action|
+        current_action += 1
         if action.operation
           execute(action.operation)
         elsif action.respond_to?(:assert)
           evaluate(action.assert)
         end
       end
-    rescue OperationException => e
+    rescue OperationException => oe
+      error(oe.details)
+      cascade_skips(actions.length - current_action)
+    rescue AssertionException => ae
+      cascade_skips(actions.length - current_action) if end_on_fail
     rescue => e
-      # TODO: Raise UNCAUGHT error
+      error(:uncaught_error, e.message)
+      cascade_skips(actions.length - current_action)
     end
 
     @modify_report = false

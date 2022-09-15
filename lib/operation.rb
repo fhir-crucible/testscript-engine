@@ -69,7 +69,7 @@ module Operation
 
       %w[batch transaction].include?(operation.type&.code) ? '' : resource.resourceType
     else
-      raise OperationException, :noPath
+      raise OperationException, :no_path
     end
   end
 

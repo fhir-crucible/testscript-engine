@@ -19,8 +19,6 @@ require 'fhir_client'
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 module TestReportHandler
-  attr_accessor :cascade_skips
-
   def testreport
     report_builder.report
   end
@@ -65,6 +63,13 @@ module TestReportHandler
   def finalize_report
     report_builder.finalize_report
     testreport
+  end
+
+  def cascade_skips(number_to_skip)
+     while number_to_skip > 0
+      report_builder.skip
+      number_to_skip -= 1
+    end
   end
 
   # A 'script' method ought to be defined in the klass
@@ -221,10 +226,6 @@ module TestReportHandler
       action.result = 'error'
       action.message = message if message
       next_action
-    end
-
-    def cascade_skips
-      (skip) while actions.length > 0
     end
 
     def clone
