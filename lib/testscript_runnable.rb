@@ -13,7 +13,7 @@ class TestScriptRunnable
   prepend MessageHandler
   include TestReportHandler
 
-  attr_accessor :reply
+  attr_accessor :script, :client, :reply
 
   def id_map
     @id_map ||= {}
@@ -39,28 +39,16 @@ class TestScriptRunnable
     @autodelete_ids ||= []
   end
 
-  # TODO: Edit
-  def script(script = nil)
-    @script = script if script
-    @script
-  end
-
-  # TODO: Edit
-  def client(client = nil)
-    @client = client if client
-    @client ||= FHIR::Client.new('')
-  end
-
   def initialize(script)
     raise ArgumentError.new(messages(:bad_script)) unless script.is_a?(FHIR::TestScript)
     raise ArgumentError.new(messages(:invalid_script)) unless script.valid?
 
-    script(script)
+    @script = script
     load_fixtures
   end
 
-  def run(client = nil)
-    client(client)
+  def run(client)
+    @client = client
     fresh_testreport
 
     preprocess
