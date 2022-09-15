@@ -171,7 +171,7 @@ class TestScriptRunnable
   end
 
   def storage(op)
-    self.reply = client.reply
+    @reply = client.reply
     reply.nil? ? return : client.reply = nil
 
     request_map[op.requestId] = reply.request if op.requestId
