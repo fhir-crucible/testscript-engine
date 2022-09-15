@@ -268,6 +268,10 @@ module MessageHandler
       "Loaded TestScript: [#{options[0]}]"
     when :made_runnable
       "Created runnable from TestScript: [#{options[0]}]"
+    when :no_contained_resource
+      "Reference [#{options[0]}] refers to a contained resource that does not exist. Moving on."
+    when :no_reference
+      "Reference element of reference object is nil. Can not get resource from reference."
     when :no_runnable_stored
       "No runnable stored with id: [#{options[0]}]. Can not execute."
     when :no_static_fixture_id
@@ -280,6 +284,8 @@ module MessageHandler
       "Overwriting previously loaded TestScript: [#{options[0]}]"
     when :pass_execute_operation
       "Executed Operation: [#{options[0]}]"
+    when :resource_extraction
+      "Unable to extract resource referenced by [#{options[0]}]. Encountered: [#{options[1]}]."
     when :unsupported_ref
       "Remote reference: [#{options[0]}] not supported. No reference extracted."
     end

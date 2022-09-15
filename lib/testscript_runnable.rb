@@ -130,23 +130,28 @@ class TestScriptRunnable
     end
   end
 
-  def get_resource_from_ref reference
-    return unless reference.is_a? FHIR::Reference
-    return unless ref = reference.reference
+  def get_resource_from_ref(reference)
+    return warning(:bad_reference) unless reference.is_a?(FHIR::Reference)
 
+    ref = reference.reference
+    return warning(:no_reference) unless ref
     return warning(:unsupported_ref, ref) if ref.start_with? 'http'
-    return script.contained.find { |r| r.id == ref[1..] } if ref.start_with? '#'
+
+    if ref.start_with? '#'
+      contained = script.contained.find { |r| r.id == ref[1..] }
+      return contained || warning(:no_contained_resource, ref)
+    end
 
     begin
-      fixtures_path = script.url.split('/')[0...-1].join('/') + '/fixtures'
-      filepath = File.expand_path(ref, File.absolute_path(fixtures_path))
+      fixture_path = script.url.split('/')[0...-1].join('/') + '/fixtures'
+      filepath = File.expand_path(ref, File.absolute_path(fixture_path))
       file = File.open(filepath, 'r:UTF-8', &:read)
       file.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
       resource = FHIR.from_contents(file)
       info(:loaded_static_fixture, resource.id)
       return resource
-    rescue StandardError => e
-      warning(:bad_reference, ref) # TODO: Switch to ERROR? Or not?
+    rescue => e
+      warning(:resource_extraction, ref, e.message)
     end
   end
 
