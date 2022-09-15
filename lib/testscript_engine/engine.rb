@@ -1,5 +1,3 @@
-require 'pry-nav' # TODO: Remove
-require 'fhir_client'
 require_relative 'testscript_runnable'
 require_relative 'message_handler'
 

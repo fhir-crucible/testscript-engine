@@ -2,7 +2,7 @@
 
 source 'http://rubygems.org'
 
-gem 'active_support'
+gem 'activesupport'
 gem 'fhir_client'
 gem 'fhir_models'
 gem 'jsonpath'

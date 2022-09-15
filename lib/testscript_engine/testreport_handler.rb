@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-require 'pry-nav'
-require 'fhir_client'
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                                                               #

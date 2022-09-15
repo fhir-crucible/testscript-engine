@@ -1,7 +1,4 @@
 # frozen_string_literal: true
-require 'pry-nav'
-require 'jsonpath'
-require 'fhir_client'
 require_relative 'operation'
 require_relative 'assertion'
 require_relative 'message_handler'

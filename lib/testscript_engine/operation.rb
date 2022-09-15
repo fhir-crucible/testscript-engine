@@ -1,9 +1,4 @@
 # frozen_string_literal: true
-
-require 'fhir_models'
-require 'fhir_client'
-require 'pry-nav'
-
 module Operation
   class OperationException < StandardError
     attr_reader :details
