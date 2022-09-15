@@ -208,6 +208,8 @@ module MessageHandler
       "Unable to read contents of reference: [#{options[0]}]. No reference extracted."
     when :bad_script
       "Did not receive TestScript resource as expected. Unable to create runnable."
+    when :bad_static_fixture_reference
+      "Static fixture included unresolvable reference. Can not load fixture. Moving on."
     when :begin_initialize_client
       start_message_format("INITIALIZE CLIENT(S)")
     when :begin_loading_scripts
@@ -243,7 +245,7 @@ module MessageHandler
     when :finish_making_runnables
       finish_message_format("MAKING RUNNABLE(S)")
     when :finish_preprocess
-      finish_message_format("preprocess")
+      finish_message_format("PREPROCESS")
     when :finish_runnable_execution
       finish_message_format("EXECUTING RUNNABLE. FINAL EXECUTION SCORE: [#{testreport.score}]")
     when :finish_setup

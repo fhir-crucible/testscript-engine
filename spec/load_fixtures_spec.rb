@@ -37,6 +37,15 @@ describe TestScriptRunnable do
       expect(@runnable.autocreate_ids).to be_empty
     end
 
+    it 'given fixture with bad reference logs warning' do
+      @runnable.script.fixture = [@fixture]
+
+      @runnable.load_fixtures
+
+      expect(@runnable.autocreate_ids).to be_empty
+      expect(@runnable.autodelete_ids).to be_empty
+    end
+
     context 'given fixture with reference' do
       before do
         allow(@runnable).to receive(:get_resource_from_ref).and_return(@patient)

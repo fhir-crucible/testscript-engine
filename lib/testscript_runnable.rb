@@ -49,14 +49,13 @@ class TestScriptRunnable
 
   def run(client)
     @client = client
+
     fresh_testreport
 
     preprocess
-
-    setup if script.setup
-    test unless script.test.empty?
-    teardown if script.teardown
-
+    setup
+    test
+    teardown
     postprocessing
 
     finalize_report
@@ -69,6 +68,7 @@ class TestScriptRunnable
   end
 
   def setup
+    return unless script.setup
     handle_actions(script.setup.action, true)
   end
 
@@ -111,8 +111,9 @@ class TestScriptRunnable
       next warning(:no_static_fixture_resource) unless fixture.resource
 
       resource = get_resource_from_ref(fixture.resource)
-      fixtures[fixture.id] = resource
+      next warning(:bad_static_fixture_reference) unless resource
 
+      fixtures[fixture.id] = resource
       autocreate_ids << fixture.id if fixture.autocreate
       autodelete_ids << fixture.id if fixture.autodelete
     end
