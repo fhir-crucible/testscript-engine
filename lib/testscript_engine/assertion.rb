@@ -1,8 +1,4 @@
 # frozen_string_literal: true
-require 'pry-nav'
-require 'jsonpath'
-require 'active_support'
-
 module Assertion
   class AssertionException < StandardError
     attr_reader :details, :outcome

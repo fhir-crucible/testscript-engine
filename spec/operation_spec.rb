@@ -1,6 +1,5 @@
 # frozen_string_literal: true
-
-require 'operation'
+require_relative '../lib/testscript_engine/operation'
 
 class OperationsTestClass
   include Operation

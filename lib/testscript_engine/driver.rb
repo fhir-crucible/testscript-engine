@@ -1,4 +1,4 @@
-require_relative 'testscript_engine'
+require_relative 'engine'
 require_relative 'message_handler'
 
 include MessageHandler
@@ -22,7 +22,7 @@ puts "SERVER: #{test_server_url}"
 puts "TESTSCRIPT PATH: #{testscript_path}"
 puts "TESTSCRIPT FILE: #{testscript_file}"
 
-default_engine = TestScriptEngine.new(test_server_url, testscript_path, testscript_file)
+default_engine = Engine.new(test_server_url, testscript_path, testscript_file)
 default_engine.load_scripts
 default_engine.make_runnables
 default_engine.execute_runnables
