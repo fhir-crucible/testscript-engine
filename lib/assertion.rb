@@ -113,12 +113,16 @@ module Assertion
   end
 
   def pass_message(assert_type, received, operator, expected)
+    received = Array(received)
+    expected = Array(expected)
     message = "#{assert_type}: As expected, #{assert_type} #{operator}"
     message = message + (expected ? " #{expected}."  : '.')
     message + " Found #{received}." if received
   end
 
   def fail_message(assert_type, received, operator, expected)
+    received = Array(received)
+    expected = Array(expected)
     message = "#{assert_type}: Expected #{assert_type} #{operator}"
     message = message + " #{expected}" if expected
     message + ", but found #{received}."
@@ -141,9 +145,9 @@ module Assertion
   def header_field(assert)
     received = begin
       if direction == 'request'
-        request_header(assert.sourceId, assert.headerField.downcase)
+        request_header(assert.sourceId, assert.headerField)
       else
-        response_header(assert.sourceId, assert.headerField.downcase)
+        response_header(assert.sourceId, assert.headerField)
       end
     end
 
@@ -154,7 +158,7 @@ module Assertion
   def minimum_id(assert)
     received = get_resource(assert.sourceId)
 
-    raise AssertionException, 'minimumId assert not yet supported.', :skip
+    raise AssertionException.new('minimumId assert not yet supported.', :skip)
     # result = client.validate(received, { profile_uri: assert.validateProfileId })
   end
 
@@ -164,7 +168,7 @@ module Assertion
 
     return "Navigation Links: As expected, all navigation links found." if result
 
-    raise AssertionException, "Navigation Links: Expected all navigation links, but did not receive.", :fail
+    raise AssertionException.new("Navigation Links: Expected all navigation links, but did not receive.", :fail)
   end
 
   def path(assert)
@@ -200,7 +204,7 @@ module Assertion
   def validate_profile_id(assert)
     received = get_resource(assert.sourceId)
 
-    raise AssertionException, 'validateProfileId assert not yet supported.', :skip
+    raise AssertionException.new('validateProfileId assert not yet supported.', :skip)
     # result = client.validate(received, { profile_uri: assert.validateProfileId })
   end
 

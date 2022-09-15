@@ -41,7 +41,7 @@ class TestScriptRunnable
 
   def initialize(script)
     raise ArgumentError.new(messages(:bad_script)) unless script.is_a?(FHIR::TestScript)
-    raise ArgumentError.new(messages(:invalid_script)) unless script.valid?
+    raise ArgumentError.new(messages(:invalid_script_input)) unless script.valid?
 
     @script = script
     load_fixtures
@@ -94,7 +94,7 @@ class TestScriptRunnable
   end
 
   def handle_actions(actions, end_on_fail)
-    cascade_skips(actions.length) if @ended
+    return abort_test(actions) if @ended
     @modify_report = true
     current_action = 0
 
@@ -110,11 +110,14 @@ class TestScriptRunnable
             if ae.outcome == :skip
               skip(:eval_assert_result, ae.details)
             elsif ae.outcome == :fail
-              next warning(:eval_assert_result, ae.details) if action.warningOnly
-              fail(:eval_assert_result, ae.details)
+              next warning(:eval_assert_result, ae.details) if action.assert.warningOnly
               if end_on_fail
                 @ended = true
-                cascade_skips(actions.length - current_action)
+                fail(:eval_assert_result, ae.details)
+                cascade_skips_with_message(actions, current_action) unless current_action == actions.length
+                return
+              else
+                fail(:eval_assert_result, ae.details)
               end
             end
           end
@@ -122,13 +125,22 @@ class TestScriptRunnable
       end
     rescue OperationException => oe
       error(oe.details)
-      cascade_skips(actions.length - current_action)
+      cascade_skips_with_message(actions, current_action)
     rescue => e
       error(:uncaught_error, e.message)
-      cascade_skips(actions.length - current_action)
+      cascade_skips_with_message(actions, current_action)
     end
 
     @modify_report = false
+  end
+
+  def cascade_skips_with_message(actions, current_action)
+    actions_to_skip = actions.slice(current_action, actions.length)
+    cascade_skips(:skip_on_fail, actions_to_skip, actions_to_skip.length)
+  end
+
+  def abort_test(actions_to_skip)
+    cascade_skips(:abort_test, actions_to_skip, 'setup', actions_to_skip.length)
   end
 
   def load_fixtures
@@ -163,7 +175,7 @@ class TestScriptRunnable
       file = File.open(filepath, 'r:UTF-8', &:read)
       file.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
       resource = FHIR.from_contents(file)
-      info(:loaded_static_fixture, resource.id)
+      info(:loaded_static_fixture, ref, script.id)
       return resource
     rescue => e
       warning(:resource_extraction, ref, e.message)
@@ -218,7 +230,7 @@ class TestScriptRunnable
       evaluate_path(var.path, find_resource(var.sourceId))
     elsif var.headerField
       headers = response_map[var.sourceId]&.[](:headers)
-      headers&.find { |h, v| h == var.headerField.downcase }&.last
+      headers&.find { |h, v| h == var.headerField || h == var.headerField.downcase }&.last
     end || var.defaultValue
   end
 

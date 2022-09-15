@@ -80,12 +80,12 @@ module Operation
 
   def get_headers(operation)
     headers = {
-      'content-type' => get_format(operation.contentType),
-      'accept' => get_format(operation.accept)
+      'Content-Type' => get_format(operation.contentType),
+      'Accept' => get_format(operation.accept)
     }
 
 		operation.requestHeader.each_with_object(headers) do |header|
-			headers[header.field.downcase] = header.value
+			headers[header.field] = header.value
 		end
 	end
 

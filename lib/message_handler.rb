@@ -42,15 +42,22 @@ module MessageHandler
     print_out messages(message_type, *options)
   end
 
-  def cascade_skips(number_to_skip)
-    print_out "#{outcome_symbol("WARN")} #{messages(:cascade_skips, number_to_skip)}"
+  def cascade_skips(message_type, actions, *options)
+    print_out "#{outcome_symbol("SKIP")} #{messages(message_type, *options)}"
+    increase_space
+    counter = 0
+    while counter < actions.length
+      action = actions[counter]
+      if action.operation
+        id = "Operation: [#{(action.operation.id || action.operation.label || 'unlabeled')}]"
+      else
+        id = "Assert: [#{(action.assert.id || action.assert.label || 'unlabeled')}]" if action.assert
+      end
+      skip(:eval_assert_result, "#{id} skipped.")
+      counter += 1
+    end
+    decrease_space
   end
-
-  # TODO: What's going on here?
-  # def error(message_type, *options)
-  #   return unless debug_mode
-  #   print_out messages(message_type, *options)
-  # end
 
   def load_scripts
     print_out messages(:begin_loading_scripts, root)
@@ -59,9 +66,11 @@ module MessageHandler
   end
 
   def make_runnables
-    print_out messages(:begin_making_runnables)
+    print_out messages(:begin_creating_runnables)
+    increase_space
     super
-    print_out messages(:finish_making_runnables)
+    decrease_space
+    print_out messages(:finish_creating_runnables)
   end
 
   def run(*args)
@@ -99,15 +108,7 @@ module MessageHandler
   def postprocessing
   end
 
-  def execute_operation(*args)
-    print_out messages(:execute_operation) if print_action_header(:operation)
-    increase_space
-    super
-    decrease_space
-  end
-
-  def evaluate(*args)
-    print_out messages(:evaluate_assert) if print_action_header(:assert)
+  def load_fixtures
     increase_space
     super
     decrease_space
@@ -121,25 +122,25 @@ module MessageHandler
 
   def fail(message_type, *options)
     message = messages(message_type, *options)
-    super(message)
+    super(message) if modify_report
     print_out "#{outcome_symbol("FAIL")} #{message}"
   end
 
   def skip(message_type, *options)
     message = messages(message_type, *options)
-    super(message)
-    print_out "#{outcome_symbol("WARN")} #{message}"
+    super(message) if modify_report
+    print_out "#{outcome_symbol("SKIP")} #{message}"
   end
 
   def warning(message_type, *options)
     message = messages(message_type, *options)
-    super(message)
+    super(message) if modify_report
     print_out message
   end
 
   def error(message_type, *options)
     message = messages(message_type, *options)
-    super(message) unless [:bad_script, :invalid_script].include?(message_type)
+    super(message) if modify_report
     print_out ("ERROR: " + message)
   end
 
@@ -188,6 +189,8 @@ module MessageHandler
         [0372415].pack("U*")
       when "FAIL"
         [10007].pack("U*")
+      when "SKIP"
+        "\u21BB".encode('utf-8')
       end
     end
 
@@ -204,22 +207,58 @@ module MessageHandler
 
   def messages(message, *options)
     message_text = case message
+    when :abort_test
+      "Due to an unsuccessful action in the [#{options[0]}] phase, remaining actions in this test will be skipped. Skipping the next #{options[1]} action(s)."
+    when :bad_script
+      "Given non-TestScript resource. Can not create runnable."
+    when :bad_serialized_script
+      "Can not deserialize resource into TestScript: [#{options[0]}]."
+    when :begin_initialize_client
+      start_message_format("INITIALIZE CLIENT")
+    when :begin_creating_runnables
+      start_message_format("MAKE RUNNABLE(S)")
+    when :created_runnable
+      "Created runnable from TestScript: [#{options[0]}]."
+    when :finish_creating_runnables
+      finish_message_format("MAKING RUNNABLE(S)")
+    when :finish_initialize_client
+      finish_message_format("INITIALIZING CLIENT")
+    when :invalid_script
+      "Can not load TestScript. Invalid resource: [#{options[0]}]."
+    when :invalid_script
+      "Given invalid TestScript resource. Can not create runnable."
+    when :loaded_script
+      "Loaded TestScript: [#{options[0]}]."
+    when :loaded_static_fixture
+      "Loaded static fixture [#{options[0]}]."
+    when :no_postprocess
+      "Nothing to postprocess."
+    when :no_preprocess
+      "Nothing to preprocess."
+    when :no_setup
+      "Nothing to setup."
+    when :no_teardown
+      "Nothing to teardown."
+    when :overwrite_existing_script
+      "Overwriting previously loaded TestScript: [#{options[0]}]."
+    when :skip_on_fail
+      "Due to the preceeding unsuccessful action, skipping the next #{options[0]} action(s)."
+    when :unable_to_create_runnable
+      "Can not create runnable from TestScript: [#{options[0]}]."
+    when :unable_to_locate_runnable
+      "Can not locate runnable with id: [#{options[0]}]. Can not execute."
     when :assertion_error
       "ERROR: Unable to process assertion: #{options[0]}"
     when :assertion_exception
       "#{options[0]}"
     when :bad_reference
       "Unable to read contents of reference: [#{options[0]}]. No reference extracted."
-    when :bad_script
-      "Did not receive TestScript resource as expected. Unable to create runnable."
+    when :bad_request
+      "Unable to create a request from operation."
     when :bad_static_fixture_reference
       "Static fixture included unresolvable reference. Can not load fixture. Moving on."
-    when :begin_initialize_client
-      start_message_format("INITIALIZE CLIENT(S)")
     when :begin_loading_scripts
       start_message_format("LOAD TESTSCRIPTS", options[0])
-    when :begin_making_runnables
-      start_message_format("MAKE RUNNABLE(S)")
     when :begin_preprocess
       start_message_format("PREPROCESS", options[0])
     when :begin_runnable_execution
@@ -230,12 +269,6 @@ module MessageHandler
       start_message_format("TEARDOWN")
     when :begin_test
       start_message_format("TEST")
-    when :cant_deserialize_script
-      "Could not deserialize resource: [#{options[0]}]"
-    when :cant_make_runnable
-      "Could not make runnable from TestScript: [#{options[0]}]"
-    when :cascade_skips
-      "Due to the preceeding action failure or error, skipping the next #{options[0]} action(s)."
     when :eval_assert_result
       "#{options[0]}"
     when :evaluate_assert
@@ -244,12 +277,8 @@ module MessageHandler
       "OPERATION EXECUTION"
     when :execute_operation_error
       "Unable to execute operation. ERROR: [#{options[0]}]. [#{options[1]}]"
-    when :finish_initialize_client
-      finish_message_format("INITIALIZING CLIENT(S)")
     when :finish_loading_scripts
       finish_message_format("LOADING SCRIPTS")
-    when :finish_making_runnables
-      finish_message_format("MAKING RUNNABLE(S)")
     when :finish_preprocess
       finish_message_format("PREPROCESS")
     when :finish_runnable_execution
@@ -268,38 +297,18 @@ module MessageHandler
       "Invalid operation. Can not execute."
     when :invalid_request
       "Unable to create a request using operation: [#{options[0]}]. Can not execute."
-    when :invalid_script
-      "Could not load TestScript resource" + (options[0] ? "[#{options[0]}]." : ".")
-    when :loaded_static_fixture
-      "Loaded static fixture: [#{options[0]}]."
-    when :loaded_script
-      "Loaded TestScript: [#{options[0]}]"
-    when :made_runnable
-      "Created runnable from TestScript: [#{options[0]}]"
     when :no_contained_resource
       "Reference [#{options[0]}] refers to a contained resource that does not exist. Moving on."
     when :no_path
       "Unable to extract path from operation."
-    when :no_preprocess
-      "No preprocess to perform."
-    when :no_postprocess
-      "No postprocess to perform."
     when :no_reference
       "Reference element of reference object is nil. Can not get resource from reference."
-    when :no_runnable_stored
-      "No runnable stored with id: [#{options[0]}]. Can not execute."
-    when :no_setup
-      "No setup to perform."
     when :no_static_fixture_id
       "No ID for static fixture. Can not load."
     when :no_static_fixture_reference
       "No reference for static fixture. Can not load."
     when :no_static_fixture_resource
       "No resource for static fixture. Can not load."
-    when :no_teardown
-      "No teardown to perform."
-    when :overwrite_existing_script
-      "Overwriting previously loaded TestScript: [#{options[0]}]"
     when :pass_execute_operation
       "Executed Operation: [#{options[0]}]"
     when :resource_extraction
@@ -308,6 +317,8 @@ module MessageHandler
       "Uncaught error: [#{options[0]}]."
     when :unsupported_ref
       "Remote reference: [#{options[0]}] not supported. No reference extracted."
+    else
+      "! unknown message type !"
     end
   end
 end

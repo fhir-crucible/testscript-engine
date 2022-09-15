@@ -71,7 +71,7 @@ describe TestScriptRunnable do
 
 		it 'given good local reference logs and returns resource' do
 			expect(@runnable).to receive(:info)
-				.with(:loaded_static_fixture, @patient.id)
+				.with(:loaded_static_fixture, "example_patient.json", "basic_testscript")
 
 			@runnable.script.url = "spec/basic_testscript"
 			@reference.reference = "example_patient.json"

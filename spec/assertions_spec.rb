@@ -25,7 +25,7 @@ describe Assertion do
     @patient_id = 'patient_id'
     patient = FHIR.from_contents(File.read('spec/fixtures/example_patient.json'))
     url = 'https://example.com'
-    header = { 'Content-Type' => 'content-type-value' }
+    header = { 'Content-Type' => 'Content-Type-value' }
     request = { method: :get, url: url, path: "Patient/123", headers: header }
     response = { code: 200, headers: header, body: patient.to_json }
     client = FHIR::Client.new(url)
@@ -349,7 +349,7 @@ describe Assertion do
     it 'uses header from response_map matching ID' do
       result = @tester.response_header(@patient_id, 'Content-Type')
 
-      expect(result).to eq('content-type-value')
+      expect(result).to eq('Content-Type-value')
     end
 
     it 'returns nil if no response_map matching ID' do
@@ -385,7 +385,7 @@ describe Assertion do
     it 'uses header from request_map matching ID' do
       result = @tester.request_header(@patient_id, 'Content-Type')
 
-      expect(result).to eq('content-type-value')
+      expect(result).to eq('Content-Type-value')
     end
 
     it 'returns nil if no headers in request' do
@@ -417,20 +417,20 @@ describe Assertion do
     context 'with sourceId' do
       before { @assert.sourceId = @patient_id }
 
-      it 'pass if expected content-type header in the stored sourceId request' do
+      it 'pass if expected Content-Type header in the stored sourceId request' do
         expect(@tester).to receive(:pass_message)
 
         @tester.content_type(@assert)
       end
 
-      it 'fail if no content-type header in the stored sourceId request' do
+      it 'fail if no Content-Type header in the stored sourceId request' do
         @tester.request_map[@patient_id][:headers].delete('Content-Type')
 
         expect { @tester.content_type(@assert) }
           .to raise_exception(Assertion::AssertionException, @tester.fail_message("Content-Type", nil, "equals", @assert.contentType))
       end
 
-      it 'fail if unexpected content-type header in the stored sourceId request' do
+      it 'fail if unexpected Content-Type header in the stored sourceId request' do
         @tester.request_map[@patient_id][:headers]['Content-Type'] = 'random'
 
         expect { @tester.content_type(@assert) }
@@ -439,20 +439,20 @@ describe Assertion do
     end
 
     context 'with no sourceId' do
-      it 'pass if expected content-type header in the last request' do
+      it 'pass if expected Content-Type header in the last request' do
         expect(@tester).to receive(:pass_message)
 
         @tester.content_type(@assert)
       end
 
-      it 'fail if no content-type header in the last request' do
+      it 'fail if no Content-Type header in the last request' do
         @tester.reply.request[:headers].delete('Content-Type')
 
         expect { @tester.content_type(@assert) }
           .to raise_exception(Assertion::AssertionException, @tester.fail_message("Content-Type", nil, "equals", @assert.contentType))
       end
 
-      it 'fail if unexpected content-type header in the last request' do
+      it 'fail if unexpected Content-Type header in the last request' do
         @tester.reply.request[:headers]['Content-Type'] = 'random'
 
         expect { @tester.content_type(@assert) }
@@ -560,7 +560,7 @@ describe Assertion do
           .to raise_exception(Assertion::AssertionException, @tester.fail_message("Header Content-Type", nil, "equals", @assert.value))
       end
 
-      it 'fail if unexpected content-type header in the last request' do
+      it 'fail if unexpected Content-Type header in the last request' do
         @tester.reply.request[:headers]['Content-Type'] = 'random'
 
         expect { @tester.header_field(@assert) }
