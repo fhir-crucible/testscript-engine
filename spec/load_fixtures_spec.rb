@@ -1,133 +1,83 @@
 # frozen_string_literal: true
-require 'TestScriptRunnable'
+require_relative '../lib/testscript_runnable'
+require_relative '../lib/message_handler'
 
 describe TestScriptRunnable do
-  let(:json_resource) { FHIR::Patient.new.to_json }
-  let(:resource) { FHIR.from_contents(json_resource) }
-  let(:path) { '/local/path' }
-  let(:fixture_id) { 'an_id' }
-  let(:initial_ref) { 'reference' }
-  let(:reference) { FHIR::Reference.new({ reference: initial_ref }) }
-  let(:base_fixture) { { autocreate: true, autodelete: true, id: fixture_id, resource: reference } }
-  let(:tScript_fixtures) { FHIR::TestScript::Fixture.new(base_fixture) }
-  let(:tScript) { FHIR::TestScript.new({ fixture: [tScript_fixtures] }) }
-  let(:runnable) { TestScriptRunnable.new(tScript) }
+  before(:all) do
+    @script = FHIR.from_contents(File.read('spec/fixtures/basic_testscript.json'))
+    @patient = FHIR.from_contents(File.read('spec/fixtures/example_patient.json'))
+    @runnable = described_class.new(@script.deep_dup)
+  end
 
-  describe '#load_fixture' do
-    context 'when tScript.fixture is empty' do
-      before { runnable.tScript.fixture = [] }
+  before(:each) do
+    @fixture = @script.fixture.first.deep_dup
+    @runnable.autocreate.clear
+  end
 
-      it 'returns nil' do
-        result = runnable.load_fixture
-        expect(result).to eq(nil)
-      end
+  describe '.load_fixtures' do
+    it "given fixture without id logs warning" do
+      @fixture.id = nil
+      @runnable.script.fixture = [@fixture]
+
+      expect(@runnable).to receive(:warning).with(:no_static_fixture_id)
+
+      @runnable.load_fixtures
+
+      expect(@runnable.autocreate).to be_empty
     end
 
-    context 'when tScript.fixture contains fixture(s)' do
-      context 'with undefined id' do
-        before { runnable.tScript.fixture[0].id = nil }
+    it "given fixture without resource logs warning" do
+      @fixture.resource = nil
+      @runnable.script.fixture = [@fixture]
 
-        it 'logs a warning and moves to next fixture' do
-          expect(FHIR.logger).to receive(:warn).with '[.load_fixture] Fixture.id undefined. Can not store fixture. Continuing to next fixture.'
+      expect(@runnable).to receive(:warning).with(:no_static_fixture_resource)
 
-          runnable.load_fixture
-        end
+      @runnable.load_fixtures
+
+      expect(@runnable.autocreate).to be_empty
+    end
+
+    it 'given fixture with bad reference logs warning' do
+      @runnable.script.fixture = [@fixture]
+
+      @runnable.load_fixtures
+
+      expect(@runnable.autocreate).to be_empty
+      expect(@runnable.autodelete_ids).to be_empty
+    end
+
+    context 'given fixture with reference' do
+      before do
+        allow(@runnable).to receive(:get_resource_from_ref).and_return(@patient)
       end
 
-      context 'with undefined resource' do
-        before { runnable.tScript.fixture[0].resource = nil }
+      it 'stores fixture' do
+        @runnable.script.fixture = [@fixture]
 
-        it 'logs a warning and moves on to next fixture' do
-          expect(FHIR.logger).to receive(:warn).with '[.load_fixture] Fixture.resource undefined. Can not create fixture without resource. Continuing to next fixture.'
+        @runnable.load_fixtures
 
-          runnable.load_fixture
-        end
+        expect(@patient).to be
+        expect(@runnable.fixtures[@fixture.id]).to eq(@patient)
       end
 
-      context 'with defined resource' do
-        context 'with wrong type' do
-          before { runnable.tScript.fixture[0].resource = FHIR::Patient.new }
+      it 'denotes fixture for autocreation' do
+        @runnable.script.fixture = [@fixture]
 
-          it 'logs a warning and moves on to next fixture' do
-            expect(FHIR.logger).to receive(:warn).with '[.load_fixture] Fixture.resource.reference can not be made into local reference. Can not store fixture. Continuing to next fixture.'
+        @runnable.load_fixtures
 
-            runnable.load_fixture
-          end
-        end
+        expect(@fixture.id).to be
+        expect(@runnable.autocreate).to eq([@fixture.id])
+      end
 
-        context 'with undefined reference' do
-          before { runnable.tScript.fixture[0].resource.reference = nil }
+      it 'denotes fixture for autocreation' do
+        @fixture.autodelete = true
+        @runnable.script.fixture = [@fixture]
 
-          it 'logs a warning and moves on to next fixture' do
-            expect(FHIR.logger).to receive(:warn).with '[.load_fixture] Fixture.resource.reference can not be made into local reference. Can not store fixture. Continuing to next fixture.'
+        @runnable.load_fixtures
 
-            runnable.load_fixture
-          end
-        end
-
-        context 'that refers to a contained resource' do
-          before { runnable.tScript.fixture[0].resource.reference = '#contained' }
-
-          context 'that can not be found' do
-            it 'logs a warning and moves on to next fixture' do
-              expect(FHIR.logger).to receive(:warn).with '[.load_fixture] Fixture.resource.reference can not be made into local reference. Can not store fixture. Continuing to next fixture.'
-
-              runnable.load_fixture
-            end
-          end
-
-          context 'that can be found' do
-            before { runnable.tScript.contained << FHIR::Patient.new({ id: 'contained' }) }
-
-            it 'stores the resource in fixtures @ fixture.id' do
-              runnable.load_fixture
-              expect(runnable.fixtures[fixture_id]).to eq(runnable.tScript.contained[0])
-            end
-          end
-        end
-
-        context 'that refers to an absolute url' do
-          before { runnable.tScript.fixture[0].resource.reference = 'https://some_url.com' }
-
-          it 'logs two warning and moves on to next fixture' do
-            expect(FHIR.logger).to receive(:warn).with '[.get_resource_from_ref] Remote reference not supported: https://some_url.com. No reference extracted.'
-            expect(FHIR.logger).to receive(:warn).with '[.load_fixture] Fixture.resource.reference can not be made into local reference. Can not store fixture. Continuing to next fixture.'
-
-            runnable.load_fixture
-          end
-        end
-
-        context 'that refers to a local reference' do
-          before { runnable.tScript.fixture[0].resource.reference = path }
-
-          context 'that a resource can not be extracted from' do
-            it 'logs two warnings and moves onto next fixture' do
-              expect(FHIR.logger).to receive(:warn).with '[.get_resource_from_ref] Error while loading local reference: No such file or directory @ rb_sysopen - /local/path. No reference extracted.'
-              expect(FHIR.logger).to receive(:warn).with '[.load_fixture] Fixture.resource.reference can not be made into local reference. Can not store fixture. Continuing to next fixture.'
-  
-              runnable.load_fixture
-            end
-          end 
-
-          context 'that a resource can be extracted from' do
-            before do 
-              allow(File).to receive(:open).and_return(json_resource)
-              runnable.load_fixture
-            end 
-
-            it 'stores the resource in fixtures @ fixture.id' do
-              expect(runnable.fixtures[fixture_id]).to eq(resource)
-            end
-
-            it 'adds fixture.id to autocreate, as appropriate' do
-              expect runnable.autocreate.include? fixture_id
-            end 
-
-            it 'adds fixture.id to autodelete, as appropriate' do
-              expect runnable.autodelete.include? fixture_id
-            end 
-          end 
-        end
+        expect(@fixture.id).to be
+        expect(@runnable.autocreate).to eq([@fixture.id])
+        expect(@runnable.autodelete_ids).to eq([@fixture.id])
       end
     end
   end

@@ -424,8 +424,8 @@ describe Operation do
   describe '.get_headers' do
     let(:headers) do
       {
-        'content-type' => 'application/fhir+json',
-        'accept' => 'application/fhir+json'
+        'Content-Type' => 'application/fhir+json',
+        'Accept' => 'application/fhir+json'
       }
     end
 
@@ -448,8 +448,8 @@ describe Operation do
       @operation.contentType = 'xml'
       @operation.accept = 'xml'
 
-      headers['content-type'] = 'application/fhir+xml'
-      headers['accept'] = 'application/fhir+xml'
+      headers['Content-Type'] = 'application/fhir+xml'
+      headers['Accept'] = 'application/fhir+xml'
 
       result = @tester.get_headers(@operation)
 
@@ -462,8 +462,8 @@ describe Operation do
         FHIR::TestScript::Setup::Action::Operation::RequestHeader.new(field: 'Content-Type', value: 'xml')
       ]
 
-      headers['content-type'] = 'xml'
-      headers['accept'] = 'xml'
+      headers['Content-Type'] = 'xml'
+      headers['Accept'] = 'xml'
 
       result = @tester.get_headers(@operation)
 
@@ -476,8 +476,8 @@ describe Operation do
         FHIR::TestScript::Setup::Action::Operation::RequestHeader.new(field: 'Expires', value: '1600')
       ]
 
-      headers['authorization'] = 'token'
-      headers['expires'] = '1600'
+      headers['Authorization'] = 'token'
+      headers['Expires'] = '1600'
 
       result = @tester.get_headers(@operation)
 

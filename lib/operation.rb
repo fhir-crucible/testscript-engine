@@ -32,7 +32,12 @@ module Operation
 
   def execute(operation)
     request = build_request(operation)
-    client.send(*request)
+
+    begin
+      client.send(*request)
+    rescue
+      raise OperationException, :bad_request
+    end
 
     storage(operation)
     pass(:pass_execute_operation, operation.label || 'unlabeled')
@@ -69,18 +74,18 @@ module Operation
 
       %w[batch transaction].include?(operation.type&.code) ? '' : resource.resourceType
     else
-      raise OperationException, :noPath
+      raise OperationException, :no_path
     end
   end
 
   def get_headers(operation)
     headers = {
-      'content-type' => get_format(operation.contentType),
-      'accept' => get_format(operation.accept)
+      'Content-Type' => get_format(operation.contentType),
+      'Accept' => get_format(operation.accept)
     }
 
 		operation.requestHeader.each_with_object(headers) do |header|
-			headers[header.field.downcase] = header.value
+			headers[header.field] = header.value
 		end
 	end
 
@@ -144,14 +149,14 @@ module Operation
     end
   end
 
-  def operation_create(source_id)
+  def create_operation(source_id)
     FHIR::TestScript::Setup::Action::Operation.new({
                                                      sourceId: source_id,
                                                      method: 'post'
                                                    })
   end
 
-  def operation_delete(source_id)
+  def delete_operation(source_id)
     FHIR::TestScript::Setup::Action::Operation.new({
                                                      targetId: id_map[source_id],
                                                      method: 'delete'

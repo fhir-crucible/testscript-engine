@@ -65,10 +65,9 @@ class TestScriptEngine
           scripts[script.id] = script
         else
           info(:invalid_script, resource)
-          error(:invalid_dump, script.validate.to_hash)
         end
       rescue
-        info(:cant_deserialize_script, resource)
+        info(:bad_serialized_script, resource)
       end
     end
   end
@@ -81,15 +80,15 @@ class TestScriptEngine
     begin
       if valid_testscript? script
         runnables[script.id] = TestScriptRunnable.new script
-        info(:made_runnable, script.id)
+        info(:created_runnable, script.id)
       else
         scripts.each do |_, script|
           runnables[script.id] = TestScriptRunnable.new script
-          info(:made_runnable, script.id)
+          info(:created_runnable, script.id)
         end
       end
     rescue => e
-      error(:cant_make_runnable, script.id)
+      error(:unable_to_create_runnable, script.id)
     end
   end
 
@@ -101,7 +100,7 @@ class TestScriptEngine
       if runnables[runnable_id]
         reports[runnable_id] = runnable.run client
       else
-        error(:no_runnable_stored, runnable_id)
+        error(:unable_to_locate_runnable, runnable_id)
       end
     else
       runnables.each do |id, runnable|
