@@ -122,10 +122,13 @@ class TestScriptRunnable
       end
     rescue OperationException => oe
       error(oe.details)
-      cascade_skips_with_message(actions, current_action)
+      if end_on_fail
+        @ended = true
+        cascade_skips_with_message(actions, current_action) unless current_action == actions.length
+      end
     rescue => e
       error(:uncaught_error, e.message)
-      cascade_skips_with_message(actions, current_action)
+      cascade_skips_with_message(actions, current_action) unless current_action == actions.length
     end
 
     @modify_report = false

@@ -60,7 +60,7 @@ module MessageHandler
   end
 
   def load_scripts
-    print_out messages(:begin_loading_scripts, root)
+    print_out messages(:begin_loading_scripts, testscript_path)
     super
     print_out messages(:finish_loading_scripts)
   end
