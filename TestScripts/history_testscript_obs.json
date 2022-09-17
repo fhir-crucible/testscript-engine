@@ -69,7 +69,7 @@
       "autocreate": false,
       "autodelete": false,
       "resource": {
-        "reference": "Observation/example.json",
+        "reference": "fixtures/Observation/example.json",
         "display": "Glucose [Moles/volume] in Blood"
       }
     },
@@ -78,7 +78,7 @@
       "autocreate": false,
       "autodelete": false,
       "resource": {
-        "reference": "Observation/example2.json",
+        "reference": "fixtures/Observation/example2.json",
         "display": "Hemoglobin"
       }
     }

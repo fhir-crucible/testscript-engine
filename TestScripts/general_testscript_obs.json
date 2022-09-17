@@ -85,7 +85,7 @@
       "autocreate": true,
       "autodelete": false,
       "resource": {
-        "reference": "Observation/example.json",
+        "reference": "fixtures/Observation/example.json",
         "display": "Glucose [Moles/volume] in Blood"
       }
     }

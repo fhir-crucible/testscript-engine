@@ -185,7 +185,7 @@ class TestScriptRunnable
     end
 
     begin
-      fixture_path = script.url.split('/')[0...-1].join('/') + '/fixtures'
+      fixture_path = script.url.split('/')[0...-1].join('/')
       filepath = File.expand_path(ref, File.absolute_path(fixture_path))
       file = File.open(filepath, 'r:UTF-8', &:read)
       file.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')

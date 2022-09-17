@@ -570,7 +570,7 @@
     <autodelete value='false'/>
     <autocreate value='false'/>
     <resource>
-      <reference value='Patient/example.json'/>
+      <reference value='fixtures/Patient/example.json'/>
       <display value='Peter Chalmers'/>
     </resource>
   </fixture>

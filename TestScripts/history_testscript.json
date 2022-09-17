@@ -69,7 +69,7 @@
       "autocreate": false,
       "autodelete": false,
       "resource": {
-        "reference": "Patient/example.json",
+        "reference": "fixtures/Patient/example.json",
         "display": "Peter Chalmers"
       }
     },
@@ -78,7 +78,7 @@
       "autocreate": false,
       "autodelete": false,
       "resource": {
-        "reference": "Patient/example2.json",
+        "reference": "fixtures/Patient/example2.json",
         "display": "Jaehoon Lee"
       }
     }
