@@ -96,6 +96,7 @@ while true
 
 	engine.execute_runnables(input)
 
+	puts
 	print "Execution finished. Enter (q) to quit, press any other key to continue execution: "
 	input = gets.chomp
 	break if input == 'q'

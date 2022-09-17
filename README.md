@@ -9,7 +9,10 @@ The purpose of the TestScript Engine is to support and encourage essential aspec
 
 ### Limitations
 
-TestScript Engine is in the early stages of development; it is neither functionally complete nor bug-free and we encourage contributions, feedback, and issue-opening from the community.
+TestScript Engine is in the early stages of development; it is neither functionally complete nor bug-free and we encourage contributions, feedback, and issue-opening from the community. Notable features missing are:
+  *  validation
+  * Support for the mimimumId assert
+  * Support for the validateProfileId assert
 
 
 ### Getting started
