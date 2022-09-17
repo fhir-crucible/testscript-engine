@@ -101,8 +101,12 @@ class TestScriptRunnable
   end
 
   def handle_actions(actions, end_on_fail)
-    return abort_test(actions) if @ended
     @modify_report = true
+    if @ended
+      abort_test(actions)
+      @modify_report = false
+      return
+    end
     current_action = 0
 
     begin
@@ -122,6 +126,7 @@ class TestScriptRunnable
                 @ended = true
                 fail(:eval_assert_result, ae.details)
                 cascade_skips_with_message(actions, current_action) unless current_action == actions.length
+                @modify_report = false
                 return
               else
                 fail(:eval_assert_result, ae.details)

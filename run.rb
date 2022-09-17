@@ -2,13 +2,16 @@
 require_relative 'lib/testscript_engine'
 
 @test_server_url = "http://hapi.fhir.org/baseR4"
-@testscript_path = "./"
-@testreport_path = "./TestReports"
+@testscript_path = "../testscript_generator/generated_testscripts"
+@testreport_path = "../testscript_generator/TestReports"
 
 Dir.glob("#{Dir.getwd}/**").each do |path|
 	@testscript_path = path if path.split('/').last.downcase == 'testscripts'
 	@testreport_path = path if path.split('/').last.downcase == 'testreports'
 end
+
+@testscript_path = "../testscript_generator/generated_testscripts"
+@testreport_path = "../testscript_generator/TestReports"
 
 def configuration
 %(The configuration is as follows: \n
