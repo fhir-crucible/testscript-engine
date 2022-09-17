@@ -253,6 +253,10 @@ class TestScriptRunnable
   def evaluate_expression(expression, resource)
     return unless expression and resource
 
-    return FHIRPath.evaluate(expression, resource.to_hash)
+    return begin
+      FHIRPath.evaluate(expression, resource.to_hash)
+    rescue RuntimeError => e
+      return nil
+    end
   end
 end
