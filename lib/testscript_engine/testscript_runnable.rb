@@ -84,6 +84,11 @@ class TestScriptRunnable
   end
 
   def postprocessing
+    @ended = nil
+    @id_map = {}
+    @request_map = {}
+    @response_map = {}
+
     return info(:no_postprocess) if autocreate.empty?
 
     autodelete_ids.each do |fixture_id|
@@ -93,11 +98,6 @@ class TestScriptRunnable
         error(:uncaught_error, e.message)
       end
     end
-
-    @ended = nil
-    @id_map = {}
-    @request_map = {}
-    @response_map = {}
   end
 
   def handle_actions(actions, end_on_fail)

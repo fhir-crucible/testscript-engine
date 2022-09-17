@@ -42,6 +42,33 @@ module MessageHandler
     print_out messages(message_type, *options)
   end
 
+  def execution_results
+    puts
+    print_out "SUMMARY OF EXECUTION RESULTS: "
+  end
+
+  def pass_execution_results(results)
+    increase_space
+    results.each do |result|
+      print_out messages(:pass_execution_result, result)
+    end
+    puts
+    decrease_space
+  end
+
+  def see_reports(testreport_path)
+    puts
+    print_out messages(:see_reports, testreport_path)
+  end
+
+  def fail_execution_results(results)
+    increase_space
+    results.each do |result|
+      print_out messages(:fail_execution_result, *result)
+    end
+    decrease_space
+  end
+
   def cascade_skips(message_type, actions, *options)
     print_out "#{outcome_symbol("SKIP")} #{messages(message_type, *options)}"
     increase_space
@@ -106,6 +133,9 @@ module MessageHandler
   end
 
   def postprocessing
+    print_out messages(:begin_postprocess)
+    super
+    print_out messages(:finish_preprocess)
   end
 
   def load_fixtures
@@ -261,6 +291,8 @@ module MessageHandler
       start_message_format("LOAD TESTSCRIPTS", options[0])
     when :begin_preprocess
       start_message_format("PREPROCESS", options[0])
+    when :begin_postprocess
+      start_message_format("POSTPROCESS", options[0])
     when :begin_runnable_execution
       start_message_format("EXECUTE RUNNABLE", options[0])
     when :begin_setup
@@ -277,10 +309,14 @@ module MessageHandler
       "OPERATION EXECUTION"
     when :execute_operation_error
       "Unable to execute operation. ERROR: [#{options[0]}]. [#{options[1]}]"
+    when :fail_execution_result
+      "Execution of [#{options[0]}] failed with score: [#{options[1]}]."
     when :finish_loading_scripts
       finish_message_format("LOADING SCRIPTS")
     when :finish_preprocess
       finish_message_format("PREPROCESS")
+    when :finish_postprocess
+      finish_message_format("POSTPROCESS")
     when :finish_runnable_execution
       finish_message_format("EXECUTING RUNNABLE. FINAL EXECUTION SCORE: [#{testreport.score}]")
     when :finish_setup
@@ -311,8 +347,12 @@ module MessageHandler
       "No resource for static fixture. Can not load."
     when :pass_execute_operation
       "Executed Operation: [#{options[0]}]"
+    when :pass_execution_result
+      "Execution of [#{options[0]}] passed."
     when :resource_extraction
       "Unable to extract resource referenced by [#{options[0]}]. Encountered: [#{options[1]}]."
+    when :see_reports
+      "See more execution details in the TestReports at: [#{options[0]}]."
     when :uncaught_error
       "Uncaught error: [#{options[0]}]."
     when :unsupported_ref

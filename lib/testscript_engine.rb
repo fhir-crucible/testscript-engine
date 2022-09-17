@@ -95,18 +95,38 @@ class TestScriptEngine
   # TODO: Clean-up, possibly modularize into a pretty_print type method
   # @runnable_id [String] Optional, specifies the id of the runnable to be
   #                       tested against the endpoint.
-  def execute_runnables runnable_id = nil
+  def execute_runnables(runnable_id = nil)
+    pass_results = []
+    fail_results = []
+
     if runnable_id
       if runnables[runnable_id]
-        reports[runnable_id] = runnables[runnable_id].run(client)
+        report = runnables[runnable_id].run(client)
+        if report.result == 'pass'
+          pass_results << runnable_id
+        else
+          fail_results << [runnable_id, report.score, report.result]
+        end
+        reports[runnable_id] = report
       else
         error(:unable_to_locate_runnable, runnable_id)
       end
     else
       runnables.each do |id, runnable|
-        reports[id] = runnable.run(client)
+        report = runnable.run(client)
+        if report.result == 'pass'
+          pass_results << id
+        else
+          fail_results << [id, report.score, report.result]
+        end
+        reports[id] = report
       end
     end
+
+    execution_results
+    pass_execution_results(pass_results) unless pass_results.empty?
+    fail_execution_results(fail_results) unless fail_results.empty?
+    see_reports(testreport_path)
   end
 
 	def verify_runnable(runnable_id)
