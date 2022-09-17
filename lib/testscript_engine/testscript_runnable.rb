@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'fhir_models'
 require_relative 'operation'
 require_relative 'assertion'
 require_relative 'message_handler'
