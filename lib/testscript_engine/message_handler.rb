@@ -135,13 +135,13 @@ module MessageHandler
   def warning(message_type, *options)
     message = messages(message_type, *options)
     super(message) if modify_report
-    print_out message
+    print_out "#{outcome_symbol("WARN")} #{message}"
   end
 
   def error(message_type, *options)
     message = messages(message_type, *options)
     super(message) if modify_report
-    print_out ("ERROR: " + message)
+    print_out "#{outcome_symbol("ERROR")} #{message}"
   end
 
   def print_action_header(action_type)

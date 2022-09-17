@@ -60,7 +60,13 @@ class TestScriptRunnable
 
   def preprocess
     return info(:no_preprocess) if autocreate.empty?
-    autocreate.each { |fixture| client.send(*build_request((create_operation(fixture)))) }
+    autocreate.each do |fixture|
+      begin
+        client.send(*build_request((create_operation(fixture))))
+      rescue => e
+        error(:uncaught_error, e.message)
+      end
+    end
   end
 
   def setup
@@ -81,7 +87,11 @@ class TestScriptRunnable
     return info(:no_postprocess) if autocreate.empty?
 
     autodelete_ids.each do |fixture_id|
-      client.send(*build_request((delete_operation(fixture_id))))
+      begin
+        client.send(*build_request((delete_operation(fixture_id))))
+      rescue => e
+        error(:uncaught_error, e.message)
+      end
     end
 
     @ended = nil
