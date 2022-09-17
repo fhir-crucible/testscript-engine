@@ -2,8 +2,8 @@
 require_relative 'lib/testscript_engine'
 
 @test_server_url = "http://hapi.fhir.org/baseR4"
-@testscript_path = "../testscript_generator/generated_testscripts"
-@testreport_path = "../testscript_generator/TestReports"
+@testscript_path = "./TestScripts"
+@testreport_path = "./TestReports"
 
 Dir.glob("#{Dir.getwd}/**").each do |path|
 	@testscript_path = path if path.split('/').last.downcase == 'testscripts'

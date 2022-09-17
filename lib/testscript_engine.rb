@@ -126,7 +126,9 @@ class TestScriptEngine
     FileUtils.mkdir_p report_directory
 
     reports.each do |_, report|
-      File.open("#{report_directory}/#{report.name.downcase.split(' ')[1...].join('_')}.json", 'w') do |f|
+      report_name = report.name.downcase.split(' ')[1...].join('_')
+      report_name = report.name.downcase.split('_')[0...].join('_') if report_name == ""
+      File.open("#{report_directory}/#{report_name}.json", 'w') do |f|
         f.write(report.to_json)
       end
     end

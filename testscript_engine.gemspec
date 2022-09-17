@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 Gem::Specification.new do |s|
   s.name = 'testscript_engine'
-  s.version = '0.0.0'
+  s.version = '0.0.1'
   s.summary = 'An engine for loading and executing FHIR TestScript resources'
   s.author = ['John Fraser']
   s.email = 'jfraser@mitre.org'
