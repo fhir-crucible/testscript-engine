@@ -1,5 +1,5 @@
-require_relative '../lib/testscript_runnable'
-require_relative '../lib/message_handler'
+require_relative '../lib/testscript_engine/testscript_runnable'
+require_relative '../lib/testscript_engine/message_handler'
 
 describe TestScriptRunnable do
 	before(:all) do

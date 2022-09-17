@@ -1,7 +1,4 @@
 # frozen_string_literal: true
-require 'pry-nav'
-require 'jsonpath'
-require 'fhir_client'
 require_relative 'operation'
 require_relative 'assertion'
 require_relative 'message_handler'
@@ -63,7 +60,13 @@ class TestScriptRunnable
 
   def preprocess
     return info(:no_preprocess) if autocreate.empty?
-    autocreate.each { |fixture| client.send(*build_request((create_operation(fixture)))) }
+    autocreate.each do |fixture|
+      begin
+        client.send(*build_request((create_operation(fixture))))
+      rescue => e
+        error(:uncaught_error, e.message)
+      end
+    end
   end
 
   def setup
@@ -84,7 +87,11 @@ class TestScriptRunnable
     return info(:no_postprocess) if autocreate.empty?
 
     autodelete_ids.each do |fixture_id|
-      client.send(*build_request((delete_operation(fixture_id))))
+      begin
+        client.send(*build_request((delete_operation(fixture_id))))
+      rescue => e
+        error(:uncaught_error, e.message)
+      end
     end
 
     @ended = nil
@@ -94,8 +101,12 @@ class TestScriptRunnable
   end
 
   def handle_actions(actions, end_on_fail)
-    return abort_test(actions) if @ended
     @modify_report = true
+    if @ended
+      abort_test(actions)
+      @modify_report = false
+      return
+    end
     current_action = 0
 
     begin
@@ -115,6 +126,7 @@ class TestScriptRunnable
                 @ended = true
                 fail(:eval_assert_result, ae.details)
                 cascade_skips_with_message(actions, current_action) unless current_action == actions.length
+                @modify_report = false
                 return
               else
                 fail(:eval_assert_result, ae.details)
@@ -125,10 +137,13 @@ class TestScriptRunnable
       end
     rescue OperationException => oe
       error(oe.details)
-      cascade_skips_with_message(actions, current_action)
+      if end_on_fail
+        @ended = true
+        cascade_skips_with_message(actions, current_action) unless current_action == actions.length
+      end
     rescue => e
       error(:uncaught_error, e.message)
-      cascade_skips_with_message(actions, current_action)
+      cascade_skips_with_message(actions, current_action) unless current_action == actions.length
     end
 
     @modify_report = false

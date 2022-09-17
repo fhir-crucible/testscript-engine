@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-require 'pry-nav'
-require 'fhir_client'
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                                                               #
@@ -84,7 +82,7 @@ module TestReportHandler
   end
 
   class TestReportBuilder
-    attr_accessor :pass_count, :total_test_count
+    attr_accessor :pass_count, :total_test_count, :actions
 
     def actions
       @actions ||= []
@@ -143,7 +141,7 @@ module TestReportHandler
       return unless operation_blueprint
 
       operation_def = {
-        id: operation_blueprint.label || operation_blueprint.id,
+        id: operation_blueprint.label || operation_blueprint.id || 'unlabeled operation',
         message: operation_blueprint.description
       }
 
@@ -156,7 +154,7 @@ module TestReportHandler
       return unless assert_blueprint
 
       assert_def = {
-        id: assert_blueprint.label || assert_blueprint.id,
+        id: assert_blueprint.label || assert_blueprint.id || 'unlabeled assert',
         message: assert_blueprint.description
       }
 
