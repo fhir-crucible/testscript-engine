@@ -10,9 +10,6 @@ Dir.glob("#{Dir.getwd}/**").each do |path|
 	@testreport_path = path if path.split('/').last.downcase == 'testreports'
 end
 
-@testscript_path = "../testscript_generator/generated_testscripts"
-@testreport_path = "../testscript_generator/TestReports"
-
 def configuration
 %(The configuration is as follows: \n
 	SERVER UNDER TEST: [#{@test_server_url}]
