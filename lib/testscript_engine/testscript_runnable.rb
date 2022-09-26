@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'fhir_models'
 require_relative 'operation'
 require_relative 'assertion'
 require_relative 'message_handler'
@@ -185,7 +186,7 @@ class TestScriptRunnable
     end
 
     begin
-      fixture_path = script.url.split('/')[0...-1].join('/') + '/fixtures'
+      fixture_path = script.url.split('/')[0...-1].join('/')
       filepath = File.expand_path(ref, File.absolute_path(fixture_path))
       file = File.open(filepath, 'r:UTF-8', &:read)
       file.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
@@ -252,6 +253,10 @@ class TestScriptRunnable
   def evaluate_expression(expression, resource)
     return unless expression and resource
 
-    return FHIRPath.evaluate(expression, resource.to_hash)
+    return begin
+      FHIRPath.evaluate(expression, resource.to_hash)
+    rescue RuntimeError => e
+      return nil
+    end
   end
 end

@@ -17,6 +17,10 @@ class AssertionTestClass
   def reply
     @reply
   end
+
+  def evaluate_expression(input, resource)
+    FHIRPath.evaluate(input, resource.to_hash)
+  end
 end
 
 describe Assertion do

@@ -85,7 +85,7 @@
       "autocreate": false,
       "autodelete": false,
       "resource": {
-        "reference": "Patient/example.json",
+        "reference": "fixtures/Patient/example.json",
         "display": "Peter Chalmers"
       }
     },
@@ -94,7 +94,7 @@
       "autocreate": false,
       "autodelete": false,
       "resource": {
-        "reference": "Patient/example.json",
+        "reference": "fixtures/Patient/example.json",
         "display": "Peter Chalmers (minimum)"
       }
     }

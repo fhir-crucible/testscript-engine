@@ -67,8 +67,8 @@ module Assertion
     if assert.value
       assert.value
     elsif assert.compareToSourceExpression
-      FHIRPath.evaluate(assert.compareToSourceExpression,
-        get_resource(assert.compareToSourceId).to_hash)
+      evaluate_expression(assert.compareToSourceExpression,
+        get_resource(assert.compareToSourceId))
     elsif assert.compareToSourcePath
       evaluate_path(assert.compareToSourcePath,
         get_resource(assert.compareToSourceId))
@@ -135,7 +135,7 @@ module Assertion
     resource = get_resource(assert.sourceId)
     raise AssertionException.new('No resource given by sourceId.', :fail) unless resource
 
-    received = FHIRPath.evaluate(assert.expression, resource.to_hash)
+    received = evaluate_expression(assert.expression, resource)
     expected = determine_expected_value(assert)
     compare("Expression", received, assert.operator, expected)
   end

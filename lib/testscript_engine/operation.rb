@@ -30,7 +30,7 @@ module Operation
 
     begin
       client.send(*request)
-    rescue
+    rescue => e
       raise OperationException, :bad_request
     end
 
