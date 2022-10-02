@@ -1,6 +1,5 @@
 require 'pry-nav'
 require 'fhir_client'
-require 'fhir_models'
 require_relative 'testscript_engine/testscript_runnable'
 require_relative 'testscript_engine/message_handler'
 
