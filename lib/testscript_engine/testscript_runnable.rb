@@ -165,7 +165,7 @@ class TestScriptRunnable
       next warning(:no_static_fixture_resource) unless fixture.resource
 
       resource = get_resource_from_ref(fixture.resource)
-      next warning(:bad_static_fixture_reference) unless resource
+      next unless resource
 
       fixtures[fixture.id] = resource
       autocreate << fixture.id if fixture.autocreate
@@ -188,13 +188,17 @@ class TestScriptRunnable
     begin
       fixture_path = script.url.split('/')[0...-1].join('/')
       filepath = File.expand_path(ref, File.absolute_path(fixture_path))
+      unless File.exists? filepath
+        fixtures_filepath = File.expand_path("fixtures/#{ref}", File.absolute_path(fixture_path))
+        filepath = fixtures_filepath if File.exists? fixtures_filepath
+      end
       file = File.open(filepath, 'r:UTF-8', &:read)
       file.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
       resource = FHIR.from_contents(file)
       info(:loaded_static_fixture, ref, script.id)
       return resource
     rescue => e
-      warning(:resource_extraction, ref, e.message)
+      warning(:unable_to_load_reference, (reference.display || reference.id), ref, e.message)
     end
   end
 
