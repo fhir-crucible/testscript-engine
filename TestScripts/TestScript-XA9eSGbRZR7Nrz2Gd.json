@@ -1,0 +1,173 @@
+{
+  "resourceType": "TestScript",
+  "id": "XA9eSGbRZR7Nrz2Gd",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative: TestScript</b><a name=\"XA9eSGbRZR7Nrz2Gd\"> </a></p><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\">Resource TestScript \"XA9eSGbRZR7Nrz2Gd\" </p></div><p><b>url</b>: <code>http://</code></p><p><b>version</b>: 1.0.0-ballot</p><p><b>name</b>: Tiered_OAuth_Restricted_Data</p><p><b>title</b>: Tiered OAuth - Restricted Access to Womens Shelters</p><p><b>status</b>: draft</p><p><b>date</b>: 2022-06-14 11:19:30+0000</p><p><b>publisher</b>: HL7 Patient Administration Working Group</p><p><b>contact</b>: HL7 Patient Administration Working Group: <a href=\"https://www.hl7.org/Special/committees/pafm\">https://www.hl7.org/Special/committees/pafm</a>,<a href=\"mailto:pafm@lists.HL7.org\">pafm@lists.HL7.org</a></p><p><b>jurisdiction</b>: United States of America <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"http://terminology.hl7.org/4.0.0/CodeSystem-ISO3166Part1.html\">ISO 3166-1 Codes for the representation of names of countries and their subdivisions — Part 1: Country code</a>#US)</span></p><blockquote><p><b>fixture</b></p><p><b>autocreate</b>: true</p><p><b>autodelete</b>: true</p><p><b>resource</b>: <a href=\"Location-lyW5mPW2nf3DHC7h6.html\">Location/lyW5mPW2nf3DHC7h6: OrgA CT Location 2</a> \"OrgA CT Location 2\"</p></blockquote><blockquote><p><b>fixture</b></p><p><b>autocreate</b>: true</p><p><b>autodelete</b>: true</p><p><b>resource</b>: <a href=\"ExampleScenario-5psortwYNqr2vLNwQ.html\">ExampleScenario/5psortwYNqr2vLNwQ</a></p></blockquote><blockquote><p><b>test</b></p><p><b>name</b>: Social Worker - Access Role</p><blockquote><p><b>action</b></p><h3>Operations</h3><table class=\"grid\"><tr><td>-</td><td><b>Type</b></td><td><b>Label</b></td><td><b>Description</b></td><td><b>Accept</b></td><td><b>EncodeRequestUrl</b></td><td><b>Method</b></td><td><b>Url</b></td></tr><tr><td>*</td><td>Update (Details: http://terminology.hl7.org/CodeSystem/testscript-operation-codes code update = 'Update', stated as 'null')</td><td>Social Worker - Access Role</td><td>PUT {{hostname}}/baseR4/PractitionerRole/rCY6ePpLywTbfx3yp</td><td>json</td><td>true</td><td>put</td><td>{{hostname}}/baseR4/PractitionerRole/rCY6ePpLywTbfx3yp</td></tr></table></blockquote><blockquote><p><b>action</b></p><h3>Asserts</h3><table class=\"grid\"><tr><td>-</td><td><b>Description</b></td><td><b>Response</b></td><td><b>WarningOnly</b></td></tr><tr><td>*</td><td>Confirm that the returned HTTP status is 201(Success).</td><td>created</td><td>false</td></tr></table></blockquote></blockquote><blockquote><p><b>test</b></p><p><b>name</b>: Women's Shelter Location</p><blockquote><p><b>action</b></p><h3>Operations</h3><table class=\"grid\"><tr><td>-</td><td><b>Type</b></td><td><b>Resource</b></td><td><b>Label</b></td><td><b>Description</b></td><td><b>Accept</b></td><td><b>EncodeRequestUrl</b></td><td><b>Method</b></td><td><b>Url</b></td></tr><tr><td>*</td><td>Update (Details: http://terminology.hl7.org/CodeSystem/testscript-operation-codes code update = 'Update', stated as 'null')</td><td>Location</td><td>Women's Shelter Location</td><td>PUT {{hostname}}/baseR4/Location/lyW5mPW2nf3DHC7h6</td><td>json</td><td>true</td><td>put</td><td>{{hostname}}/baseR4/Location/lyW5mPW2nf3DHC7h6</td></tr></table></blockquote><blockquote><p><b>action</b></p><h3>Asserts</h3><table class=\"grid\"><tr><td>-</td><td><b>Description</b></td><td><b>Response</b></td><td><b>WarningOnly</b></td></tr><tr><td>*</td><td>Confirm that the returned HTTP status is 201(Success).</td><td>created</td><td>false</td></tr></table></blockquote></blockquote><blockquote><p><b>test</b></p><p><b>name</b>: Restriction on accessing Women's Shelters</p><blockquote><p><b>action</b></p><h3>Operations</h3><table class=\"grid\"><tr><td>-</td><td><b>Type</b></td><td><b>Label</b></td><td><b>Description</b></td><td><b>Accept</b></td><td><b>EncodeRequestUrl</b></td><td><b>Method</b></td><td><b>Url</b></td></tr><tr><td>*</td><td>Update (Details: http://terminology.hl7.org/CodeSystem/testscript-operation-codes code update = 'Update', stated as 'null')</td><td>Restriction on accessing Women's Shelters</td><td>PUT {{hostname}}/baseR4/Restriction/cotkDnGQjpHijDsRR</td><td>json</td><td>true</td><td>put</td><td>{{hostname}}/baseR4/Restriction/cotkDnGQjpHijDsRR</td></tr></table></blockquote><blockquote><p><b>action</b></p><h3>Asserts</h3><table class=\"grid\"><tr><td>-</td><td><b>Description</b></td><td><b>Response</b></td><td><b>WarningOnly</b></td></tr><tr><td>*</td><td>Confirm that the returned HTTP status is 201(Success).</td><td>created</td><td>false</td></tr></table></blockquote></blockquote><blockquote><p><b>test</b></p><p><b>name</b>: Betty Busybody</p><blockquote><p><b>action</b></p><h3>Operations</h3><table class=\"grid\"><tr><td>-</td><td><b>Type</b></td><td><b>Resource</b></td><td><b>Label</b></td><td><b>Description</b></td><td><b>Accept</b></td><td><b>EncodeRequestUrl</b></td><td><b>Method</b></td><td><b>Url</b></td></tr><tr><td>*</td><td>Update (Details: http://terminology.hl7.org/CodeSystem/testscript-operation-codes code update = 'Update', stated as 'null')</td><td>Practitioner</td><td>Betty Busybody</td><td>PUT {{hostname}}/baseR4/Practitioner</td><td>json</td><td>true</td><td>put</td><td>{{hostname}}/baseR4/Practitioner</td></tr></table></blockquote><blockquote><p><b>action</b></p><h3>Asserts</h3><table class=\"grid\"><tr><td>-</td><td><b>Description</b></td><td><b>Response</b></td><td><b>WarningOnly</b></td></tr><tr><td>*</td><td>Confirm that the returned HTTP status is 201(Success).</td><td>created</td><td>false</td></tr></table></blockquote></blockquote></div>"
+  },
+  "url": "http://",
+  "version": "1.0.0-ballot",
+  "name": "Tiered_OAuth_Restricted_Data",
+  "title": "Tiered OAuth - Restricted Access to Womens Shelters",
+  "status": "draft",
+  "date": "2022-06-14T23:19:30.696Z",
+  "publisher": "HL7 Patient Administration Working Group",
+  "contact": [
+    {
+      "name": "HL7 Patient Administration Working Group",
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://www.hl7.org/Special/committees/pafm"
+        },
+        {
+          "system": "email",
+          "value": "pafm@lists.HL7.org"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "US"
+        }
+      ]
+    }
+  ],
+  "fixture": [
+    {
+      "id": "73594318-988d-5647-b3d8-1f1841578c27",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "Location/lyW5mPW2nf3DHC7h6",
+        "type": "Location",
+        "display": "OrgA CT Location 2"
+      }
+    },
+    {
+      "id": "43552bb8-5e5e-58e2-b233-36727b1d9d87",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "ExampleScenario/5psortwYNqr2vLNwQ",
+        "type": "ExampleScenario"
+      }
+    }
+  ],
+  "test": [
+    {
+      "id": "4222467a-7bc0-54e4-9879-88fa0c05c412",
+      "name": "Social Worker - Access Role",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "update"
+            },
+            "label": "Social Worker - Access Role",
+            "description": "PUT {{hostname}}/baseR4/PractitionerRole/rCY6ePpLywTbfx3yp",
+            "accept": "json",
+            "encodeRequestUrl": true,
+            "method": "put",
+            "url": "{{hostname}}/baseR4/PractitionerRole/rCY6ePpLywTbfx3yp"
+          }
+        },
+        {
+          "assert": {
+            "description": "Confirm that the returned HTTP status is 201(Success).",
+            "response": "created",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "ef27765c-a138-5669-b255-17bb91d30cc0",
+      "name": "Women's Shelter Location",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "update"
+            },
+            "resource": "Location",
+            "label": "Women's Shelter Location",
+            "description": "PUT {{hostname}}/baseR4/Location/lyW5mPW2nf3DHC7h6",
+            "accept": "json",
+            "encodeRequestUrl": true,
+            "method": "put",
+            "url": "{{hostname}}/baseR4/Location/lyW5mPW2nf3DHC7h6"
+          }
+        },
+        {
+          "assert": {
+            "description": "Confirm that the returned HTTP status is 201(Success).",
+            "response": "created",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "309ca261-92bf-5063-ba69-77f29c52c671",
+      "name": "Restriction on accessing Women's Shelters",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "update"
+            },
+            "label": "Restriction on accessing Women's Shelters",
+            "description": "PUT {{hostname}}/baseR4/Restriction/cotkDnGQjpHijDsRR",
+            "accept": "json",
+            "encodeRequestUrl": true,
+            "method": "put",
+            "url": "{{hostname}}/baseR4/Restriction/cotkDnGQjpHijDsRR"
+          }
+        },
+        {
+          "assert": {
+            "description": "Confirm that the returned HTTP status is 201(Success).",
+            "response": "created",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "5fa71b21-0437-58c1-9110-2e19b3ada768",
+      "name": "Betty Busybody",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "update"
+            },
+            "resource": "Practitioner",
+            "label": "Betty Busybody",
+            "description": "PUT {{hostname}}/baseR4/Practitioner",
+            "accept": "json",
+            "encodeRequestUrl": true,
+            "method": "put",
+            "url": "{{hostname}}/baseR4/Practitioner"
+          }
+        },
+        {
+          "assert": {
+            "description": "Confirm that the returned HTTP status is 201(Success).",
+            "response": "created",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ]
+}
