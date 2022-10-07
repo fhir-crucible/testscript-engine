@@ -349,8 +349,8 @@ module MessageHandler
       "Executed Operation: [#{options[0]}]"
     when :pass_execution_result
       "Execution of [#{options[0]}] passed."
-    when :resource_extraction
-      "Unable to extract resource referenced by [#{options[0]}]. Encountered: [#{options[1]}]."
+    when :unable_to_load_reference
+      "Unable to load reference #{"[#{options[0]}] " unless options[0].nil?}from path [#{options[1]}] or fixtures folder. Encountered: [#{options[2]}]."
     when :see_reports
       "See more execution details in the TestReports at: [#{options[0]}]."
     when :uncaught_error

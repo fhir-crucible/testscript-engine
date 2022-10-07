@@ -62,7 +62,7 @@ describe TestScriptRunnable do
 
 		it 'given bad local reference logs warqning' do
 			expect(@runnable).to receive(:warning)
-				.with(:resource_extraction, @reference.reference, /No such file or directory/)
+				.with(:unable_to_load_reference, @reference.display, @reference.reference, /No such file or directory/)
 
 			result = @runnable.get_resource_from_ref(@reference)
 
