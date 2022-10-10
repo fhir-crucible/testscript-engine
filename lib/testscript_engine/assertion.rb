@@ -72,6 +72,8 @@ module Assertion
     elsif assert.compareToSourcePath
       evaluate_path(assert.compareToSourcePath,
         get_resource(assert.compareToSourceId))
+    else
+      true
     end
   end
 
