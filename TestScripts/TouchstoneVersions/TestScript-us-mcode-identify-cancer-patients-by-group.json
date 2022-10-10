@@ -1,0 +1,129 @@
+{
+  "resourceType": "TestScript",
+  "id": "us-mcode-identify-cancer-patients-by-group",
+  "url": "https://github.com/fhir-crucible/testscript-generator/UsMcodeIdentifyCancerPatientsByGroup",
+  "version": "0.1",
+  "name": "UsMcodeIdentifyCancerPatientsByGroup",
+  "title": "Us Mcode Identify Cancer Patients By Group (using Params)",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-09-21T13:00:51-04:00",
+  "publisher": "The MITRE Corporation",
+  "contact": [
+    {
+      "name": "Karl Naden"
+    }
+  ],
+  "variable": [
+    {
+      "name": "firstGroupMemberId",
+      "expression": "entry[0].resource.member[0].entity.reference.substring(iif(contains('/'),indexOf('/')+1,0),length())",
+      "sourceId": "groupBundle"
+    }
+  ],
+  "profile": [
+    {
+      "id": "profileCancerPatient",
+      "reference": "http://hl7.org/fhir/StructureDefinition/Patient"
+    }
+  ],
+  "test": [
+    {
+      "name": "Group Search",
+      "action": [
+        {
+          "operation": {
+            "description": "Search For Cancer Group",
+            "label": "Search_For_Cancer_Group",
+            "type": {
+              "code": "search",
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes"
+            },
+            "resource": "Group",
+            "encodeRequestUrl": false,
+            "params": "?code=C19700",
+            "responseId": "groupBundle"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Response OK",
+            "label": "Assert_Response_OK",
+            "warningOnly": false,
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Bundle Returned",
+            "label": "Assert_Bundle_Returned",
+            "warningOnly": false,
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert At Least One Entry Returned",
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "warningOnly": false,
+            "expression": "entry.count() > 0"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert At Least One Entry In the First Group",
+            "label": "Assert_At_Least_One_Entry_Entry_In_the_First_Group",
+            "warningOnly": false,
+            "expression": "entry[0].resource.member.count() > 0"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert First Group Entry Is A Patient",
+            "label": "Assert_First_Group_Entry_Is_A_Patient",
+            "warningOnly": false,
+            "expression": "entry[0].resource.member[0].entity.reference.substring(0, iif(contains('/'),indexOf('/'),length())) = 'Patient'"
+          }
+        },
+        {
+          "operation": {
+            "description": "Read Group Member",
+            "label": "Read_Group_Member",
+            "type": {
+              "code": "read",
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes"
+            },
+            "encodeRequestUrl": true,
+            "params": "/${firstGroupMemberId}",
+            "resource": "Patient",
+            "responseId": "cancerPatient"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Read Response OK",
+            "label": "Assert_Read_Response_OK",
+            "warningOnly": false,
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Patient Returned",
+            "label": "Assert_Patient_Returned",
+            "warningOnly": false,
+            "resource": "Patient"
+          }
+        },
+        {
+          "assert": {
+            "description": "Patient Conforms to Cancer Patient Profile",
+            "label": "Assert_Patient_Conforms_to_Cancer_Patient_Profile",
+            "warningOnly": false,
+            "validateProfileId": "profileCancerPatient"
+          }
+        }
+      ]
+    }
+  ]
+}

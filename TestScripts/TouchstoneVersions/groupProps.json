@@ -1,0 +1,7 @@
+{
+   "excludeFromUpload": [
+      ".*/__MACOSX/.*"
+   ],
+    "excludeFromConformance": [
+   ]
+}
