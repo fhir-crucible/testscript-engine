@@ -65,8 +65,8 @@
   "fixture": [
     {
       "id": "fixture-patient-create",
-      "autocreate": false,
-      "autodelete": false,
+      "autocreate": true,
+      "autodelete": true,
       "resource": {
         "reference": "fixtures/Patient/example.json",
         "display": "Peter Chalmers"
@@ -74,8 +74,8 @@
     },
     {
       "id": "fixture-patient-update",
-      "autocreate": false,
-      "autodelete": false,
+      "autocreate": true,
+      "autodelete": true,
       "resource": {
         "reference": "fixtures/Patient/example2.json",
         "display": "Donald Duck"

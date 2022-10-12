@@ -1,5 +1,4 @@
-require 'pry'
-require 'TestScriptRunnable'
+require_relative '../lib/testscript_engine/testscript_runnable'
 
 describe TestScriptRunnable do
   let(:vname) { 'variable' }
@@ -52,7 +51,7 @@ describe TestScriptRunnable do
   end
 
   let(:client) { FHIR::Client.new('https://example.com') }
-  let(:headers) { { headers: { 'content-type' => vreplacement } } }
+  let(:headers) { { headers: { 'Content-Type' => vreplacement } } }
   let(:client_reply) { FHIR::ClientReply.new(nil, headers, client) }
 
   let(:input) { "/${#{vname}}/id" }

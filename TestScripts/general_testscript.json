@@ -85,7 +85,7 @@
       "autocreate": false,
       "autodelete": false,
       "resource": {
-        "reference": "Patient/example.json",
+        "reference": "fixtures/Patient/example.json",
         "display": "Peter Chalmers"
       }
     },
@@ -94,7 +94,7 @@
       "autocreate": false,
       "autodelete": false,
       "resource": {
-        "reference": "Patient/example.json",
+        "reference": "fixtures/Patient/example.json",
         "display": "Peter Chalmers (minimum)"
       }
     }
@@ -186,6 +186,7 @@
           "description": "Confirm that the returned Patient contains the expected family name 'Chalmers'. Uses explicit compareToSourceId reference to fixture-patient-create used to create the Patient.",
           "compareToSourceId": "fixture-patient-create",
           "compareToSourceExpression": "Patient.name.first().family",
+          "expression": "Patient.name.first().family",
           "operator": "equals",
           "warningOnly": false
         }

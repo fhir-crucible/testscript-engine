@@ -1,0 +1,134 @@
+{
+  "id": "basic_testreport",
+  "name": "Basic TestReport",
+  "status": "completed",
+  "testScript": {
+    "reference": "spec/fixtures/basic_testscript",
+    "type": "http://hl7.org/fhir/R4B/testscript.html"
+  },
+  "result": "fail",
+  "score": 100.0,
+  "tester": "The MITRE Corporation",
+  "issued": "2022-08-25T21:15:40-07:00",
+  "setup": {
+    "action": [
+      {
+        "operation": {
+          "id": "test_id",
+          "result": "pass",
+          "message": "test_description"
+        }
+      },
+      {
+        "assert": {
+          "id": "test_id",
+          "result": "pass",
+          "message": "test_description"
+        }
+      },
+      {
+        "assert": {
+          "id": "test_id",
+          "result": "pass",
+          "message": "test_description"
+        }
+      }
+    ]
+  },
+  "test": [
+    {
+      "action": [
+        {
+          "operation": {
+            "id": "test_id",
+            "result": "pass",
+            "message": "test_description"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "result": "pass",
+            "message": "test_description"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "result": "pass",
+            "message": "test_description"
+          }
+        }
+      ]
+    },
+    {
+      "action": [
+        {
+          "operation": {
+            "id": "test_id",
+            "result": "pass",
+            "message": "test_description"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "result": "pass",
+            "message": "test_description"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "result": "pass",
+            "message": "test_description"
+          }
+        }
+      ]
+    },
+    {
+      "action": [
+        {
+          "operation": {
+            "id": "test_id",
+            "result": "pass",
+            "message": "test_description"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "result": "pass",
+            "message": "test_description"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "result": "pass",
+            "message": "test_description"
+          }
+        }
+      ]
+    }
+  ],
+  "teardown": {
+    "action": [
+      {
+        "operation": {
+          "id": "test_id",
+          "result": "pass",
+          "message": "test_description"
+        }
+      },
+      {
+        "operation": {
+          "id": "test_id",
+          "result": "pass",
+          "message": "test_description"
+        }
+      }
+    ]
+  },
+  "resourceType": "TestReport"
+}

@@ -1,4 +1,39 @@
-## About the Project
+# TestScript Engine
+The TestScript Engine is an open source, command-line tool for executing [Fast
+Healthcare Interoperability Resources (FHIR)](http://hl7.org/fhir/) TestScript resources.
+
+## Using the TestScript Engine
+
+There are two methods for running the TestScript Engine:
+
+ * **LOCAL INSTALLATION**
+
+Clone [this repository](https://github.com/fhir-crucible/testscript-engine) and navigate to your local copy. Once there, run: `bundle install` followed by `ruby run.rb`. This will start the engine within the context of your local copy.
+
+This is the recommended method if you don't have TestScripts of your own, as this repository includes sample TestScripts in the `./TestScripts` folder for processing and execution.
+
+* **GEM EXECUTABLE**
+
+First, download the TestScript gem by running: `gem install testscript_engine`.
+Then, launch the engine by running: `testscript_engine`.
+
+This is the recommended method if you already have a collection of your own TestScripts, as it allows you the freedom of running the engine from within your TestScript repository (or anywhere).
+
+### Details
+
+TestScripts are validated and loaded in by the engine. By default, the engine looks for a `./TestScripts` folder in its given context, but will allow the user to specify an alternate path. Once scripts are loaded, they are converted into 'runnables'. The engine allows users to specify which runnable to execute, and by default will execute all available runnables. Likewise, the user can specify the endpoint upon which the runnable(s) should be executed. Following execution, the user can either re-execute -- specifying a different runnable or endpoint -- or shut-down the engine. Finally, the results from each runnable's latest execution are written out to the `./TestReports` folder.
+
+### Limitations
+There are known gaps in the TestScript Engine:
+* Support for minimumId
+* Support for validateProfileId
+* Support for use of an external validator
+* Support for multiple origins and/or destinations
+
+
+The TestScript Engine is still in the infancy of its development; it is neither fully complete nor bug-free and we encourage contributions, feedback, and issue-opening from the community.
+
+### About the Project
 
 The purpose of the TestScript Engine is to support and encourage essential aspects of FHIR testing through the following features:
 
@@ -7,59 +42,37 @@ The purpose of the TestScript Engine is to support and encourage essential aspec
 * Aligned with existing FHIR architecture
 * Extensible to be integrated with key FHIR toolchains in the future (FHIR Shorthand, [TestScript Generator](https://github.com/fhir-crucible/testscript-generator), Synthea)
 
-### Limitations
-
-TestScript Engine is in the early stages of development; it is neither functionally complete nor bug-free and we encourage contributions, feedback, and issue-opening from the community.
 
 
-### Getting started
-
-**Commands:**
-  ```
-    cd lib
-    ruby driver.rb
-  ```
-
-  - Functionality
-    - This runs the driver, which is currently the means for running and testing using the engine and runnable class. TestScripts to be run must be added to the TestScripts directory.
-
-**Optional Arguments:**
-  ```
-    ruby driver.rb [FHIR Server URL] [TestScript Folder]
-  ```
-
-  - `[FHIR Server URL]`
-    - Full URL of the FHIR server being tested. Defaults to the public instance of HAPI FHIR.
-  - `[TestScript Folder]`
-    - Relative or full path to a folder of TestScript resources. Defaults to `./TestScripts`
-
-**Folders and Files:**
+### Folders and Files
   - `./lib`
-    - driver.rb
-    - assertions.rb
-    - TestScriptEngine.rb
-    - TestScriptRunnable.rb
-    - TestReportHandler.rb
-    - MessageHandler.rb
+    - `assertion.rb`
+    - `operation.rb`
+    - `testscript_runnable.rb`
+    - `testreport_handler.rb`
+    - `message_handler.rb`
+  - `testscript_engine.rb`
+  - `run.rb`
   - `./spec`
   - `./TestReports`
   - `./TestScripts `
     - `./fixtures`
 
 `./lib`:
-  - assertions.rb
-      - Contains the hard-coded assertions used during assertion handling within the TestScriptRunnable class.
-  - driver.rb
-      - Starter file that creates an instance of the engine, loads in the TestScript resources located within the TestScript directory, and runs them against the public Hapi FHIR endpoint. It demonstrates the start to finish process of using the TestScriptEngine to run TestScripts in their json file format.
-  - TestScriptEngine.rb
+  - `assertion.rb`
+      - Contains the asserts used during assertion handling within the TestScriptRunnable class.
+  - `operation.rb`
+      - Contains the operation-related methods and logic used during operation execution within the TestScriptRunnable class.
+  - `run.rb`
+      - Creates an instance of the engine, loads in the TestScript resources located within the TestScript directory, and runs them against the default endpoint. It demonstrates the start to finish process of using the TestScriptEngine to execute TestScripts.
+  - `testscript_engine.rb`
       - Home of the TestScriptEngine class. The engine deals with loading in json TestScript files, managing their transformation into runnables, and ultimately their execution. It is the engine's responsibiliy to direct and leverage a runnable against (an) endpoint(s).
-  - TestScriptRunnable.rb
-      - TestScriptRunnable class is an encapsulation of all the information needed to run a TestScript json resource. The runnable of a TestScript was designed with the idea that, after its initialization, is could be pointed at and run against any number of endpoints without reloading the original TestScript json resource. Setup, Tests, and Teardown actions are executed in that order, with Setup and Teardown actions factored into the overall score given as part of the TestReport output.
-  - TestReportHandler.rb
+  - `testscript_runnable.rb`
+      - TestScriptRunnable class is an object containing the code necessary to execute a TestScript. The runnable of a TestScript was designed with the idea that, after its initialization, is could be pointed at and run against any number of endpoints without reloading the original TestScript. Setup, Tests, and Teardown actions are executed in that order, with Setup and Teardown actions factored into the overall score given as part of the TestReport output.
+  - `testreport_handler.rb`
       - Class for creating and updating the TestReport resource. The report's skeleton is generated using the corresponding TestScript, though the action results are left blank and populated as directed during TestScript execution. As a result, the report is synchronous with the runnable class and relies on the TestScriptRunnable to communicate the result of an action execution or evaluation.
-  - MessageHandler.rb
+  - `message_handler.rb`
       - Module for all command-line logging functionality and adding messages to FHIR resources.
-
 
 `./spec`:
   - Folder containing all existing unit tests for both TestScriptEngine and TestScriptRunnable
@@ -76,7 +89,6 @@ TestScript Engine is in the early stages of development; it is neither functiona
 * [FHIR Resource: TestScript](https://build.fhir.org/testscript.html)
 * [FHIR Resource: TestReport](https://build.fhir.org/testreport.html)
 * [Crucible](https://github.com/fhir-crucible)
-
 
 ## License
 Copyright 2022 The MITRE Corporation

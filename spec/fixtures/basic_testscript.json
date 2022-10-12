@@ -1,0 +1,144 @@
+{
+  "id": "basic_testscript",
+  "url": "spec/fixtures/basic_testscript",
+  "name": "Basic TestScript",
+  "status": "draft",
+  "fixture": [
+    {
+      "id": "fixture-patient-create",
+      "autocreate": true,
+      "autodelete": false,
+      "resource": {
+        "reference": "fixtures/Patient/example.json",
+        "display": "Peter Chalmers"
+      }
+    }
+  ],
+  "setup": {
+    "action": [
+      {
+        "operation": {
+          "url": "dummy_url",
+          "id": "test_id",
+          "description": "test_description",
+          "encodeRequestUrl": "false"
+        }
+      },
+      {
+        "assert": {
+          "id": "test_id",
+          "description": "test_description",
+          "warningOnly": "false"
+        }
+      },
+      {
+        "assert": {
+          "id": "test_id",
+          "description": "test_description",
+          "warningOnly": "false"
+        }
+      }
+    ]
+  },
+  "test": [
+    {
+      "action": [
+        {
+          "operation": {
+            "url": "dummy_url",
+            "id": "test_id",
+            "description": "test_description",
+            "encodeRequestUrl": "false"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "description": "test_description",
+            "warningOnly": "false"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "description": "test_description",
+            "warningOnly": "true"
+          }
+        }
+      ]
+    },
+    {
+      "action": [
+        {
+          "operation": {
+            "url": "dummy_url",
+            "id": "test_id",
+            "description": "test_description",
+            "encodeRequestUrl": "false"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "description": "test_description",
+            "warningOnly": "false"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "description": "test_description",
+            "warningOnly": "false"
+          }
+        }
+      ]
+    },
+    {
+      "action": [
+        {
+          "operation": {
+            "url": "dummy_url",
+            "id": "test_id",
+            "description": "test_description",
+            "encodeRequestUrl": "false"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "description": "test_description",
+            "warningOnly": "false"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "description": "test_description",
+            "warningOnly": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "teardown": {
+    "action": [
+      {
+        "operation": {
+          "url": "dummy_url",
+          "id": "test_id",
+          "description": "test_description",
+          "encodeRequestUrl": "false"
+        }
+      },
+      {
+        "operation": {
+          "url": "dummy_url",
+          "id": "test_id",
+          "description": "test_description",
+          "encodeRequestUrl": "false"
+        }
+      }
+    ]
+  },
+  "resourceType": "TestScript"
+}

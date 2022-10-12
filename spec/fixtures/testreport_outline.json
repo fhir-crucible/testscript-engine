@@ -1,0 +1,118 @@
+{
+  "id": "basic_testreport",
+  "name": "Basic TestReport",
+  "status": "in-progress",
+  "testScript": {
+    "reference": "spec/fixtures/basic_testscript",
+    "type": "http://hl7.org/fhir/R4B/testscript.html"
+  },
+  "result": "pending",
+  "tester": "The MITRE Corporation",
+  "setup": {
+    "action": [
+      {
+        "operation": {
+          "id": "test_id",
+          "message": "test_description"
+        }
+      },
+      {
+        "assert": {
+          "id": "test_id",
+          "message": "test_description"
+        }
+      },
+      {
+        "assert": {
+          "id": "test_id",
+          "message": "test_description"
+        }
+      }
+    ]
+  },
+  "test": [
+    {
+      "action": [
+        {
+          "operation": {
+            "id": "test_id",
+            "message": "test_description"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "message": "test_description"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "message": "test_description"
+          }
+        }
+      ]
+    },
+    {
+      "action": [
+        {
+          "operation": {
+            "id": "test_id",
+            "message": "test_description"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "message": "test_description"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "message": "test_description"
+          }
+        }
+      ]
+    },
+    {
+      "action": [
+        {
+          "operation": {
+            "id": "test_id",
+            "message": "test_description"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "message": "test_description"
+          }
+        },
+        {
+          "assert": {
+            "id": "test_id",
+            "message": "test_description"
+          }
+        }
+      ]
+    }
+  ],
+  "teardown": {
+    "action": [
+      {
+        "operation": {
+          "id": "test_id",
+          "message": "test_description"
+        }
+      },
+      {
+        "operation": {
+          "id": "test_id",
+          "message": "test_description"
+        }
+      }
+    ]
+  },
+  "resourceType": "TestReport"
+}

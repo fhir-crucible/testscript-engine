@@ -21,7 +21,7 @@ jobs:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
 
-  test: 
+  test:
     needs: build
     runs-on: ubuntu-latest
     strategy:
@@ -37,7 +37,7 @@ jobs:
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
     - name: Run tests
       run: bundle exec rspec
-  
+
   # lint:
   #   needs: build
   #   runs-on: ubuntu-latest

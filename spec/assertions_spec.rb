@@ -1,578 +1,575 @@
-# frozen_string_literal: true
-require 'TestScriptRunnable'
+require_relative '../lib/testscript_engine/assertion'
+require 'fhir_models'
+require 'fhir_client'
 
-describe TestScriptRunnable do
-  let(:endpoint) { 'https://dummy_endpoint.com' }
-  let(:not_endpoint) { 'https://not_dummy_endpoint.com' }
-  let(:content_type) { 'application/fhir+text/html' }
-  let(:not_content_type) { 'text/html; charset=UTF-8' }
-  let(:response_code) { "200,204" }
-  let(:expected_response) { "okay" }
-  let(:patient_input) { { "name" => [FHIR::HumanName.new({ 'family' => 'Chalmers', 'given' => ["Peter"] })] } }
-  let(:patient) { FHIR::Patient.new(patient_input) }
-  let(:source_expression) { "Patient.name.first().family" }
-  let(:source_id) { '$some_id' }
-  let(:headers) { { 'content-type' => content_type, "accept-charset" => "utf-8" } }
-  let(:request) do 
-    {
-      :method => :get,
-      :url => endpoint,
-      :path => 'Patient/123/$everything',
-      :headers => {},
-      :payload => nil
-    }
-  end 
-  let(:response) do
-    {
-      :code => 200,
-      :headers => headers,
-      :body => patient.to_json
-    } 
-  end 
-  let(:client) { FHIR::Client.new(endpoint) }
-  let(:client_reply_input) { [request, response, client] }
-  let(:client_reply) { FHIR::ClientReply.new(*client_reply_input) }
-  let(:assertion) { FHIR::TestScript::Setup::Action::Assert.new }
-  let(:tScript) { FHIR::TestScript.new }
-  let(:runnable) { TestScriptRunnable.new(tScript) }
-  before do
-    runnable.fixtures[source_id] = patient
-    client_reply.resource = FHIR.from_contents(patient.to_json)
-  end 
+class AssertionTestClass
+  include Assertion
+  attr_accessor :response_map, :request_map, :fixtures, :reply
 
-  describe '#handle_assertion' do
-    context 'when given a non-assert object' do
-      it 'returns a fail report' do
-        result = runnable.handle_assertion(nil)
+  def response_map
+    @response_map
+  end
 
-        expect(result).to eq(runnable.fail_report('invalidAssert'))
-      end 
+  def request_map
+    @request_map
+  end
+
+  def reply
+    @reply
+  end
+
+  def evaluate_expression(input, resource)
+    FHIRPath.evaluate(input, resource.to_hash)
+  end
+end
+
+describe Assertion do
+  before(:each) do
+    @tester = AssertionTestClass.new
+    @patient_id = 'patient_id'
+    patient = FHIR.from_contents(File.read('spec/fixtures/example_patient.json'))
+    url = 'https://example.com'
+    header = { 'Content-Type' => 'Content-Type-value' }
+    request = { method: :get, url: url, path: "Patient/123", headers: header }
+    response = { code: 200, headers: header, body: patient.to_json }
+    client = FHIR::Client.new(url)
+    @client_reply = FHIR::ClientReply.new(request, response, client)
+    @client_reply.resource = patient
+    @client_reply.response[:body] = patient
+    @tester.reply = @client_reply.deep_dup
+    @assert = FHIR::TestScript::Setup::Action::Assert.new
+    @tester.request_map = { @patient_id => @client_reply.request }
+    @tester.response_map = { @patient_id => @client_reply.response }
+    @tester.fixtures = {}
+  end
+
+  # TODO
+  describe '.evaluate' do
+
+  end
+
+  describe '.determine_assert_type' do
+    it 'returns content_type, if assert has contentType element' do
+      @assert.contentType = 'contentType'
+
+      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('content_type')
     end
 
-    context 'when given an assert' do
-      context 'with requestURL set' do
-        before do
-          assertion.requestURL = endpoint
-          assertion.operator = "equals"
-        end 
-
-        context 'with no reply' do
-          it 'returns an error report' do
-            result = runnable.handle_assertion(assertion)
-            expect(result.result).to eq('error')
-          end 
-        end
-
-        context 'with a reply' do
-          before { runnable.last_reply = client_reply }
-
-          context 'with the a non-matching previously queried url' do  
-            before { runnable.last_reply.request[:url] = not_endpoint } 
-
-            it 'returns a fail report' do
-              result = runnable.handle_assertion(assertion)
-              expect(result.result).to eq('fail')
-              expect(result.message).to eq("[.assert_request_url] Expected #{endpoint} but found #{not_endpoint}.")
-            end 
-          end
-          
-          context 'with a matching previously queried url' do  
-            it 'returns a pass report' do 
-              result = runnable.handle_assertion(assertion)
-              expect(result.result).to eq('pass')
-            end 
-          end 
-        end 
-      end 
-
-      context 'with contentType set' do
-        before { assertion.contentType = content_type }
-
-        context 'with no reply' do
-          it 'returns an error report' do
-            result = runnable.handle_assertion(assertion)
-            expect(result.result).to eq('error')
-          end 
-        end
-
-        context 'with a reply' do
-          before { runnable.last_reply = client_reply }
-
-          context 'with the no content-type header' do  
-            before { runnable.last_reply.response[:headers]['content-type'] = nil } 
-
-            it 'returns a fail report' do
-              result = runnable.handle_assertion(assertion)
-              expect(result.result).to eq('fail')
-              expect(result.message).to eq("[.assert_content_type] Expected content-type header not included in response.")
-            end 
-          end
-
-          context 'with the a non-matching content-type header' do  
-            before { runnable.last_reply.response[:headers]['content-type'] = not_content_type } 
-
-            it 'returns a fail report' do
-              result = runnable.handle_assertion(assertion)
-              expect(result.result).to eq('fail')
-              expect(result.message).to eq("[.assert_content_type] Expected content-type with value: application/fhir+text/html, but found value: text/html; charset=UTF-8.")
-            end 
-          end
-          
-          context 'with a matching previously queried url' do  
-            it 'returns a pass report' do 
-              result = runnable.handle_assertion(assertion)
-              expect(result.result).to eq('pass')
-            end 
-          end 
-        end 
-      end 
-
-      # context 'with compareToSourceExpression set' do
-      #   before do 
-      #     assertion.compareToSourceExpression = source_expression 
-      #     assertion.compareToSourceId = source_id
-      #   end 
-
-      #   context 'with no reply' do
-      #     it 'returns an error report' do
-      #       result = runnable.handle_assertion(assertion)
-      #       expect(result.result).to eq('error')
-      #     end 
-      #   end
-
-      #   context 'with a reply' do
-      #     before { runnable.last_reply = client_reply }
-
-      #     context 'with no fixture correlating to Source Id' do
-      #       before { runnable.fixtures[source_id] = nil }
-
-      #       it 'returns a fail report' do
-      #         result = runnable.handle_assertion(assertion)
-      #         expect(result.result).to eq('fail')
-      #         expect(result.message).to eq("[.assert_compare_to_source_expression] Expected fixture with id #{source_id} not found.")
-      #       end
-      #     end 
-
-      #     context 'with a mismatched resource' do  
-      #       before { runnable.last_reply.resource = FHIR::Patient.new } 
-
-      #       it 'returns a fail report' do
-      #         result = runnable.handle_assertion(assertion)
-      #         expect(result.result).to eq('fail')
-      #         expect(result.message).to eq('[.assert_compare_to_source_expression] Expected Chalmers but found ')
-      #       end 
-      #     end
-
-      #     context 'with unexpected matched resources' do
-      #       before { assertion.operator = 'notEquals' }
-
-      #       it 'returns a fail report' do
-      #         result = runnable.handle_assertion(assertion)
-      #         expect(result.result).to eq('fail')
-      #         expect(result.message).to eq("[.assert_compare_to_source_expression] Did not expect Chalmers but found Chalmers.")
-      #       end 
-      #     end
-          
-      #     context 'with a matching previously queried url' do  
-      #       it 'returns a pass report' do 
-      #         result = runnable.handle_assertion(assertion)
-      #         expect(result.result).to eq('pass')
-      #       end 
-      #     end 
-      #   end 
-      # end 
-
-      context 'with headerField set' do
-        before do
-          assertion.headerField = 'Accept-Charset'
-          assertion.value = 'utf-8'
-        end 
-
-        context 'with no reply' do
-          it 'returns an error report' do
-            result = runnable.handle_assertion(assertion)
-            expect(result.result).to eq('error')
-          end 
-        end
-
-        context 'with a reply' do
-          before { runnable.last_reply = client_reply }
-
-          context 'with no matching headers in request' do
-            before do
-              assertion.headerField = 'User-Agent'
-              assertion.value = 'Ruby FHIR Client'
-              assertion.direction = 'request'
-            end 
-
-            it 'returns a fail report' do
-              result = runnable.handle_assertion(assertion)
-              expect(result.result).to eq('fail')
-              expect(result.message).to eq("[.assert_header_field] Request Header Field User-Agent -- Expected Ruby FHIR Client but found nothing.")
-            end
-          end 
-
-          context 'with a mismatched header value in request' do  
-            before do
-              assertion.headerField = 'Accept-Charset'
-              assertion.value = 'UTF-9'
-            end 
-
-            it 'returns a fail report' do
-              result = runnable.handle_assertion(assertion)
-              expect(result.result).to eq('fail')
-              expect(result.message).to eq('[.assert_header_field] Response Header Field Accept-Charset -- Expected UTF-9 but found utf-8.')
-            end 
-          end
-
-          context 'with unexpected matched resources' do
-            before { assertion.operator = 'notEquals' }
-
-            it 'returns a fail report' do
-              result = runnable.handle_assertion(assertion)
-              expect(result.result).to eq('fail')
-              expect(result.message).to eq('[.assert_header_field] Response Header Field Accept-Charset -- Did not expect utf-8 but found utf-8.')
-            end 
-          end
-          
-          context 'with a matching previously queried url' do  
-            it 'returns a pass report' do 
-              result = runnable.handle_assertion(assertion)
-              expect(result.result).to eq('pass')
-            end 
-          end 
-        end 
-      end 
-
-      context '#find_resource' do
-        context 'with no resource stored anywhere' do
-          it 'raises an AssertionException' do
-            expect { runnable.find_resource('bad_id', 'spec_test') }.to raise_error(Assertions::AssertionException, 'spec_test Expected resource with id: bad_id in fixtures, responses, or in last reply from server. No such resource found.')
-          end 
-        end
-
-        context 'with reply stored in response map' do
-          before { runnable.response_map[source_id] = client_reply }
-
-          it 'returns the resource returned in that reply' do
-            result = runnable.find_resource(source_id, 'spec_test')
-            expect(result).to eq(patient)
-          end 
-        end 
-
-        context 'with resource stored in fixtures' do
-          before { runnable.fixtures[source_id] = patient }
-
-          it 'returns that resource' do
-            result = runnable.find_resource(source_id, 'spec_test')
-            expect(result).to eq(patient)
-          end 
-        end 
-
-        context 'with resource stored in last_reply' do
-          before { runnable.last_reply = client_reply }
-
-          it 'returns the resource in that last reply' do
-            result = runnable.find_resource(source_id, 'spec_test')
-            expect(result).to eq(patient)
-          end 
-        end 
-      end 
-
-      context '#assert_resource' do
-        before do
-          assertion.resource = 'Patient'
-          assertion.sourceId = source_id
-          runnable.fixtures[source_id] = patient
-        end 
-
-        context 'with mismatch between resource class and assertion.resource' do
-          before { assertion.resource = 'AllergyIntolerance' }
-
-          it 'raises an AssertionException' do
-            expect { runnable.assert_resource(assertion) }.to raise_error(Assertions::AssertionException, '[.assert_resource] Expected AllergyIntolerance but found Patient.')
-          end 
-
-          context 'with an notEquals operator' do
-            before { assertion.operator = 'notEquals' }
-
-            it 'returns nil' do
-              result = runnable.assert_resource(assertion) 
-              expect(result).to be(nil)
-            end 
-          end 
-        end 
-
-        context 'with a match between resource class and assertion.resource' do
-          before { assertion.resource = 'Patient' }
-
-          it 'returns nil' do
-            result = runnable.assert_resource(assertion) 
-            expect(result).to be(nil)
-          end 
-
-          context 'with an notEquals operator' do
-            before { assertion.operator = 'notEquals' }
-
-            it 'raises an AssertionException' do
-              expect { runnable.assert_resource(assertion) }.to raise_error(Assertions::AssertionException, '[.assert_resource] Did not expect Patient but found Patient.')
-            end 
-          end 
-        end 
-      end 
-
-      context '#assert_response_code' do
-        before do
-          runnable.response_map[source_id] = patient
-          runnable.last_reply = client_reply
-          assertion.responseCode = '200'
-        end 
-
-        context 'with no response in response map' do
-          before { assertion.sourceId = 'empty_id' }
-
-          it 'pulls response from last reply and returns nil' do
-            result = runnable.assert_response_code(assertion)
-          end 
-        end 
-
-        context 'with response in response map' do
-          before { runnable.response_map[source_id] = client_reply }
-
-          context 'with mismatch between last reply code and assertion.responseCode' do
-            before { assertion.responseCode = '404' }
-  
-            it 'raises an AssertionException' do
-              expect { runnable.assert_response_code(assertion) }.to raise_error(Assertions::AssertionException, '[.assert_response_code] Expected 404 but found 200.')
-            end 
-  
-            context 'with an notEquals operator' do
-              before { assertion.operator = 'notEquals' }
-  
-              it 'returns nil' do
-                result = runnable.assert_response_code(assertion) 
-                expect(result).to be(nil)
-              end 
-            end 
-          end 
-  
-          context 'with a match between resource class and assertion.resource' do
-            before { assertion.resource = '200' }
-  
-            it 'returns nil' do
-              result = runnable.assert_response_code(assertion) 
-              expect(result).to be(nil)
-            end 
-  
-            context 'with an notEquals operator' do
-              before { assertion.operator = 'notEquals' }
-  
-              it 'raises an AssertionException' do
-                expect { runnable.assert_response_code(assertion) }.to raise_error(Assertions::AssertionException, '[.assert_response_code] Did not expect 200 but found 200.')
-              end 
-            end 
-          end 
-        end 
-      end 
-
-      context '#assert_response' do
-        before do
-          runnable.response_map[source_id] = patient
-          runnable.last_reply = client_reply
-          assertion.response = 'okay'
-        end 
-
-        context 'with no response in response map' do
-          before { assertion.sourceId = 'empty_id' }
-
-          it 'pulls response from last reply and returns nil' do
-            result = runnable.assert_response(assertion)
-          end 
-        end 
-
-        context 'with response in response map' do
-          before { runnable.response_map[source_id] = client_reply }
-
-          context 'with mismatch between last reply code and assertion.responseCode' do
-            before { assertion.response = 'notFound' }
-  
-            it 'raises an AssertionException' do
-              expect { runnable.assert_response(assertion) }.to raise_error(Assertions::AssertionException, '[.assert_response] Expected 404 but found 200.')
-            end 
-  
-            context 'with an notEquals operator' do
-              before { assertion.operator = 'notEquals' }
-  
-              it 'returns nil' do
-                result = runnable.assert_response(assertion) 
-                expect(result).to be(nil)
-              end 
-            end 
-          end 
-  
-          context 'with a match between resource class and assertion.resource' do
-            before { assertion.resource = 'okay' }
-  
-            it 'returns nil' do
-              result = runnable.assert_response(assertion) 
-              expect(result).to be(nil)
-            end 
-  
-            context 'with an notEquals operator' do
-              before { assertion.operator = 'notEquals' }
-  
-              it 'raises an AssertionException' do
-                expect { runnable.assert_response(assertion) }.to raise_error(Assertions::AssertionException, '[.assert_response] Did not expect 200 but found 200.')
-              end 
-            end 
-          end 
-        end 
-      end 
-
-      context '#assert_request_method' do
-        before do
-          runnable.last_reply = client_reply
-          assertion.requestMethod = 'get'
-        end 
-
-        before { runnable.response_map[source_id] = client_reply }
-
-        context 'with mismatch between last reply request and assertion.requestMethod' do
-          before { assertion.requestMethod = 'post' }
-
-          it 'raises an AssertionException' do
-            expect { runnable.assert_request_method(assertion) }.to raise_error(Assertions::AssertionException, '[.assert_request_method] Expected post but found get.')
-          end 
-
-          context 'with an notEquals operator' do
-            before { assertion.operator = 'notEquals' }
-
-            it 'returns nil' do
-              result = runnable.assert_request_method(assertion) 
-              expect(result).to be(nil)
-            end 
-          end 
-        end 
-
-        context 'with a match between last reply request and assertion.requestMethod' do
-          it 'returns nil' do
-            result = runnable.assert_request_method(assertion) 
-            expect(result).to be(nil)
-          end 
-
-          context 'with an notEquals operator' do
-            before { assertion.operator = 'notEquals' }
-
-            it 'raises an AssertionException' do
-              expect { runnable.assert_request_method(assertion) }.to raise_error(Assertions::AssertionException, '[.assert_request_method] Did not expect get but found get.')
-            end 
-          end 
-        end 
+    it 'returns expression, if assert has expression element' do
+      @assert.expression = 'expression'
+
+      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('expression')
+    end
+
+    it 'returns header_field, if assert has headerField element' do
+      @assert.headerField = 'headerField'
+
+      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('header_field')
+    end
+
+    it 'returns minimum_id, if assert has minimumId element' do
+      @assert.minimumId = 'minimumId'
+
+      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('minimum_id')
+    end
+
+    it 'returns navigation_links, if assert has navigationLinks element' do
+      @assert.navigationLinks = 'navigationLinks'
+
+      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('navigation_links')
+    end
+
+    it 'returns path, if assert has path element' do
+      @assert.path = 'path'
+
+      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('path')
+    end
+
+    it 'returns request_method, if assert has requestMethod element' do
+      @assert.requestMethod = 'requestMethod'
+
+      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('request_method')
+    end
+
+    it 'returns resource, if assert has resource element' do
+      @assert.resource = 'resource'
+
+      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('resource')
+    end
+
+
+    it 'returns response_code, if assert has responseCode element' do
+      @assert.responseCode = 'responseCode'
+
+      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('response_code')
+    end
+
+    it 'returns response, if assert has response element' do
+      @assert.response = 'response'
+
+      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('response')
+    end
+
+    it 'returns validate_profile_id, if assert has validateProfileId element' do
+      @assert.validateProfileId = 'validateProfileId'
+
+      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('validate_profile_id')
+    end
+
+    it 'returns request_url, if assert has requestURL element' do
+      @assert.requestURL = 'requestURL'
+
+      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('request_url')
+    end
+  end
+
+  describe '.determine_expected_value' do
+    it 'returns value, if assert has value element' do
+      @assert.value = 'value'
+
+      expect(@tester.determine_expected_value(@assert)).to eq('value')
+    end
+
+    it 'returns extracted expression value, if assert has compareToSourceExpression element' do
+      @assert.compareToSourceId = @patient_id
+      @assert.compareToSourceExpression = 'Patient.address.first().district'
+
+      expect(@tester.determine_expected_value(@assert)).to eq('Rainbow')
+    end
+
+    it 'returns extracted path value, if assert has compareToSourcePath element' do
+      @assert.compareToSourceId = @patient_id
+      @assert.compareToSourcePath = 'fhir:Patient/fhir:address/fhir:district/@value'
+
+      expect(@tester.determine_expected_value(@assert)).to eq('Rainbow')
+    end
+  end
+
+  describe '.compare' do
+    context "given 'equals' operator" do
+      let(:assert_type) { 'Response Code' }
+      let(:operator) { 'equals' }
+
+      it 'returns pass message if received and expected are equal' do
+        received = 0
+        expected = 0
+        message = @tester.compare(assert_type, received, operator, expected)
+
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
       end
 
-      context '#assert_path' do
-        before do
-          runnable.last_reply = client_reply
-          assertion.path = '$.name[0].family'
-          assertion.value = JsonPath.new(assertion.path).first(patient.to_json)
-        end 
+      it 'returns fail message if received and expected are not equal' do
+        received = 1
+        expected = 0
 
-        context 'with assertion.value undefined' do
-          before { assertion.value = nil }
+        expect { @tester.compare(assert_type, received, operator, expected) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message(assert_type, received, operator, expected))
+      end
+    end
 
-          context 'with assertion.operator undefined' do
-            it 'raises an AssertionException' do
-              expect { runnable.assert_path(assertion) }.to raise_error(Assertions::AssertionException, '[.assert_path] Expected assertion.value to be defined. Assertion unprocessable without value.')
-            end 
-          end 
+    context "given 'notEquals' operator" do
+      let(:assert_type) { 'Response Code' }
+      let(:operator) { 'notEquals' }
 
-          context 'with assertion.operator equal to empty' do
-            before { assertion.operator = 'empty' }
+      it 'returns pass message if received and expected are not equal' do
+        received = 1
+        expected = 0
+        message = @tester.compare(assert_type, received, operator, expected)
 
-            it 'raises an AssertionException' do
-              expect { runnable.assert_path(assertion) }.to raise_error(Assertions::AssertionException, '[.assert_path] Expected empty but found Chalmers.')
-            end 
-          end 
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
+      end
 
-          context 'with assertion.operator equal to notEmpty' do
-            before { assertion.operator = 'notEmpty' }
+      it 'returns fail message if received and expected are equal' do
+        received = 0
+        expected = 0
 
-            it 'returns nil' do
-              result = runnable.assert_path(assertion) 
-              expect(result).to be(nil)
-            end 
-          end 
-        end
-      end 
+        expect { @tester.compare(assert_type, received, operator, expected) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message(assert_type, received, operator, expected))
+      end
+    end
 
-      context '#assert_minimum_id' do
-        before do
-          assertion.minimumId = 'minimum_id'
-          assertion.sourceId = source_id
-          runnable.fixtures['minimum_id'] = patient
-        end 
+    context "given 'in' operator" do
+      let(:assert_type) { 'Response Code' }
+      let(:operator) { 'in' }
 
-        context 'with resource in last reply not matching minimumId resource' do
-          context 'by a degree of a hash key' do
-            before do
-              diff_resource = FHIR::AllergyIntolerance.new
-              runnable.fixtures[source_id] = diff_resource
-            end 
+      it 'returns pass message if received in expected' do
+        received = "0"
+        expected = "0"
+        message = @tester.compare(assert_type, received, operator, expected)
 
-            it 'raises an AssertionException' do
-              expect { runnable.assert_minimum_id(assertion) }.to raise_error(Assertions::AssertionException, '[.assert_minimum_id] Resource with id: $some_id does not have minimum content of resource with id: minimum_id.')
-            end 
-          end 
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
+      end
 
-          context 'by a degree of a hash in an array' do
-            before do
-              diff_resource = FHIR::Patient.new
-              runnable.fixtures[source_id] = diff_resource
-            end 
+      it 'returns fail message if received not in expected' do
+        received = 1
+        expected = [0]
 
-            it 'raises an AssertionException' do
-              expect { runnable.assert_minimum_id(assertion) }.to raise_error(Assertions::AssertionException, '[.assert_minimum_id] Resource with id: $some_id does not have minimum content of resource with id: minimum_id.')
-            end 
-          end 
-        end 
+        expect { @tester.compare(assert_type, received, operator, expected) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message(assert_type, received, operator, expected))
+      end
+    end
 
-        context 'with resource in last reply matching minimumId resource' do
-          it 'returns nil' do
-            result = runnable.assert_minimum_id(assertion) 
-            expect(result).to be(nil)
-          end 
-        end 
-      end 
+    context "given 'notIn' operator" do
+      let(:assert_type) { 'Response Code' }
+      let(:operator) { 'notIn' }
 
-      context '#assert_expression' do
-        before do
-          assertion.expression = "Patient.name[0].family = 'Chalmers'"
-          runnable.last_reply = client_reply
-        end 
+      it 'returns pass message if received not in expected' do
+        received = "1"
+        expected = "0"
+        message = @tester.compare(assert_type, received, operator, expected)
 
-        context 'with a FHIRPath expression that does not resolve' do
-          before { assertion.expression = "Patient.name.onsetRange skdsmdksfd 'invalidExp'" }
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
+      end
 
-          it 'raises an AssertionException' do
-            expect { runnable.assert_expression(assertion) }.to raise_error(Assertions::AssertionException, "[.assert_expression] Expression: Patient.name.onsetRange skdsmdksfd 'invalidExp' did not evaluate to true for resource stored in latest reply from server. FHIRPath Expressions must evaluate to true.")
-          end 
-        end 
+      it 'returns fail message if received in expected' do
+        received = "0"
+        expected = "0"
 
-        context 'with a FHIRPath expression that resolves and evaluates to false' do
-          before { assertion.expression = "Patient.name.family = 'notChalmers'" }
+        expect { @tester.compare(assert_type, received, operator, expected) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message(assert_type, received, operator, expected))
+      end
+    end
 
-          it 'raises an AssertionException' do
-            expect { runnable.assert_expression(assertion) }.to raise_error(Assertions::AssertionException, "[.assert_expression] Expression: Patient.name.family = 'notChalmers' did not evaluate to true for resource stored in latest reply from server. FHIRPath Expressions must evaluate to true.")
-          end 
-        end 
+    context "given 'greaterThan' operator" do
+      let(:assert_type) { 'Response Code' }
+      let(:operator) { 'greaterThan' }
 
-        context 'with a FHIRPath expression that resolves and evaluates to true' do
-          it 'returns nil' do
-            result = runnable.assert_expression(assertion) 
-            expect(result).to be(nil)
-          end 
-        end 
-      end 
-    end 
-  end 
-end 
+      it 'returns pass message if received > expected' do
+        received = 1
+        expected = 0
+        message = @tester.compare(assert_type, received, operator, expected)
+
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
+      end
+
+      it 'returns fail message if received not > expected' do
+        received = 0
+        expected = 0
+
+        expect { @tester.compare(assert_type, received, operator, expected) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message(assert_type, received, operator, expected))
+      end
+    end
+
+    context "given 'lessThan' operator" do
+      let(:assert_type) { 'Response Code' }
+      let(:operator) { 'lessThan' }
+
+      it 'returns pass message if received < expected' do
+        received = 0
+        expected = 1
+        message = @tester.compare(assert_type, received, operator, expected)
+
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
+      end
+
+      it 'returns fail message if received not < expected' do
+        received = 0
+        expected = 0
+
+        expect { @tester.compare(assert_type, received, operator, expected) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message(assert_type, received, operator, expected))
+      end
+    end
+
+    context "given 'empty' operator" do
+      let(:assert_type) { 'Response Code' }
+      let(:operator) { 'empty' }
+
+      it 'returns pass message if received empty' do
+        received = []
+        message = @tester.compare(assert_type, received, operator, nil)
+
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, nil))
+      end
+
+      it 'returns fail message if received not empty' do
+        received = 0
+        expect { @tester.compare(assert_type, received, operator, nil) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message(assert_type, received, operator, nil))
+      end
+    end
+
+    context "given 'notEmpty' operator" do
+      let(:assert_type) { 'Response Code' }
+      let(:operator) { 'notEmpty' }
+
+      it 'returns pass message if received not empty' do
+        received = [1]
+        message = @tester.compare(assert_type, received, operator, nil)
+
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, nil))
+      end
+
+      it 'returns fail message if received empty' do
+        received = []
+        expect { @tester.compare(assert_type, received, operator, nil) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message(assert_type, received, operator, nil))
+      end
+    end
+
+    context "given 'contains' operator" do
+      let(:assert_type) { 'Response Code' }
+      let(:operator) { 'contains' }
+
+      it 'returns pass message if received contains expected' do
+        received = [1]
+        expected = 1
+        message = @tester.compare(assert_type, received, operator, expected)
+
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
+      end
+
+      it 'returns fail message if received does not contain expected' do
+        received = nil
+        expected = 1
+        expect { @tester.compare(assert_type, received, operator, expected) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message(assert_type, received, operator, expected))
+      end
+    end
+
+    context "given 'notContains' operator" do
+      let(:assert_type) { 'Response Code' }
+      let(:operator) { 'notContains' }
+
+      it 'returns pass message if received does not contain expected' do
+        received = []
+        expected = 1
+        message = @tester.compare(assert_type, received, operator, expected)
+
+        expect(message).to eq(@tester.pass_message(assert_type, received, operator, expected))
+      end
+
+      it 'returns fail message if received does contain expected' do
+        received = [0]
+        expected = 0
+        expect { @tester.compare(assert_type, received, operator, expected) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message(assert_type, received, operator, expected))
+      end
+    end
+  end
+
+  describe '.response_header' do
+    it 'uses header from response_map matching ID' do
+      result = @tester.response_header(@patient_id, 'Content-Type')
+
+      expect(result).to eq('Content-Type-value')
+    end
+
+    it 'returns nil if no response_map matching ID' do
+      @tester.response_map = {}
+
+      result = @tester.response_header(@patient_id, 'Content-Type')
+
+      expect(result).to be(nil)
+    end
+
+    it 'returns nil if no headers in response' do
+      @tester.response_map[@patient_id].delete(:headers)
+
+      result = @tester.response_header(@patient_id, 'Content-Type')
+
+      expect(result).to be(nil)
+    end
+
+    it 'returns nil if header_name input and no match in request headers' do
+      result = @tester.response_header(@patient_id, 'unmatched-header-key')
+
+      expect(result).to be(nil)
+    end
+
+    it 'returns all headers if no header_name input' do
+      result = @tester.response_header(@patient_id, nil)
+
+      expect(result).to be(@tester.reply.request[:headers])
+    end
+  end
+
+  describe '.request_header' do
+    it 'uses header from request_map matching ID' do
+      result = @tester.request_header(@patient_id, 'Content-Type')
+
+      expect(result).to eq('Content-Type-value')
+    end
+
+    it 'returns nil if no headers in request' do
+      @tester.request_map[@patient_id].delete(:headers)
+
+      result = @tester.request_header(@patient_id, 'Content-Type')
+
+      expect(result).to be(nil)
+    end
+
+    it 'returns nil if header_name input and no match in request headers' do
+      result = @tester.request_header(@patient_id, 'unmatched-header-key')
+
+      expect(result).to be(nil)
+    end
+
+    it 'returns all headers if no header_name input' do
+      result = @tester.request_header(@patient_id, nil)
+
+      expect(result).to be(@tester.reply.request[:headers])
+    end
+  end
+
+  describe '.content_type' do
+    before do
+      @assert.contentType = @tester.request_map[@patient_id][:headers]['Content-Type']
+    end
+
+    context 'with sourceId' do
+      before { @assert.sourceId = @patient_id }
+
+      it 'pass if expected Content-Type header in the stored sourceId request' do
+        expect(@tester).to receive(:pass_message)
+
+        @tester.content_type(@assert)
+      end
+
+      it 'fail if no Content-Type header in the stored sourceId request' do
+        @tester.request_map[@patient_id][:headers].delete('Content-Type')
+
+        expect { @tester.content_type(@assert) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message("Content-Type", nil, "equals", @assert.contentType))
+      end
+
+      it 'fail if unexpected Content-Type header in the stored sourceId request' do
+        @tester.request_map[@patient_id][:headers]['Content-Type'] = 'random'
+
+        expect { @tester.content_type(@assert) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message("Content-Type", 'random', "equals", @assert.contentType))
+      end
+    end
+
+    context 'with no sourceId' do
+      it 'pass if expected Content-Type header in the last request' do
+        expect(@tester).to receive(:pass_message)
+
+        @tester.content_type(@assert)
+      end
+
+      it 'fail if no Content-Type header in the last request' do
+        @tester.reply.request[:headers].delete('Content-Type')
+
+        expect { @tester.content_type(@assert) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message("Content-Type", nil, "equals", @assert.contentType))
+      end
+
+      it 'fail if unexpected Content-Type header in the last request' do
+        @tester.reply.request[:headers]['Content-Type'] = 'random'
+
+        expect { @tester.content_type(@assert) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message("Content-Type", 'random', "equals", @assert.contentType))
+      end
+    end
+  end
+
+  describe '.expression' do
+    before do
+      @assert.value = 'Rainbow'
+      @assert.expression = 'Patient.address.first().district'
+    end
+
+    context 'with sourceId' do
+      before { @assert.sourceId = @patient_id }
+
+      it 'pass if expected expression in the stored sourceId fixture' do
+        expect(@tester).to receive(:pass_message)
+
+        @tester.expression(@assert)
+      end
+
+      it 'fail if unexpected expression in the stored sourceId fixture' do
+        @assert.value = 'unexpected'
+
+        expect { @tester.expression(@assert) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message("Expression", 'Rainbow', "equals", @assert.value))
+      end
+
+      it 'raises an AssertionException if no stored sourceId fixture' do
+        @assert.sourceId = 'bad_source_id'
+
+        expect { @tester.expression(@assert) }
+          .to raise_exception(Assertion::AssertionException, "No resource given by sourceId.")
+      end
+    end
+
+    context 'with no sourceId' do
+      before { @assert.sourceId = nil }
+
+      it 'pass if expected expression in the last response' do
+        expect(@tester).to receive(:pass_message)
+
+        @tester.expression(@assert)
+      end
+
+      it 'fail if unexpected expression in the last response' do
+        @assert.value = 'unexpected'
+
+        expect { @tester.expression(@assert) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message("Expression", 'Rainbow', "equals", @assert.value))
+      end
+
+      it 'returns nil if no last response' do
+        @tester.reply.response = nil
+
+        expect { @tester.expression(@assert) }
+          .to raise_exception(Assertion::AssertionException, "No resource given by sourceId.")
+      end
+    end
+  end
+
+  describe '.header_field' do
+    before do
+      @assert.headerField = 'Content-Type'
+      @assert.value = @tester.request_map[@patient_id][:headers]['Content-Type']
+    end
+
+    context 'with sourceId' do
+      before { @assert.sourceId = @patient_id }
+
+      it 'pass if expected header in the stored sourceId response' do
+        expect(@tester).to receive(:pass_message)
+
+        @tester.header_field(@assert)
+      end
+
+      it 'fail if expected header not in the stored sourceId response' do
+        @tester.request_map[@patient_id][:headers].delete('Content-Type')
+
+        expect { @tester.header_field(@assert) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message("Header Content-Type", nil, "equals", @assert.value))
+      end
+
+      it 'fail if unexpected header value in the stored sourceId response' do
+        @tester.request_map[@patient_id][:headers]['Content-Type'] = 'random'
+
+        expect { @tester.header_field(@assert) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message("Header Content-Type", 'random', "equals", @assert.value))
+      end
+    end
+
+    context 'with no sourceId' do
+      it 'pass if expected header in the last response' do
+        expect(@tester).to receive(:pass_message)
+
+        @tester.header_field(@assert)
+      end
+
+      it 'fail if expected header not in the last response' do
+        @tester.reply.request[:headers].delete('Content-Type')
+
+        expect { @tester.header_field(@assert) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message("Header Content-Type", nil, "equals", @assert.value))
+      end
+
+      it 'fail if unexpected Content-Type header in the last request' do
+        @tester.reply.request[:headers]['Content-Type'] = 'random'
+
+        expect { @tester.header_field(@assert) }
+          .to raise_exception(Assertion::AssertionException, @tester.fail_message("Header Content-Type", 'random', "equals", @assert.value))
+      end
+    end
+  end
+end
