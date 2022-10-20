@@ -153,11 +153,11 @@ module Assertion
     compare("Header #{assert.headerField}", received, assert.operator, expected)
   end
 
+  # TODO: Hook-in validation module
   def minimum_id(assert)
     received = get_resource(assert.sourceId)
 
     raise AssertionException.new('minimumId assert not yet supported.', :skip)
-    # result = client.validate(received, { profile_uri: assert.validateProfileId })
   end
 
   def navigation_links(assert)
@@ -199,11 +199,11 @@ module Assertion
     compare("Response", received, assert.operator, assert.response)
   end
 
+  # TODO: Hook-in validation module
   def validate_profile_id(assert)
     received = get_resource(assert.sourceId)
 
     raise AssertionException.new('validateProfileId assert not yet supported.', :skip)
-    # result = client.validate(received, { profile_uri: assert.validateProfileId })
   end
 
   def request_url(assert)
