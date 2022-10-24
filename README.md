@@ -2,7 +2,7 @@
 The TestScript Engine is an open source, command-line tool for executing [Fast
 Healthcare Interoperability Resources (FHIR)](http://hl7.org/fhir/) TestScript resources.
 
-## Using the TestScript Engine
+## Running the Engine
 
 There are two methods for running the TestScript Engine:
 
@@ -18,6 +18,15 @@ First, download the TestScript gem by running: `gem install testscript_engine`.
 Then, launch the engine by running: `testscript_engine`.
 
 This is the recommended method if you already have a collection of your own TestScripts, as it allows you the freedom of running the engine from within your TestScript repository (or anywhere).
+
+## Configure the Engine
+
+The engine can be configured through several variables, each of which has a preset value that can be modifed during runtime:
+
+- `TEST_SERVER_URL`: The endpoint against which the runnables will be executed.
+- `LOAD_NON_FHIR_FIXTURES`: Whether to ignore non-FHIR fixtures. Non-FHIR fixtures are not currently supported by the [spec](https://build.fhir.org/testscript.html), however we recognize several use cases where they would be valuable. Expects [T/F].
+- `TESTSCRIPT_PATH`: The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine. If any TestScript in the directory uses a fixture, the directory MUST also include a `fixtures` subfolder containing files whose relative paths match the reference value of a fixture within a TestScript.
+- `TESTREPORT_PATH`: The relative to the directory containing the TestReports output following their partner TestScript execution.
 
 ### Details
 
