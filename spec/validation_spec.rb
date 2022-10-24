@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../lib/testscript_engine/validation'
+require_relative '../lib/testscript_engine/validation/validation'
 require_relative '../lib/testscript_engine/message_handler'
 
 class ValidationTestClass
