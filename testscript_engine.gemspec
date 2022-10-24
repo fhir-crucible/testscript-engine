@@ -12,11 +12,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'jsonpath', '~> 1.1.2'
   s.add_development_dependency 'rspec', '~> 3.10'
   s.add_development_dependency 'webmock', '~> 3.10'
-<<<<<<< HEAD
   s.add_development_dependency 'pry-nav', '~> 1.0.0'
-=======
-  s.add_development_dependency 'pry-nav'
->>>>>>> 18148c2 (add pry-nav as development dependency)
   s.required_ruby_version = Gem::Requirement.new('>= 2.7.0')
   s.files = [Dir['lib/**/*.rb']].flatten
   s.require_paths = ['lib']

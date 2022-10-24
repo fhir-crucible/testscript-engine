@@ -88,11 +88,7 @@ GEM
       method_source (~> 1.0)
     pry-nav (1.0.0)
       pry (>= 0.9.10, < 0.15)
-<<<<<<< HEAD
     public_suffix (5.0.0)
-=======
-    public_suffix (4.0.6)
->>>>>>> 18148c2 (add pry-nav as development dependency)
     racc (1.6.0)
     rack (3.0.0)
     rest-client (2.1.0)
@@ -131,11 +127,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-<<<<<<< HEAD
   pry-nav (~> 1.0.0)
-=======
-  pry-nav
->>>>>>> 18148c2 (add pry-nav as development dependency)
   rspec (~> 3.10)
   testscript_engine!
   webmock (~> 3.10)

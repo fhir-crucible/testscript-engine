@@ -4,6 +4,7 @@ require 'pry-nav'
 require 'fhir_client'
 require_relative 'testscript_engine/testscript_runnable'
 require_relative 'testscript_engine/output/message_handler'
+require_relative 'testscript_engine/validator'
 require_relative 'testscript_engine/cli'
 
 class TestScriptEngine
