@@ -4,11 +4,12 @@ require 'pry-nav'
 require 'fhir_client'
 require_relative 'testscript_engine/testscript_runnable'
 require_relative 'testscript_engine/output/message_handler'
-require_relative 'testscript_engine/validator'
+require_relative 'testscript_engine/validation/validation'
 require_relative 'testscript_engine/cli'
 
 class TestScriptEngine
   prepend MessageHandler
+  include Validation
 
   attr_accessor :endpoint, :input_path, :testreport_path, :load_non_fhir_fixtures
 
@@ -46,8 +47,8 @@ class TestScriptEngine
   end
 
   # TODO: Tie-in stronger validation. Possibly, Inferno validator.
-  def valid_testscript?(script)
-    (script.is_a? FHIR::TestScript) && script.valid?
+  def valid_testscript? script
+    return (script.is_a? FHIR::TestScript) && valid_resource?(script)
   end
 
   # Load TestScripts and fixtures from the input_path
@@ -58,6 +59,8 @@ class TestScriptEngine
       fixture = filename.include?('/fixtures/')
       allow_non_fhir = fixture && load_non_fhir_fixtures
 
+      info(:loading_script, resource)
+      increase_space
       begin
         contents = File.read(filename)
         resource = FHIR.from_contents(contents)
@@ -77,6 +80,8 @@ class TestScriptEngine
         scripts[resource.name] = resource
         info(:loaded_script, resource.name)
       end
+      decrease_space
+      newline
     end
   end
 
