@@ -4,7 +4,7 @@ class TestReportHandlerTestClass
   include TestReportHandler
 
   def script
-    @script ||= FHIR.from_contents(File.read('spec/fixtures/basic_testscript.json'))
+    @script ||= FHIR.from_contents(File.read('spec/examples/basic_testscript.json'))
   end
 end
 
@@ -74,8 +74,8 @@ describe TestReportHandler do
 
   describe TestReportHandler::TestReportBuilder do
     before(:each) do
-      @script = FHIR.from_contents(File.read('spec/fixtures/basic_testscript.json'))
-      @report_outline = FHIR.from_contents(File.read('spec/fixtures/testreport_outline.json'))
+      @script = FHIR.from_contents(File.read('spec/examples/basic_testscript.json'))
+      @report_outline = FHIR.from_contents(File.read('spec/examples/testreport_outline.json'))
       @script_setup = @script.setup
       @report_outline_setup = @report_outline.setup
       @script_test = @script.test

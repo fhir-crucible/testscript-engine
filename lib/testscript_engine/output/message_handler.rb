@@ -41,9 +41,9 @@ module MessageHandler
   end
 
   def info(message_type, *options)
-    increase_space if (message_type == :added_fixture || message_type == :missed_fixture)
+    increase_space if (message_type == :added_fixture)
     print_out messages(message_type, *options)
-    decrease_space if (message_type == :added_fixture || message_type == :missed_fixture)
+    decrease_space if (message_type == :added_fixture)
   end
 
   def execution_results

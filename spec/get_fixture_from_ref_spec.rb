@@ -1,20 +1,20 @@
 require_relative '../lib/testscript_engine/testscript_runnable'
-require_relative '../lib/testscript_engine/message_handler'
+require_relative '../lib/testscript_engine/output/message_handler'
 
 describe TestScriptRunnable do
 	before(:all) do
-		@script = FHIR.from_contents(File.read('spec/fixtures/basic_testscript.json'))
-		@patient = FHIR.from_contents(File.read('spec/fixtures/example_patient.json'))
-		@runnable = described_class.new(@script.deep_dup)
+		@script = FHIR.from_contents(File.read('spec/examples/basic_testscript.json'))
+		@patient = FHIR.from_contents(File.read('spec/examples/example_patient.json'))
+		@runnable = described_class.new(@script.deep_dup, lambda { |k| {}[k] })
 	end
 
 	before(:each) { @reference = @script.fixture.first.resource.deep_dup }
 
-	describe '.get_resource_from_ref' do
+	describe '.get_fixture_from_ref' do
 		it 'given bad reference logs warning' do
 			expect(@runnable).to receive(:warning).with(:bad_reference)
 
-			result = @runnable.get_resource_from_ref(nil)
+			result = @runnable.get_fixture_from_ref(nil)
 
 			expect(result).to be(nil)
 		end
@@ -24,7 +24,7 @@ describe TestScriptRunnable do
 
 			expect(@runnable).to receive(:warning).with(:no_reference)
 
-			result = @runnable.get_resource_from_ref(@reference)
+			result = @runnable.get_fixture_from_ref(@reference)
 
 			expect(result).to be(nil)
 		end
@@ -34,7 +34,7 @@ describe TestScriptRunnable do
 
 			expect(@runnable).to receive(:warning).with(:unsupported_ref, 'http')
 
-			result = @runnable.get_resource_from_ref(@reference)
+			result = @runnable.get_fixture_from_ref(@reference)
 
 			expect(result).to be(nil)
 		end
@@ -45,7 +45,7 @@ describe TestScriptRunnable do
 
 				expect(@runnable).to receive(:warning).with(:no_contained_resource, '#')
 
-				result = @runnable.get_resource_from_ref(@reference)
+				result = @runnable.get_fixture_from_ref(@reference)
 
 				expect(result).to be(nil)
 			end
@@ -54,7 +54,7 @@ describe TestScriptRunnable do
 				@runnable.script.contained << @patient
 				@reference.reference = "##{@patient.id}"
 
-				result = @runnable.get_resource_from_ref(@reference)
+				result = @runnable.get_fixture_from_ref(@reference)
 
 				expect(result).to be(@patient)
 			end
@@ -62,20 +62,20 @@ describe TestScriptRunnable do
 
 		it 'given bad local reference logs warqning' do
 			expect(@runnable).to receive(:warning)
-				.with(:unable_to_load_reference, @reference.display, @reference.reference, /No such file or directory/)
+				.with(:missed_fixture, "Patient/example.json")
 
-			result = @runnable.get_resource_from_ref(@reference)
+			result = @runnable.get_fixture_from_ref(@reference)
 
 			expect(result).to be(nil)
 		end
 
 		it 'given good local reference logs and returns resource' do
 			expect(@runnable).to receive(:info)
-				.with(:loaded_static_fixture, "fixtures/example_patient.json", "basic_testscript")
+				.with(:added_fixture, "examples/example_patient.json")
 
-			@runnable.script.url = "spec/basic_testscript"
-			@reference.reference = "fixtures/example_patient.json"
-			result = @runnable.get_resource_from_ref(@reference)
+			@runnable.instance_variable_set(:@get_fixture_block, lambda { |k| { "examples/example_patient.json" => @patient }[k] } )
+			@reference.reference = "examples/example_patient.json"
+			result = @runnable.get_fixture_from_ref(@reference)
 
 			expect(result).to be
 			expect(result.resourceType).to eq("Patient")

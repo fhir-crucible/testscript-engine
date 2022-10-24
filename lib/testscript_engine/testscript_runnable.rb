@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require_relative 'operation'
 require_relative 'assertion'
-require_relative 'message_handler'
+require_relative 'output/message_handler'
 require_relative 'testreport_handler'
 
 class TestScriptRunnable
@@ -10,7 +10,7 @@ class TestScriptRunnable
   prepend MessageHandler
   include TestReportHandler
 
-  attr_accessor :script, :client, :reply
+  attr_accessor :script, :client, :reply, :get_fixture_block
 
   def id_map
     @id_map ||= {}
@@ -36,10 +36,10 @@ class TestScriptRunnable
     @autodelete_ids ||= []
   end
 
-  def initialize(script)
+  def initialize(script, block)
     raise ArgumentError.new(messages(:bad_script)) unless script.is_a?(FHIR::TestScript)
     raise ArgumentError.new(messages(:invalid_script_input)) unless script.valid?
-
+    self.get_fixture_block = block
     @script = script
     load_fixtures
   end
@@ -163,7 +163,7 @@ class TestScriptRunnable
       next warning(:no_static_fixture_id) unless fixture.id
       next warning(:no_static_fixture_resource) unless fixture.resource
 
-      resource = get_resource_from_ref(fixture.resource)
+      resource = get_fixture_from_ref(fixture.resource)
       next unless resource
 
       fixtures[fixture.id] = resource
@@ -172,7 +172,7 @@ class TestScriptRunnable
     end
   end
 
-  def get_resource_from_ref(reference)
+  def get_fixture_from_ref(reference)
     return warning(:bad_reference) unless reference.is_a?(FHIR::Reference)
 
     ref = reference.reference
@@ -184,21 +184,10 @@ class TestScriptRunnable
       return contained || warning(:no_contained_resource, ref)
     end
 
-    begin
-      fixture_path = script.url.split('/')[0...-1].join('/')
-      filepath = File.expand_path(ref, File.absolute_path(fixture_path))
-      unless File.exists? filepath
-        fixtures_filepath = File.expand_path("fixtures/#{ref}", File.absolute_path(fixture_path))
-        filepath = fixtures_filepath if File.exists? fixtures_filepath
-      end
-      file = File.open(filepath, 'r:UTF-8', &:read)
-      file.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
-      resource = FHIR.from_contents(file)
-      info(:loaded_static_fixture, ref, script.id)
-      return resource
-    rescue => e
-      warning(:unable_to_load_reference, (reference.display || reference.id), ref, e.message)
-    end
+    ref.gsub!('fixtures/', "")
+    fixture = get_fixture_block.call(ref)
+    fixture ? info(:added_fixture, ref) : warning(:missed_fixture, ref)
+    fixture
   end
 
   def storage(op)

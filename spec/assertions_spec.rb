@@ -1,6 +1,4 @@
 require_relative '../lib/testscript_engine/assertion'
-require 'fhir_models'
-require 'fhir_client'
 
 class AssertionTestClass
   include Assertion
@@ -27,7 +25,7 @@ describe Assertion do
   before(:each) do
     @tester = AssertionTestClass.new
     @patient_id = 'patient_id'
-    patient = FHIR.from_contents(File.read('spec/fixtures/example_patient.json'))
+    patient = FHIR.from_contents(File.read('spec/examples/example_patient.json'))
     url = 'https://example.com'
     header = { 'Content-Type' => 'Content-Type-value' }
     request = { method: :get, url: url, path: "Patient/123", headers: header }
