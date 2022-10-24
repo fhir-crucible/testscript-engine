@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 require_relative '../lib/testscript_engine/validation'
+require_relative '../lib/testscript_engine/output/message_handler'
 
 class ValidationTestClass
+  prepend MessageHandler
   include Validation
 end
 
@@ -137,11 +139,15 @@ describe Validation do
 
       result = @validation_tester.validation_response
 
-      expect(result).to eq(FHIR::OperationOutcome.new(issue:
-        FHIR::OperationOutcome::Issue.new(
-          severity: 'error',
-          diagnostics: "Unable to process response from validation endpoint: #{@url}"
-        )))
+      expect(result).to eq(FHIR::OperationOutcome.new(
+          issue: FHIR::OperationOutcome::Issue.new(
+            severity: 'error',
+            details: FHIR::CodeableConcept.new(
+              text: "Unable to process response from validation endpoint: #{@url}"
+            )
+          )
+        )
+      )
     end
 
     it 'returns the JSON response as an OperationOutcome' do

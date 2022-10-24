@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'fhir_client'
+require 'pry-nav' # TODO: Remove
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                                                               #
@@ -55,7 +56,37 @@ module Validation
   # If the response (as OperationOutcome) has an issue with severity
   # fatal or error, then a validation error exists. Else, no errors.
   def validation_errors?
-    validation_response.issue.any? { |issue| issue.severity != 'information' || issue.severity != 'warning' }
+    result = false
+
+    validation_response.issue.each do |issue|
+      severity = issue_severity(issue)
+      send(severity.to_sym, :validation_msg, issue_message(issue))
+      result = true if severity == 'error'
+    end
+
+    result
+  end
+
+  def issue_severity(issue)
+    case issue.severity
+    when 'warning'
+      'warning'
+    when 'information'
+      'info'
+    else
+      'error'
+    end
+  end
+
+  def issue_message(issue)
+    location = if issue.respond_to?(:expression)
+      issue.expression&.join(', ')
+    elsif
+      issue.location&.join(', ')
+    end
+
+    location = "#{location}: " unless location.empty?
+    location + "#{issue&.details&.text}"
   end
 
   # Wrap the response in an FHIR::OperationOutcome object
@@ -65,7 +96,9 @@ module Validation
     FHIR::OperationOutcome.new(
       issue: FHIR::OperationOutcome::Issue.new(
         severity: 'error',
-        diagnostics: "Unable to process response from validation endpoint: #{reply.request[:url]}"
+        details: FHIR::CodeableConcept.new(
+          text: "Unable to process response from validation endpoint: #{reply.request[:url]}"
+        )
       )
     )
   end
