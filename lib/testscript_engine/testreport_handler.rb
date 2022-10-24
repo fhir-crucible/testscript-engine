@@ -168,7 +168,7 @@ module TestReportHandler
       report.status = 'in-progress'
       report.tester = 'The MITRE Corporation'
       report.id = testscript_blueprint.id&.gsub(/(?i)testscript/, 'testreport')
-      report.name = testscript_blueprint.name&.gsub(/(?i)testscript/, 'TestReport')
+      report.name = testscript_blueprint.name&.gsub(/(?i)testscript/, 'testreport')
       report.testScript = FHIR::Reference.new({
         reference: testscript_blueprint.url,
         type: "http://hl7.org/fhir/R4B/testscript.html"
