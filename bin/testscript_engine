@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require 'testscript_engine'
 
 TestScriptEngine::CLI.start
