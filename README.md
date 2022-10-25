@@ -6,13 +6,13 @@ Healthcare Interoperability Resources (FHIR)](http://hl7.org/fhir/) TestScript r
 
 There are two methods for running the TestScript Engine:
 
- * **LOCAL INSTALLATION**
+ * **WITHIN THIS REPO**
 
-Clone [this repository](https://github.com/fhir-crucible/testscript-engine) and navigate to your local copy. Once there, run: `bundle install` followed by `ruby run.rb`. This will start the engine within the context of your local copy.
+Clone [this repository](https://github.com/fhir-crucible/testscript-engine) and navigate to your local copy. Once there, run: `bundle install` followed by `bundle exec bin/testscript_engine`. This will start the engine within the context of your local copy.
 
 This is the recommended method if you don't have TestScripts of your own, as this repository includes sample TestScripts in the `./TestScripts` folder for processing and execution.
 
-* **GEM EXECUTABLE**
+* **FROM ANYWHERE**
 
 First, download the TestScript gem by running: `gem install testscript_engine`.
 Then, launch the engine by running: `testscript_engine`.
