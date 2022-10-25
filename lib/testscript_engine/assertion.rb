@@ -12,13 +12,6 @@ module Assertion
     end
   end
 
-  class ::Hash
-    def deep_merge(second)
-      merger = proc { |_, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : Array === v1 && Array === v2 ? v1 | v2 : [:undefined, nil, :nil].include?(v2) ? v1 : v2 }
-      merge(second.to_h, &merger)
-    end
-  end
-
   ASSERT_TYPES_MATCHER = /(?<=\p{Ll})(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})/
 
   ASSERT_TYPES = [
@@ -160,19 +153,22 @@ module Assertion
     compare("Header #{assert.headerField}", received, assert.operator, expected)
   end
 
+  def deep_merge(first, second)
+    merger = proc { |_, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : Array === v1 && Array === v2 ? v1 | v2 : [:undefined, nil, :nil].include?(v2) ? v1 : v2 }
+    return first.merge(second.to_h, &merger)
+  end
+
   def minimum_id(assert)
     received = get_resource(assert.sourceId)
     minimum = get_resource(assert.minimumId)
 
-    if received.to_hash.deep_merge(minimum.to_hash) != received.to_hash
+    if deep_merge(received.to_hash, minimum.to_hash) == received.to_hash
       pass_message("minimumId", nil , nil, assert.minimumId)
     else
       fail_message = fail_message("minimumId", nil, nil, assert.minimumId)
       raise AssertionException.new(fail_message, :fail)
     end
         
-    # raise AssertionException.new('minimumId assert not yet supported.', :skip)
-    # result = client.validate(received, { profile_uri: assert.validateProfileId })
   end
   
   def navigation_links(assert)
