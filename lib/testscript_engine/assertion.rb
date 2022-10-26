@@ -166,6 +166,7 @@ module Assertion
       pass_message("minimumId", nil , nil, assert.minimumId)
     else
       fail_message("minimumId", nil, nil, assert.minimumId)
+      raise AssertionException.new(fail_message, :fail)
     end
   end
   
