@@ -165,10 +165,8 @@ module Assertion
     if deep_merge(received.to_hash, minimum.to_hash) == received.to_hash
       pass_message("minimumId", nil , nil, assert.minimumId)
     else
-      fail_message = fail_message("minimumId", nil, nil, assert.minimumId)
-      raise AssertionException.new(fail_message, :fail)
+      fail_message("minimumId", nil, nil, assert.minimumId)
     end
-        
   end
   
   def navigation_links(assert)
