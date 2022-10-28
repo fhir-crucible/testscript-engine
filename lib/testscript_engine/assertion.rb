@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'jsonpath'
+require 'httparty'
 
 module Assertion
   class AssertionException < StandardError
@@ -99,6 +100,8 @@ module Assertion
         received&.include? expected
       when 'notContains'
         !received&.include? expected
+      when 'isProfileOf'
+        profiles[expected].validates_resource?(get_resource(received))
       end
     end
 
@@ -200,10 +203,7 @@ module Assertion
   end
 
   def validate_profile_id(assert)
-    received = get_resource(assert.sourceId)
-
-    raise AssertionException.new('validateProfileId assert not yet supported.', :skip)
-    # result = client.validate(received, { profile_uri: assert.validateProfileId })
+    compare("validateProfileId", assert.sourceId, 'isProfileOf', assert.validateProfileId)
   end
 
   def request_url(assert)

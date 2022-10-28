@@ -257,6 +257,8 @@ module MessageHandler
       "Can not load TestScript. Invalid resource: [#{options[0]}]."
     when :invalid_script
       "Given invalid TestScript resource. Can not create runnable."
+    when :loaded_profile
+      "Loaded Profile: [#{options[0]}] from [#{options[1]}]."
     when :loaded_script
       "Loaded TestScript: [#{options[0]}]."
     when :loaded_static_fixture
@@ -343,6 +345,10 @@ module MessageHandler
       "No ID for static fixture. Can not load."
     when :no_static_fixture_reference
       "No reference for static fixture. Can not load."
+    when :no_static_profile_id
+      "No ID for profile. Can not load."
+    when :no_static_profile_reference
+      "No reference for profile. Can not load."
     when :no_static_fixture_resource
       "No resource for static fixture. Can not load."
     when :pass_execute_operation
