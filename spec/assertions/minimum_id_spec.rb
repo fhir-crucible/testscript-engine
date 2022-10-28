@@ -86,7 +86,7 @@ describe Assertion do
       }
 
       it 'minimum fixture is minimum of response' do
-        expect(@tester.minimum_id(@assert)).to eq(@tester.pass_message('minimumId', nil, nil, @assert.minimumId))
+        expect(@tester.minimum_id(@assert)).to eq(@tester.pass_message('minimumId', @assert.sourceId, 'minimumId', @assert.minimumId))
       end
     end
 
@@ -97,7 +97,7 @@ describe Assertion do
       }
 
       it 'minimum fixture is minimum of response' do
-        expect(@tester.minimum_id(@assert)).to eq(@tester.pass_message('minimumId', nil, nil, @assert.minimumId))
+        expect(@tester.minimum_id(@assert)).to eq(@tester.pass_message('minimumId', @assert.sourceId, 'minimumId', @assert.minimumId))
       end
     end
 
@@ -107,7 +107,7 @@ describe Assertion do
       }
 
       it 'minimum fixture is minimum of response' do
-        expect(@tester.minimum_id(@assert)).to eq(@tester.pass_message('minimumId', nil, nil, @assert.minimumId))
+        expect(@tester.minimum_id(@assert)).to eq(@tester.pass_message('minimumId', @assert.sourceId, 'minimumId', @assert.minimumId))
       end
     end
 

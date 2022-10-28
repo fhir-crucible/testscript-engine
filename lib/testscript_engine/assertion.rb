@@ -99,6 +99,8 @@ module Assertion
         received&.include? expected
       when 'notContains'
         !received&.include? expected
+      when 'minimumId'
+        deep_merge(get_resource(received).to_hash, get_resource(expected).to_hash) == get_resource(received).to_hash
       end
     end
 
@@ -159,15 +161,7 @@ module Assertion
   end
 
   def minimum_id(assert)
-    received = get_resource(assert.sourceId)
-    minimum = get_resource(assert.minimumId)
-
-    if deep_merge(received.to_hash, minimum.to_hash) == received.to_hash
-      pass_message("minimumId", nil , nil, assert.minimumId)
-    else
-      fail_message("minimumId", nil, nil, assert.minimumId)
-      raise AssertionException.new(fail_message, :fail)
-    end
+    compare("minimumId", assert.sourceId, "minimumId", assert.minimumId)
   end
   
   def navigation_links(assert)
