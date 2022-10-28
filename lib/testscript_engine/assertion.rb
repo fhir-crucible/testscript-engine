@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 require 'jsonpath'
 require 'json'
+require 'httparty'
 
 module Assertion
   class AssertionException < StandardError
@@ -269,7 +270,6 @@ module Assertion
     received = get_resource(assert.sourceId)
 
     raise AssertionException.new('validateProfileId assert not yet supported.', :skip)
-    # result = client.validate(received, { profile_uri: assert.validateProfileId })
   end
 
   def request_url(assert)

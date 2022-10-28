@@ -45,7 +45,6 @@ class TestScriptRunnable
     self.get_fixture_block = block
     @script = script
     load_fixtures
-    load_profiles
   end
 
   def run(client)
