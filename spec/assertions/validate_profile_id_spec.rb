@@ -4,15 +4,16 @@ require_relative '../../lib/testscript_engine/message_handler'
 
 describe TestScriptRunnable do
   before(:all) do
-    @script = FHIR.from_contents(File.read('spec/examples/basic_testscript.json'))
+    @script = FHIR.from_contents(File.read('spec/fixtures/basic_testscript.json'))
     @patient = FHIR.from_contents(File.read('spec/fixtures/example_patient.json'))
     @patient_uscore = FHIR.from_contents(File.read('spec/fixtures/example_patient_uscore.json'))
     @patient_profile = FHIR.from_contents(File.read('spec/fixtures/structuredefinition-us-core-patient.json'))
     @runnable = described_class.new(@script)
-    @assert = FHIR::TestScript::Setup::Action::Assert.new
     @runnable.fixtures['patient'] = @patient
     @runnable.fixtures['patient_uscore'] = @patient_uscore
     @runnable.profiles['patient_profile_id'] = @patient_profile
+
+    @assert = FHIR::TestScript::Setup::Action::Assert.new
 
   end
 

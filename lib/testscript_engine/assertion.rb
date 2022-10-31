@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 require 'jsonpath'
-require 'httparty'
 
 module Assertion
   class AssertionException < StandardError
