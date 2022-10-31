@@ -9,10 +9,10 @@ Gem::Specification.new do |s|
   s.homepage = 'https://github.com/fhir-crucible/testscript-engine'
   s.add_runtime_dependency 'activesupport', '~> 7.0.4'
   s.add_runtime_dependency 'fhir_client', '~> 5.0.3'
-  s.add_runtime_dependency 'fhir_models', '~> 4.2', '>= 4.2.1'
   s.add_runtime_dependency 'jsonpath', '~> 1.1.2'
   s.add_development_dependency 'rspec', '~> 3.10'
   s.add_development_dependency 'webmock', '~> 3.10'
+  s.add_development_dependency 'pry-nav', '~> 1.0.0'
   s.required_ruby_version = Gem::Requirement.new('>= 2.7.0')
   s.files = [Dir['lib/**/*.rb']].flatten
   s.require_paths = ['lib']
