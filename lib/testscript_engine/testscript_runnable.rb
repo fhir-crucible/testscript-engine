@@ -37,8 +37,6 @@ class TestScriptRunnable
   end
 
   def initialize(script, block)
-    raise ArgumentError.new(messages(:bad_script)) unless script.is_a?(FHIR::TestScript)
-    raise ArgumentError.new(messages(:invalid_script_input)) unless script.valid?
     self.get_fixture_block = block
     @script = script
     load_fixtures

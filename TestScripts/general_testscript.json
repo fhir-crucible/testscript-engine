@@ -75,7 +75,7 @@
           "http://hl7.org/fhir/http.html#read",
           "http://hl7.org/fhir/http.html#update"
         ],
-        "capabilities": "CapabilityStatement/example"
+        "capabilities": "http://hl7.org/fhir/CapabilityStatement/example"
       }
     ]
   },

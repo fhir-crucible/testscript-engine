@@ -57,7 +57,7 @@
         "link": [
           "http://hl7.org/fhir/http.html#read"
         ],
-        "capabilities": "CapabilityStatement/example"
+        "capabilities": "http://hl7.org/fhir/CapabilityStatement/example"
       }
     ]
   },

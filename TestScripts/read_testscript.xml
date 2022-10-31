@@ -88,7 +88,7 @@
               <a>http://hl7.org/fhir/http.html#read</a>
             </td>
             <td>
-              <a>CapabilityStatement/example</a>
+              <a>http://hl7.org/fhir/CapabilityStatement/example</a>
             </td>
           </tr>
         </table>
@@ -359,7 +359,7 @@
       <validated value='false'/>
       <description value='Patient Read Operation'/>
       <link value='http://hl7.org/fhir/http.html#read'/>
-      <capabilities value='CapabilityStatement/example'/>
+      <capabilities value='http://hl7.org/fhir/CapabilityStatement/example'/>
     </capability>
   </metadata>
   <profile id='patient-profile'>
