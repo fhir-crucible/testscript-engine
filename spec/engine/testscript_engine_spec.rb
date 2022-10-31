@@ -150,12 +150,3 @@ describe TestScriptEngine do
 
         it 'appropriately stores resource' do
           @engine.load_input
-
-          expect(@engine.scripts).to be_empty
-          expect(@engine.fixtures.keys).to include('basic_fixture_testscript.json')
-          expect(@engine.fixtures['basic_fixture_testscript.json']).to eql(FHIR.from_contents(File.read(@engine.input_path)))
-        end
-      end
-    end
-  end
-end

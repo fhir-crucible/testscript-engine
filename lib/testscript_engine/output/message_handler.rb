@@ -397,7 +397,3 @@ end
 def start_message_format(phase, *options)
   "STARTING TO #{phase}" + (options[0] ? ": [#{options[0]}]" : '')
 end
-
-def finish_message_format(phase)
-  "FINISHED #{phase}."
-end
