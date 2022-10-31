@@ -1,7 +1,7 @@
 {
   "id": "basic_testscript",
-  "url": "spec/fixtures/basic_testscript",
-  "name": "Basic TestScript",
+  "url": "spec/examples/basic_testscript",
+  "name": "basic_testscript",
   "status": "draft",
   "fixture": [
     {
