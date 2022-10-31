@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 require 'jsonpath'
-require 'json'
 require 'httparty'
 
 module Assertion
