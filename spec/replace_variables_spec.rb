@@ -47,7 +47,7 @@ describe TestScriptRunnable do
         "status": 'draft',
         "variable": [var, var1, var2]
       }
-    )
+    ), lambda { |k| {}[k] }
   end
 
   let(:client) { FHIR::Client.new('https://example.com') }

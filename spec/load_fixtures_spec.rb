@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 require_relative '../lib/testscript_engine/testscript_runnable'
-require_relative '../lib/testscript_engine/message_handler'
+require_relative '../lib/testscript_engine/output/message_handler'
 
 describe TestScriptRunnable do
   before(:all) do
-    @script = FHIR.from_contents(File.read('spec/fixtures/basic_testscript.json'))
-    @patient = FHIR.from_contents(File.read('spec/fixtures/example_patient.json'))
-    @runnable = described_class.new(@script.deep_dup)
+    @script = FHIR.from_contents(File.read('spec/examples/basic_testscript.json'))
+    @patient = FHIR.from_contents(File.read('spec/examples/example_patient.json'))
+    @runnable = described_class.new(@script.deep_dup, lambda { |k| {}[k] })
   end
 
   before(:each) do
@@ -48,7 +48,7 @@ describe TestScriptRunnable do
 
     context 'given fixture with reference' do
       before do
-        allow(@runnable).to receive(:get_resource_from_ref).and_return(@patient)
+        allow(@runnable).to receive(:get_fixture_from_ref).and_return(@patient)
       end
 
       it 'stores fixture' do
