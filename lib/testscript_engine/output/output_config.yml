@@ -1,0 +1,9 @@
+dictionary:
+  added_fixture: "Added fixture: [{option0}]."
+  creating_runnable: "Creating runnable: [{option0}]."
+  illegible_contents: "Can not load unreadable file: [{option0}]."
+  loaded_fixture: "Loaded fixture: [{option0}]."
+  loaded_script: "Loaded script: [{option0}]."
+  missed_fixture: "Could not find fixture: [{option0}]."
+  non_fhir_contents: "Can not load non-FHIR contents from file: [{option0}]."
+  non_testscript: "Can not load non-TestScript resource from file: [{option0}]."
