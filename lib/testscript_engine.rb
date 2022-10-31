@@ -59,7 +59,7 @@ class TestScriptEngine
       fixture = filename.include?('/fixtures/')
       allow_non_fhir = fixture && load_non_fhir_fixtures
 
-      info(:loading_script, resource)
+      info(:loading_script, filename)
       increase_space
       begin
         contents = File.read(filename)

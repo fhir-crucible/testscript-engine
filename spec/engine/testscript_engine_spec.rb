@@ -35,16 +35,17 @@ describe TestScriptEngine do
       context 'that is unreadable' do
         before do
           @engine.input_path = "#{Dir.pwd}/spec/examples/basic_testscript.json"
-          allow(File).to receive(:read).and_raise(:StandardError)
+          allow(File).to receive(:read).and_raise(StandardError)
         end
 
         it 'stores nothing' do
-          expect(@engine).to receive(:info).with(:illegible_file)
+          allow(@engine).to receive(:info)
 
           @engine.load_input
 
           expect(@engine.scripts.keys).to be_empty
           expect(@engine.fixtures.keys).to be_empty
+          expect(@engine).to have_received(:info).with(:illegible_file)
         end
       end
 
@@ -52,12 +53,13 @@ describe TestScriptEngine do
         before { @engine.input_path = "#{Dir.pwd}/spec/examples/non_resource.json" }
 
         it 'stores nothing' do
-          expect(@engine).to receive(:info).with(:non_fhir_contents)
+          allow(@engine).to receive(:info)
 
           @engine.load_input
 
           expect(@engine.scripts.keys).to be_empty
           expect(@engine.fixtures.keys).to be_empty
+          expect(@engine).to have_received(:info).with(:non_fhir_contents)
         end
       end
 
@@ -65,12 +67,13 @@ describe TestScriptEngine do
         before { @engine.input_path = "#{Dir.pwd}/spec/examples/invalid_json.json" }
 
         it 'stores nothing' do
-          expect(@engine).to receive(:info).with(:non_fhir_contents)
+          allow(@engine).to receive(:info)
 
           @engine.load_input
 
           expect(@engine.scripts.keys).to be_empty
           expect(@engine.fixtures.keys).to be_empty
+          expect(@engine).to have_received(:info).with(:non_fhir_contents)
         end
       end
 
@@ -78,12 +81,13 @@ describe TestScriptEngine do
         before { @engine.input_path = "#{Dir.pwd}/spec/examples/basic_testreport.json" }
 
         it 'stores nothing' do
-          expect(@engine).to receive(:info).with(:non_testscript)
+          allow(@engine).to receive(:info)
 
           @engine.load_input
 
           expect(@engine.scripts.keys).to be_empty
           expect(@engine.fixtures.keys).to be_empty
+          expect(@engine).to have_received(:info).with(:non_testscript)
         end
       end
 
@@ -104,16 +108,17 @@ describe TestScriptEngine do
       context 'that is unreadable' do
         before do
           @engine.input_path = "#{Dir.pwd}/spec/examples/fixtures/non_resource.json"
-          allow(File).to receive(:read).and_raise(:StandardError)
+          allow(File).to receive(:read).and_raise(StandardError)
         end
 
         it 'stores nothing' do
-          expect(@engine).to receive(:info).with(:illegible_file)
+          allow(@engine).to receive(:info)
 
           @engine.load_input
 
           expect(@engine.scripts.keys).to be_empty
           expect(@engine.fixtures.keys).to be_empty
+          expect(@engine).to have_received(:info).with(:illegible_file)
         end
       end
 
@@ -121,12 +126,13 @@ describe TestScriptEngine do
         before { @engine.input_path = "#{Dir.pwd}/spec/examples/fixtures/non_resource.json" }
 
         it 'stores nothing if non-FHIR unallowed' do
-          expect(@engine).to receive(:info).with(:non_fhir_contents)
+          allow(@engine).to receive(:info)
 
           @engine.load_input
 
           expect(@engine.scripts.keys).to be_empty
           expect(@engine.fixtures.keys).to be_empty
+          expect(@engine).to have_received(:info).with(:non_fhir_contents)
         end
 
         it 'stores fixture if non-FHIR allowed' do
