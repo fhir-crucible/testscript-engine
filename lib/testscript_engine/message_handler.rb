@@ -258,7 +258,7 @@ module MessageHandler
     when :invalid_script
       "Given invalid TestScript resource. Can not create runnable."
     when :loaded_script
-      "Loaded TestScript: [#{options[0]}]."
+      "Successfully loaded."
     when :loaded_static_fixture
       "Loaded static fixture [#{options[0]}]."
     when :no_postprocess
@@ -357,6 +357,10 @@ module MessageHandler
       "Uncaught error: [#{options[0]}]."
     when :unsupported_ref
       "Remote reference: [#{options[0]}] not supported. No reference extracted."
+    when :validation_msg
+      options[0]
+    when :loading_script
+      "Loading TestScript from file: [#{options[0]}]. Validating ..."
     else
       "! unknown message type !"
     end
