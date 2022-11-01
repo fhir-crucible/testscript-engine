@@ -29,9 +29,9 @@ describe Assertion do
     @patient_id = 'patient_id'
     @patient_min_id = 'patient_min_id'
 
-    patient = FHIR.from_contents(File.read('spec/fixtures/example_patient.json'))
+    patient = FHIR.from_contents(File.read('spec/examples/example_patient.json'))
     patient_min = FHIR.from_contents(File.read('spec/fixtures/example_patient_min.json'))
-    @patient = FHIR.from_contents(File.read('spec/fixtures/example_patient.json'))
+    @patient = FHIR.from_contents(File.read('spec/examples/example_patient.json'))
     @patient_min = FHIR.from_contents(File.read('spec/fixtures/example_patient_min.json'))
     url = 'https://example.com'
     header = { 'Content-Type' => 'Content-Type-value' }
