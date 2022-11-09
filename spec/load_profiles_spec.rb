@@ -18,7 +18,7 @@ describe TestScriptRunnable do
       }).
     to_return(status: 200, body: "#{@structure_definition}", headers: {})
 
-    @script = FHIR.from_contents(File.read('spec/examples/basic_testscript.json'))
+    @script = FHIR.from_contents(File.read('spec/examples/basic_testscript_profile.json'))
     @patient = FHIR.from_contents(File.read('spec/examples/example_patient.json'))
     @runnable = described_class.new(@script.deep_dup, lambda { |k| {}[k] })
   end
