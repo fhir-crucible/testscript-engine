@@ -6,12 +6,18 @@
   "fixture": [
     {
       "id": "fixture-patient-create",
-      "autocreate": true,
+      "autocreate": false,
       "autodelete": false,
       "resource": {
-        "reference": "fixtures/Patient/example.json",
+        "reference": "example_patient.json",
         "display": "Peter Chalmers"
       }
+    }
+  ],
+  "profile": [
+    {
+      "id": "patient-profile",
+      "reference": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
     }
   ],
   "setup": {
