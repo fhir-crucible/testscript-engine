@@ -14,12 +14,6 @@
       }
     }
   ],
-  "profile": [
-    {
-      "id": "patient-profile",
-      "reference": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
-    }
-  ],
   "setup": {
     "action": [
       {
