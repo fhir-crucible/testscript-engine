@@ -8,16 +8,16 @@ describe TestScriptRunnable do
     @structure_definition = File.read('spec/examples/StructureDefinition-us-core-patient.json')
 
     stub_request(:get, "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient").
-    with(
-      headers: {
-      'Accept'=>'*/*',
-      'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-      'Content-Type'=>'application/json',
-      'Host'=>'hl7.org',
-      'User-Agent'=>'rest-client/2.1.0 (darwin21.5.0 x86_64) ruby/2.7.2p137'
-      }).
+         with(
+           headers: {
+       	  'Accept'=>'*/*',
+       	  'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+       	  'Content-Type'=>'application/json',
+       	  'Host'=>'hl7.org',
+       	  'User-Agent'=>'rest-client/2.1.0 (linux x86_64) ruby/2.7.3p183'
+           }).
     to_return(status: 200, body: "#{@structure_definition}", headers: {})
-
+         
     @script = FHIR.from_contents(File.read('spec/examples/basic_testscript_profile.json'))
     @patient = FHIR.from_contents(File.read('spec/examples/example_patient.json'))
     @runnable = described_class.new(@script.deep_dup, lambda { |k| {}[k] })
