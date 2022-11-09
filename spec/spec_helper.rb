@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require 'webmock/rspec'
+require 'fhir_client'
+require 'pry-nav'
 WebMock.enable!
 
 RSpec.configure do |config|

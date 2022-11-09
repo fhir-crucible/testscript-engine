@@ -59,7 +59,7 @@
           "http://hl7.org/fhir/http.html#delete",
           "http://hl7.org/fhir/http.html#history"
         ],
-        "capabilities": "CapabilityStatement/example"
+        "capabilities": "http://hl7.org/fhir/CapabilityStatement/example"
       }
     ]
   },

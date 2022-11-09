@@ -35,7 +35,7 @@ describe Operation do
     @url = 'https://example.com'
     @tester = OperationsTestClass.new
     @tester.client = FHIR::Client.new(@url)
-    @resource = FHIR.from_contents(File.read('spec/fixtures/example_patient.json'))
+    @resource = FHIR.from_contents(File.read('spec/examples/example_patient.json'))
     @tester.fixtures[@source_id] = @resource
     @id = @tester.fixtures[@source_id].id
   end

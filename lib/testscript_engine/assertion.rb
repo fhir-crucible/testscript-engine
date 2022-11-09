@@ -99,6 +99,8 @@ module Assertion
         received&.include? expected
       when 'notContains'
         !received&.include? expected
+      when 'minimumId'
+        deep_merge(get_resource(received).to_hash, get_resource(expected).to_hash) == get_resource(received).to_hash
       when 'isProfileOf'
         profiles[expected].validates_resource?(get_resource(received))
       end
@@ -155,13 +157,15 @@ module Assertion
     compare("Header #{assert.headerField}", received, assert.operator, expected)
   end
 
-  def minimum_id(assert)
-    received = get_resource(assert.sourceId)
-
-    raise AssertionException.new('minimumId assert not yet supported.', :skip)
-    # result = client.validate(received, { profile_uri: assert.validateProfileId })
+  def deep_merge(first, second)
+    merger = proc { |_, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : Array === v1 && Array === v2 ? v1 | v2 : [:undefined, nil, :nil].include?(v2) ? v1 : v2 }
+    return first.merge(second.to_h, &merger)
   end
 
+  def minimum_id(assert)
+    compare("minimumId", assert.sourceId, "minimumId", assert.minimumId)
+  end
+  
   def navigation_links(assert)
     received = get_resource(assert.sourceId)
     result = received&.first_link && received&.last_link && received&.next_link
@@ -201,8 +205,12 @@ module Assertion
     compare("Response", received, assert.operator, assert.response)
   end
 
+  # TODO: Hook-in validation module
   def validate_profile_id(assert)
-    compare("validateProfileId", assert.sourceId, 'isProfileOf', assert.validateProfileId)
+    received = get_resource(assert.sourceId)
+
+    raise AssertionException.new('validateProfileId assert not yet supported.', :skip)
+    # result = client.validate(received, { profile_uri: assert.validateProfileId })
   end
 
   def request_url(assert)

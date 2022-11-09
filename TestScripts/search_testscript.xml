@@ -88,7 +88,7 @@
               <a>http://hl7.org/fhir/http.html#search</a>
             </td>
             <td>
-              <a>CapabilityStatement/example</a>
+              <a>http://hl7.org/fhir/CapabilityStatement/example</a>
             </td>
           </tr>
         </table>
@@ -563,7 +563,7 @@
       <validated value='false'/>
       <description value='Patient Search Operation'/>
       <link value='http://hl7.org/fhir/http.html#search'/>
-      <capabilities value='CapabilityStatement/example'/>
+      <capabilities value='http://hl7.org/fhir/CapabilityStatement/example'/>
     </capability>
   </metadata>
   <fixture id='fixture-patient-create'>

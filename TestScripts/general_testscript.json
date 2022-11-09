@@ -75,7 +75,7 @@
           "http://hl7.org/fhir/http.html#read",
           "http://hl7.org/fhir/http.html#update"
         ],
-        "capabilities": "CapabilityStatement/example"
+        "capabilities": "http://hl7.org/fhir/CapabilityStatement/example"
       }
     ]
   },
@@ -94,7 +94,7 @@
       "autocreate": false,
       "autodelete": false,
       "resource": {
-        "reference": "fixtures/Patient/example.json",
+        "reference": "fixtures/Patient/example_min.json",
         "display": "Peter Chalmers (minimum)"
       }
     }
@@ -287,6 +287,7 @@
         {
           "assert": {
             "description": "Confirm that the returned resource contains the expected retained elements and values. Warning only to provide users with reviewable results.",
+            "sourceId": "fixture-patient-read",
             "minimumId": "fixture-patient-minimum",
             "warningOnly": true
           }

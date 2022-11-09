@@ -2,6 +2,7 @@
 require_relative 'lib/testscript_engine'
 
 @test_server_url = "http://hapi.fhir.org/baseR4"
+@load_non_fhir_fixtures = true
 @testscript_path = "./TestScripts"
 @testreport_path = "./TestReports"
 
@@ -13,6 +14,7 @@ end
 def configuration
 %(The configuration is as follows: \n
 	SERVER UNDER TEST: [#{@test_server_url}]
+	LOAD NON-FHIR FIXTURES: [#{@load_non_fhir_fixtures.to_s.upcase}]
 	TESTSCRIPT INPUT DIRECTORY or FILE: [#{@testscript_path}]
 	TESTREPORT OUTPUT DIRECTORY: [#{@testreport_path}] \n
 Would you like to modify this configuration? [Y/N] )
@@ -31,6 +33,12 @@ def modify_configuration
 	print "Set [SERVER UNDER TEST] (press return to skip): "
 	input = gets.chomp
 	@test_server_url = input unless input.strip == ""
+
+	print "Set [LOAD NON-FHIR FIXTURES] (expecting T/F, press return to skip): "
+	input = gets.chomp
+	unless input.strip == ""
+		@load_non_fhir_fixtures = (input.downcase == 'f' ? false : true )
+	end
 
 	print "Set [TESTSCRIPT INPUT DIRECTORY or FILE] (press return to skip): "
 	input = gets.chomp
@@ -63,8 +71,8 @@ end
 print "Hello from the TestScriptEngine! "
 approve_configuration
 
-engine = TestScriptEngine.new(@test_server_url, @testscript_path, @testreport_path)
-engine.load_scripts
+engine = TestScriptEngine.new(@test_server_url, @testscript_path, @testreport_path, load_non_fhir_fixtures: @load_non_fhir_fixtures)
+engine.load_input
 engine.make_runnables
 
 print "Now able to execute runnables. \n"

@@ -23,8 +23,8 @@ describe TestScriptRunnable do
     @patient = FHIR.from_contents(patient_json)
     @client_reply = FHIR::ClientReply.new(request, response, client)
     @operation = FHIR::TestScript::Setup::Action::Operation.new
-    @script = FHIR.from_contents(File.read('spec/fixtures/basic_testscript.json'))
-    @runnable = TestScriptRunnable.new(@script)
+    @script = FHIR.from_contents(File.read('spec/examples/basic_testscript.json'))
+    @runnable = TestScriptRunnable.new(@script, lambda { |k| {}[k] })
     @runnable.client = client
   end
 
