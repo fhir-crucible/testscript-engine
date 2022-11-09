@@ -6,10 +6,10 @@
   "fixture": [
     {
       "id": "fixture-patient-create",
-      "autocreate": false,
+      "autocreate": true,
       "autodelete": false,
       "resource": {
-        "reference": "example_patient.json",
+        "reference": "fixtures/Patient/example.json",
         "display": "Peter Chalmers"
       }
     }
