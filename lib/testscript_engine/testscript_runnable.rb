@@ -20,6 +20,10 @@ class TestScriptRunnable
     @fixtures ||= {}
   end
 
+  def profiles
+    @profiles ||= {}
+  end
+
   def request_map
     @request_map ||= {}
   end
@@ -40,6 +44,7 @@ class TestScriptRunnable
     self.get_fixture_block = block
     @script = script
     load_fixtures
+    load_profiles
   end
 
   def run(client)
@@ -167,6 +172,20 @@ class TestScriptRunnable
       fixtures[fixture.id] = resource
       autocreate << fixture.id if fixture.autocreate
       autodelete_ids << fixture.id if fixture.autodelete
+    end
+  end
+
+  def load_profiles
+    script.profile.each do |profile|
+      next warning(:no_static_profile_id) unless profile.id
+      next warning(:no_static_profile_reference) unless profile.reference
+
+      profile_server = FHIR::Client.new("")
+      response = profile_server.send(:get, profile.reference, { 'Content-Type' => 'json' })
+      next if response.response[:code] == "200"
+
+      profiles[profile.id] = FHIR.from_contents(response.response[:body].to_s)
+      info(:loaded_profile, profile.id, profile.reference)
     end
   end
 
