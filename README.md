@@ -31,8 +31,10 @@ The engine can be configured through several variables, each of which has a pres
 ### Commandline Arguments
 
 Some configurations can be set using command line arguments:
-- `-r` or `--runnable`: the next argument must be the name of runnable to execute. Only works if the noninteractive flag is provided.
+- `-r` or `--runnable`: the next argument must be the name of runnable to execute (from `TestScript.name`). Only works if the noninteractive flag is provided. 
 - `-n` or `--noninteractive`: disable confirmation of configuration settings
+
+For example, to execute the TestScript runnable in file `TestScripts/read_testscript.json` (with name `TestScript Example Read Test`) in non-interactive mode, execute `bundle exec bin/testscript_engine -n -r "TestScript Example Read Test"`.
 
 ## Details
 
