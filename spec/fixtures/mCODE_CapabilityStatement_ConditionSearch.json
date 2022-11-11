@@ -1,0 +1,31 @@
+{
+    "resourceType" : "CapabilityStatement",
+    "rest" : [
+      {
+        "mode" : "server",
+        "resource" : [
+          {
+            "type" : "Condition",
+            "supportedProfile" : [
+              "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-primary-cancer-condition"
+            ],
+            "interaction" : [
+              {
+                "code" : "search-type"
+              }
+            ],
+            "searchInclude" : [
+              "Condition:subject"
+            ],
+            "searchParam" : [
+              {
+                "name" : "code:in",
+                "definition" : "http://hl7.org/fhir/us/mcode/SearchParameter/Condition-code",
+                "type" : "uri"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }

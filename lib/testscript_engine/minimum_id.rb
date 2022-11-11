@@ -2,6 +2,10 @@ require 'json'
 
 pt_compare = JSON.parse(File.read('./spec/fixtures/example_patient.json'))
 pt_minimum = JSON.parse(File.read('./spec/fixtures/example_patient_min.json'))
+pt_name_compare = JSON.parse(File.read('./spec/fixtures/patient_just_name.json'))
+pt_name_minimum = JSON.parse(File.read('./spec/fixtures/patient_just_name_min.json'))
+mCODE_cs_compare = JSON.parse(File.read('./spec/fixtures/mCODE_CapabilityStatement_exampleServer.json'))
+mCODE_cs_minimum = JSON.parse(File.read('./spec/fixtures/mCODE_CapabilityStatement_ConditionSearch.json'))
 @flg = false
 
 def find_match(data, l, k_target, v_target, l_target)
@@ -42,3 +46,8 @@ def eval_min(min_obj, tar_obj, level)
 end
 
 eval_min(pt_minimum, pt_compare, 0)
+puts @flg
+eval_min(pt_name_minimum, pt_name_compare, 0)
+puts @flg
+eval_min(mCODE_cs_minimum, mCODE_cs_compare, 0)
+puts @flg
