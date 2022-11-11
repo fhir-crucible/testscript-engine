@@ -4,6 +4,8 @@ pt_compare = JSON.parse(File.read('./spec/fixtures/example_patient.json'))
 pt_minimum = JSON.parse(File.read('./spec/fixtures/example_patient_min.json'))
 pt_name_compare = JSON.parse(File.read('./spec/fixtures/patient_just_name.json'))
 pt_name_minimum = JSON.parse(File.read('./spec/fixtures/patient_just_name_min.json'))
+pt_twoNames_compare_jumbled = JSON.parse(File.read('./spec/fixtures/patient_two_names_jumbled.json'))
+pt_twoNames_minimum = JSON.parse(File.read('./spec/fixtures/patient_two_names_min.json'))
 mCODE_cs_compare = JSON.parse(File.read('./spec/fixtures/mCODE_CapabilityStatement_exampleServer.json'))
 mCODE_cs_compare_fail = JSON.parse(File.read('./spec/fixtures/mCODE_CapabilityStatement_exampleServer_shouldFail.json'))
 mCODE_cs_minimum = JSON.parse(File.read('./spec/fixtures/mCODE_CapabilityStatement_ConditionSearch.json'))
@@ -49,6 +51,8 @@ end
 eval_min(pt_minimum, pt_compare, 0)
 puts @flg
 eval_min(pt_name_minimum, pt_name_compare, 0)
+puts @flg
+eval_min(pt_twoNames_minimum, pt_twoNames_compare_jumbled, 0)
 puts @flg
 eval_min(mCODE_cs_minimum, mCODE_cs_compare, 0)
 puts @flg
