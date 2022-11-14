@@ -28,11 +28,19 @@ The engine can be configured through several variables, each of which has a pres
 - `TESTSCRIPT_PATH`: The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine. If any TestScript in the directory uses a fixture, the directory MUST also include a `fixtures` subfolder containing files whose relative paths match the reference value of a fixture within a TestScript.
 - `TESTREPORT_PATH`: The relative to the directory containing the TestReports output following their partner TestScript execution.
 
-### Details
+### Commandline Arguments
+
+Some configurations can be set using command line arguments:
+- `-r` or `--runnable`: the next argument must be the name of runnable to execute (from `TestScript.name`). Only works if the noninteractive flag is provided. 
+- `-n` or `--noninteractive`: disable confirmation of configuration settings
+
+For example, to execute the TestScript runnable in file `TestScripts/read_testscript.json` (with name `TestScript Example Read Test`) in non-interactive mode, execute `bundle exec bin/testscript_engine -n -r "TestScript Example Read Test"`.
+
+## Details
 
 TestScripts are validated and loaded in by the engine. By default, the engine looks for a `./TestScripts` folder in its given context, but will allow the user to specify an alternate path. Once scripts are loaded, they are converted into 'runnables'. The engine allows users to specify which runnable to execute, and by default will execute all available runnables. Likewise, the user can specify the endpoint upon which the runnable(s) should be executed. Following execution, the user can either re-execute -- specifying a different runnable or endpoint -- or shut-down the engine. Finally, the results from each runnable's latest execution are written out to the `./TestReports` folder.
 
-### Limitations
+## Limitations
 There are known gaps in the TestScript Engine:
 * Support for minimumId
 * Support for validateProfileId
@@ -42,7 +50,7 @@ There are known gaps in the TestScript Engine:
 
 The TestScript Engine is still in the infancy of its development; it is neither fully complete nor bug-free and we encourage contributions, feedback, and issue-opening from the community.
 
-### About the Project
+## About the Project
 
 The purpose of the TestScript Engine is to support and encourage essential aspects of FHIR testing through the following features:
 
@@ -53,7 +61,7 @@ The purpose of the TestScript Engine is to support and encourage essential aspec
 
 
 
-### Folders and Files
+## Folders and Files
   - `./lib`
     - `assertion.rb`
     - `operation.rb`
