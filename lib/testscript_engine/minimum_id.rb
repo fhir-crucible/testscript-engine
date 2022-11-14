@@ -9,52 +9,38 @@ pt_twoNames_minimum = JSON.parse(File.read('./spec/fixtures/patient_two_names_mi
 mCODE_cs_compare = JSON.parse(File.read('./spec/fixtures/mCODE_CapabilityStatement_exampleServer.json'))
 mCODE_cs_compare_fail = JSON.parse(File.read('./spec/fixtures/mCODE_CapabilityStatement_exampleServer_shouldFail.json'))
 mCODE_cs_minimum = JSON.parse(File.read('./spec/fixtures/mCODE_CapabilityStatement_ConditionSearch.json'))
-@flg = false
 
-def find_match(data, l, k_target, v_target, l_target)
-    if data.is_a?(Hash) 
-        data.each do |k, v|
-            if v.is_a?(Hash) || v.is_a?(Array)
-                find_match(v, l+1, k_target, v_target, l_target) 
+module Enumerable
+    def flatten_with_path(parent_prefix = nil)
+        res = {}
+  
+        self.each_with_index do |elem, i|
+            if elem.is_a?(Array)
+                k, v = elem
+            else
+                k, v = 0, elem # change v = i to make order-aware
             end
-            @flg = true if (v_target == v && k_target == k && l_target == l)
-        end
-    end
 
-    if data.is_a?(Array) 
-        data.each do |d| 
-            find_match(d, l+1, k_target, v_target, l_target)
+            key = parent_prefix ? "#{parent_prefix}.#{k}" : k
+    
+            if v.is_a? Enumerable
+                res.merge!(v.flatten_with_path(key)) 
+            else
+                res[key] = v
+            end
         end
+        res
     end
 end
 
-def eval_min(min_obj, tar_obj, level)
-    if min_obj.is_a?(Hash) 
-        min_obj.each do |k, v|
-            if v.is_a?(Hash) || v.is_a?(Array)
-                eval_min(v, tar_obj, level+1) 
-                next
-            end
-            @flg = false
-            find_match(tar_obj, 0, k, v, level)
-            puts("Match? #{k} #{v} #{level} #{@flg}")
-        end
+def exam_minimum(min, target)
+    min.each do |k, v|
+        return false if target[k] != v
     end
-
-    if min_obj.is_a?(Array) 
-        min_obj.each do |d|
-            eval_min(d, tar_obj, level+1)
-        end
-    end
+    return true
 end
 
-eval_min(pt_minimum, pt_compare, 0)
-puts @flg
-eval_min(pt_name_minimum, pt_name_compare, 0)
-puts @flg
-eval_min(pt_twoNames_minimum, pt_twoNames_compare_jumbled, 0)
-puts @flg
-eval_min(mCODE_cs_minimum, mCODE_cs_compare, 0)
-puts @flg
-eval_min(mCODE_cs_minimum, mCODE_cs_compare_fail, 0)
-puts @flg
+puts exam_minimum(pt_minimum.flatten_with_path, pt_compare.flatten_with_path)
+puts exam_minimum(pt_twoNames_minimum.flatten_with_path, pt_twoNames_compare_jumbled.flatten_with_path)
+puts exam_minimum(mCODE_cs_minimum.flatten_with_path, mCODE_cs_compare.flatten_with_path)
+puts exam_minimum(mCODE_cs_minimum.flatten_with_path, mCODE_cs_compare_fail.flatten_with_path)
