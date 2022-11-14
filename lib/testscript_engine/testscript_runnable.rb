@@ -182,7 +182,7 @@ class TestScriptRunnable
 
       profile_server = FHIR::Client.new("")
       response = profile_server.send(:get, profile.reference, { 'Content-Type' => 'json' })
-      next if response.response[:code] == "2x"
+      next if response.response[:code].starts_with?('2')
 
       profiles[profile.id] = FHIR.from_contents(response.response[:body].to_s)
       info(:loaded_profile, profile.id, profile.reference)
