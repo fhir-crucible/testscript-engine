@@ -1,0 +1,44 @@
+{
+    "resourceType": "CapabilityStatement",
+    "rest": [
+      {
+        "mode": "server",
+         "resource": [
+          {
+            "type": "Patient",
+            "supportedProfile": [
+              "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-cancer-patient"
+            ],
+            "interaction": [
+              {
+                "code": "read"
+              }
+            ],
+            "searchParam": [
+              {
+                "name": "_id",
+                "definition": "http://hl7.org/fhir/us/mcode/SearchParameter/Patient-id",
+                "type": "token"
+              }
+            ]
+          },
+          {
+            "type": "Group",
+            "interaction": [
+              {
+                "code": "search-type",
+                "documentation": "Retrieve Group of references to Patient resources conforming to mCODE."
+              }
+            ],
+            "searchParam": [
+              {
+                "name": "code",
+                "definition": "http://hl7.org/fhir/SearchParameter/Group-code",
+                "type": "token"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
