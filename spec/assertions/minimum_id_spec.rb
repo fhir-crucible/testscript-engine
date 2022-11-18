@@ -12,29 +12,29 @@ describe 'minimum_id' do
     mCODE_cs_compare_fail = JSON.parse(File.read('./spec/fixtures/mCODE_CapabilityStatement_exampleServer_shouldFail.json'))
     mCODE_cs_minimum = JSON.parse(File.read('./spec/fixtures/mCODE_CapabilityStatement_ConditionSearch.json'))
 
-    describe 'use two FHIR resources to examine minimum of the other' do
+    describe 'to examine minimum of the other' do
 
         context 'with pt_minimum, pt_compare' do
-            it 'returns false' do
-                expect(exam_minimum(pt_minimum.flatten_with_path, pt_compare.flatten_with_path)).to be(false)
+            it 'returns true' do
+                expect(check_minimum_id(pt_minimum, pt_compare)).to be(true)
             end
         end
     
         context 'with pt_twoNames_minimum, pt_twoNames_compare_jumbled' do
             it 'returns false' do
-                expect(exam_minimum(pt_twoNames_minimum.flatten_with_path, pt_twoNames_compare_jumbled.flatten_with_path)).to be(false)
+                expect(check_minimum_id(pt_twoNames_minimum, pt_twoNames_compare_jumbled)).to be(false)
             end
         end
 
         context 'with mCODE_cs_minimum, mCODE_cs_compare' do
-            it 'returns false' do
-                expect(exam_minimum(mCODE_cs_minimum.flatten_with_path, mCODE_cs_compare.flatten_with_path)).to be(false)
+            it 'returns true' do
+                expect(check_minimum_id(mCODE_cs_minimum, mCODE_cs_compare)).to be(true)
             end
         end
 
         context 'with mCODE_cs_minimum, mCODE_cs_compare_fail' do
             it 'returns false' do
-                expect(exam_minimum(mCODE_cs_minimum.flatten_with_path, mCODE_cs_compare_fail.flatten_with_path)).to be(false)
+                expect(check_minimum_id(mCODE_cs_minimum, mCODE_cs_compare_fail)).to be(false)
             end
         end
     end

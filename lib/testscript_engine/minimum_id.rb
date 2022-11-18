@@ -1,31 +1,44 @@
 require 'json'
 
-module Enumerable
-    def flatten_with_path(parent_prefix = nil)
-        res = {}
-  
-        self.each_with_index do |elem, i|
-            if elem.is_a?(Array)
-                k, v = elem
-            else
-                k, v = 0, elem # change v = i to make order-aware
-            end
-
-            key = parent_prefix ? "#{parent_prefix}.#{k}" : k
+def check_minimum_id(spec, actual)
     
-            if v.is_a? Enumerable
-                res.merge!(v.flatten_with_path(key)) 
-            else
-                res[key] = v
-            end
-        end
-        res
+    if spec.is_a?(Hash) && actual.is_a?(Hash)
+        return !check_minimum_id_hash(spec, actual)
     end
+
+    if spec.is_a?(Array) && actual.is_a?(Array)
+        return !check_minimum_id_array(spec, actual)
+    end
+
+    return spec == actual
 end
 
-def exam_minimum(min, target)
-    min.each do |k, v|
-        return false if target[k] != v
+def check_minimum_id_hash(spec, actual)
+    err_flg = false
+
+    spec.each do |k, v|
+        err_flg = true unless check_minimum_id(spec[k], actual[k]) 
     end
-    return true
+
+    return err_flg
+end
+
+def check_minimum_id_array(spec, actual)
+    err_flg = false
+
+    spec.each do |_spec|
+        found_flg = false
+        
+        actual.each do |_actual|
+            if check_minimum_id(_spec, _actual)
+                actual.delete(_actual) 
+                found_flg = true
+                break
+            end
+        end
+
+        err_flg = true unless found_flg
+    end
+
+    return err_flg
 end
