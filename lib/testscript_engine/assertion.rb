@@ -157,7 +157,7 @@ module Assertion
   end
 
   def minimum_id(assert)
-    compare("minimumId", assert.sourceId, "minimumId", assert.minimumId)
+    compare("sourceId", assert.sourceId, "minimumId", assert.minimumId)
   end
 
   def check_minimum_id(spec, actual)
