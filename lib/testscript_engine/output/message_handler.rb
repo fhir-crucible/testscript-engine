@@ -281,6 +281,8 @@ module MessageHandler
         "Given invalid TestScript resource. Can not create runnable."
       when :loaded_script
         "Successfully loaded."
+      when :loaded_profile
+        "Loaded profile [#{options[0]}] from #{options[1]}"
       when :loaded_static_fixture
         "Loaded static fixture [#{options[0]}]."
       when :no_postprocess
@@ -363,6 +365,8 @@ module MessageHandler
         "Reference element of reference object is nil. Can not get resource from reference."
       when :no_static_fixture_id
         "No ID for static fixture. Can not load."
+      when :no_static_profile_id
+        "No ID for static profile. Can not load."
       when :no_static_fixture_reference
         "No reference for static fixture. Can not load."
       when :no_static_fixture_resource
