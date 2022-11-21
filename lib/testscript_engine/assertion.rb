@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'jsonpath'
+require 'json'
 
 module Assertion
   class AssertionException < StandardError
@@ -100,7 +101,7 @@ module Assertion
       when 'notContains'
         !received&.include? expected
       when 'minimumId'
-        deep_merge(get_resource(received).to_hash, get_resource(expected).to_hash) == get_resource(received).to_hash
+        check_minimum_id(get_resource(received), get_resource(expected)) == get_resource(received)
       end
     end
 
@@ -155,13 +156,48 @@ module Assertion
     compare("Header #{assert.headerField}", received, assert.operator, expected)
   end
 
-  def deep_merge(first, second)
-    merger = proc { |_, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : Array === v1 && Array === v2 ? v1 | v2 : [:undefined, nil, :nil].include?(v2) ? v1 : v2 }
-    return first.merge(second.to_h, &merger)
-  end
-
   def minimum_id(assert)
     compare("minimumId", assert.sourceId, "minimumId", assert.minimumId)
+  end
+
+  def check_minimum_id(spec, actual)
+    if spec.is_a?(Hash) && actual.is_a?(Hash)
+        return !check_minimum_id_hash(spec, actual)
+    end
+
+    if spec.is_a?(Array) && actual.is_a?(Array)
+        return !check_minimum_id_array(spec, actual)
+    end
+
+    return spec == actual
+  end
+
+  def check_minimum_id_hash(spec, actual)
+    err_flg = false
+  
+    spec.each do |k, v|
+      err_flg = true unless check_minimum_id(spec[k], actual[k]) 
+    end
+
+    return err_flg
+  end
+
+  def check_minimum_id_array(spec, actual)
+    err_flg = false
+
+    spec.each do |_spec|
+      found_flg = false
+      actual.each do |_actual|
+        if check_minimum_id(_spec, _actual)
+          actual.delete(_actual) 
+          found_flg = true
+          break
+        end
+      end
+      err_flg = true unless found_flg
+    end
+
+    return err_flg
   end
   
   def navigation_links(assert)
