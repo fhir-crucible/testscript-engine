@@ -101,7 +101,7 @@ module Assertion
       when 'notContains'
         !received&.include? expected
       when 'minimumId'
-        check_minimum_id(get_resource(received), get_resource(expected)) == get_resource(received)
+        check_minimum_id(get_resource(received), get_resource(expected))
       end
     end
 
@@ -157,7 +157,7 @@ module Assertion
   end
 
   def minimum_id(assert)
-    compare("sourceId", assert.sourceId, "minimumId", assert.minimumId)
+    compare("minimumId", assert.minimumId, "sourceId", assert.sourceId)
   end
 
   def check_minimum_id(spec, actual)
