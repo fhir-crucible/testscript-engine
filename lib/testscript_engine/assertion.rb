@@ -100,8 +100,6 @@ module Assertion
         received&.include? expected
       when 'notContains'
         !received&.include? expected
-      when 'minimumId'
-        check_minimum_id(get_resource(received), get_resource(expected))
       end
     end
 
@@ -157,47 +155,70 @@ module Assertion
   end
 
   def minimum_id(assert)
-    compare("minimumId", assert.minimumId, "sourceId", assert.sourceId)
+    specErrorPaths = []
+    path = ""
+    outcome = check_minimum_id(get_resource(assert.minimumId).to_hash, get_resource(assert.sourceId).to_hash, path, specErrorPaths)
+    
+    if outcome
+      "minimumId: As expected, actual resource contains minimum content in fixture '#{assert.minimumId}'."
+    else
+      fail_message = "minimunId: Actual resource differed from content in fixture '#{assert.minimumId}' at paths: "
+      specErrorPaths.each_index { |_index| fail_message << (_index == 0 ? specErrorPaths[_index] : ", #{specErrorPaths[_index]}") }
+      fail_message << "."
+      raise AssertionException.new(fail_message, :fail)
+    end
   end
 
-  def check_minimum_id(spec, actual)
+  def check_minimum_id(spec, actual, currentSpecPath, specErrorPaths)
     if spec.is_a?(Hash) && actual.is_a?(Hash)
-        return !check_minimum_id_hash(spec, actual)
+        return check_minimum_id_hash(spec, actual, currentSpecPath, specErrorPaths)
     end
 
     if spec.is_a?(Array) && actual.is_a?(Array)
-        return !check_minimum_id_array(spec, actual)
+        return check_minimum_id_array(spec, actual, currentSpecPath, specErrorPaths)
     end
 
-    return spec == actual
+    if spec == actual
+      return true
+    else
+      specErrorPaths.push(currentSpecPath)
+      return false
+    end
   end
 
-  def check_minimum_id_hash(spec, actual)
-    err_flg = false
+  def check_minimum_id_hash(spec, actual, currentSpecPath, specErrorPaths)
+    pass_flg = true
   
     spec.each do |k, v|
-      err_flg = true unless check_minimum_id(spec[k], actual[k]) 
+      newSpecPath = currentSpecPath.length == 0 ? k : currentSpecPath + ".#{k}"
+      keyResult = check_minimum_id(spec[k], actual[k], newSpecPath, specErrorPaths)
+      pass_flg = keyResult && pass_flg
     end
 
-    return err_flg
+    return pass_flg
   end
 
-  def check_minimum_id_array(spec, actual)
-    err_flg = false
+  def check_minimum_id_array(spec, actual, currentSpecPath, specErrorPaths)
+    pass_flg = true
 
-    spec.each do |_spec|
+    spec.each_index do |_index|
+      _spec = spec[_index]
       found_flg = false
+      newPath = currentSpecPath + "[#{_index}]"
       actual.each do |_actual|
-        if check_minimum_id(_spec, _actual)
+        if check_minimum_id(_spec, _actual, newPath, []) # drop errors under list entries
           actual.delete(_actual) 
           found_flg = true
           break
         end
       end
-      err_flg = true unless found_flg
+      if (!found_flg)
+        specErrorPaths.push(newPath)
+      end
+      pass_flg = pass_flg && found_flg
     end
 
-    return err_flg
+    return pass_flg
   end
   
   def navigation_links(assert)
