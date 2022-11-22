@@ -160,9 +160,9 @@ module Assertion
     outcome = check_minimum_id(get_resource(assert.minimumId).to_hash, get_resource(assert.sourceId).to_hash, path, specErrorPaths)
     
     if outcome
-      "minimumId: As expected, actual resource contains minimum content in fixture '#{assert.minimumId}'."
+      "minimumId: As expected, minimum content from fixture '#{assert.minimumId}' found in '#{assert.sourceId == nil ? "the latest response" : assert.sourceId}'."
     else
-      fail_message = "minimunId: Actual resource differed from content in fixture '#{assert.minimumId}' at paths: "
+      fail_message = "minimunId: content from fixture '#{assert.minimumId}' not found in '#{assert.sourceId == nil ? "the latest response" : assert.sourceId}'. Differences found at path#{"s" unless specErrorPaths.count < 2}: "
       specErrorPaths.each_index { |_index| fail_message << (_index == 0 ? specErrorPaths[_index] : ", #{specErrorPaths[_index]}") }
       fail_message << "."
       raise AssertionException.new(fail_message, :fail)
