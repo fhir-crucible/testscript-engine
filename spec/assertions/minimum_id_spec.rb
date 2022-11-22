@@ -15,6 +15,7 @@ class AssertionTestClass
         @pt_name_compare = JSON.parse(File.read('./spec/fixtures/patient_just_name.json'))
         @pt_name_minimum = JSON.parse(File.read('./spec/fixtures/patient_just_name_min.json'))
         @pt_twoNames_compare_jumbled = JSON.parse(File.read('./spec/fixtures/patient_two_names_jumbled.json'))
+        @pt_twoNames_compare_jumbled_more = JSON.parse(File.read('./spec/fixtures/patient_two_names_jumbled_more.json'))
         @pt_twoNames_minimum = JSON.parse(File.read('./spec/fixtures/patient_two_names_min.json'))
         @pt_duplicateNames_compare_onlyOne = JSON.parse(File.read('./spec/fixtures/patient_duplicate_names_only_one.json'))
         @pt_duplicateNames_minimum = JSON.parse(File.read('./spec/fixtures/patient_duplicate_names_min.json'))
@@ -52,6 +53,15 @@ class AssertionTestClass
                 expect(errors.count).to eq(2)
                 expect(errors[0]).to eq("name[0]")
                 expect(errors[1]).to eq("name[1]")
+            end
+        end
+
+        context 'with pt_twoNames_minimum, pt_twoNames_compare_jumbled_more' do
+            it 'returns false' do
+                errors = []
+                expect(@tester.check_minimum_id(@pt_twoNames_minimum, @pt_twoNames_compare_jumbled_more, "", errors)).to be(false)
+                expect(errors.count).to eq(1)
+                expect(errors[0]).to eq("name[1]")
             end
         end
 
