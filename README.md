@@ -1,6 +1,12 @@
-# TestScript Engine
-The TestScript Engine is an open source, command-line tool for executing [Fast
-Healthcare Interoperability Resources (FHIR)](http://hl7.org/fhir/) TestScript resources.
+# About the Project
+
+The TestScript Engine is an open source, command-line tool for executing [Fast Healthcare Interoperability Resources (FHIR)](http://hl7.org/fhir/) TestScript resources. The key deatures are: 
+
+* General use engine to be implemented in various use cases
+* Intake and execute FHIR TestScript resources
+* Output TestReport resources that summarize the result of executing each TestScripts against a given endpoint or system
+* Aligned with standard FHIR architecture
+* Extensible to be integrated with key FHIR toolchains in the future (FHIR Shorthand, [TestScript Generator](https://github.com/fhir-crucible/testscript-generator), Synthea)
 
 ## Running the Engine
 
@@ -36,32 +42,10 @@ Some configurations can be set using command line arguments:
 
 For example, to execute the TestScript runnable in file `TestScripts/read_testscript.json` (with name `TestScript Example Read Test`) in non-interactive mode, execute `bundle exec bin/testscript_engine -n -r "TestScript Example Read Test"`.
 
-## Details
+## Folders and Files
 
 TestScripts are validated and loaded in by the engine. By default, the engine looks for a `./TestScripts` folder in its given context, but will allow the user to specify an alternate path. Once scripts are loaded, they are converted into 'runnables'. The engine allows users to specify which runnable to execute, and by default will execute all available runnables. Likewise, the user can specify the endpoint upon which the runnable(s) should be executed. Following execution, the user can either re-execute -- specifying a different runnable or endpoint -- or shut-down the engine. Finally, the results from each runnable's latest execution are written out to the `./TestReports` folder.
 
-## Limitations
-There are known gaps in the TestScript Engine:
-* Support for minimumId
-* Support for validateProfileId
-* Support for use of an external validator
-* Support for multiple origins and/or destinations
-
-
-The TestScript Engine is still in the infancy of its development; it is neither fully complete nor bug-free and we encourage contributions, feedback, and issue-opening from the community.
-
-## About the Project
-
-The purpose of the TestScript Engine is to support and encourage essential aspects of FHIR testing through the following features:
-
-* General use engine to be implemented in various use cases
-* Intake and execution of FHIR TestScript resources and output of TestReport resources that summarize the result of executing each TestScripts against a given endpoint or system
-* Aligned with existing FHIR architecture
-* Extensible to be integrated with key FHIR toolchains in the future (FHIR Shorthand, [TestScript Generator](https://github.com/fhir-crucible/testscript-generator), Synthea)
-
-
-
-## Folders and Files
   - `./lib`
     - `assertion.rb`
     - `operation.rb`
@@ -99,6 +83,18 @@ The purpose of the TestScript Engine is to support and encourage essential aspec
 
 `./TestScripts`:
   - Folder that contains the TestScripts to be executed. Any example resources used within those TestScripts (i.e. using a patient resource as a fixture) should be located within the `./fixtures` subfolder.
+
+## Features
+### Assertion
+The engine uses various algorithms to evaluate the results of previous operations to determine if the server under test behaves appropriately.
+* minimum_id: Asserts that the response contains at a minimum the fixture specified by minimumId. The definition of minimum is if and only if the response has all the FHIR resource elements of the minimumId fixture, with exactly same element names, values, levels and hierarchies. No consideration of range, pre/post-coordination, or order of the items.
+
+## Limitations
+The TestScript Engine is still in the infancy of its development; it is neither fully complete nor bug-free and we encourage contributions, feedback, and issue-opening from the community. There are known gaps in the TestScript Engine:
+
+* Support for validateProfileId
+* Support for use of an external validator
+* Support for multiple origins and/or destinations
 
 ## References
 
