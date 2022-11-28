@@ -1,12 +1,11 @@
 # About the Project
 
-The TestScript Engine is an open source, command-line tool for executing [Fast Healthcare Interoperability Resources (FHIR)](http://hl7.org/fhir/) TestScript resources. The key deatures are: 
+The TestScript Engine is an open source, command-line tool for executing tests described by [Fast Healthcare Interoperability Resources (FHIR)](http://hl7.org/fhir/) TestScript instances. The key goals of the project include: 
 
-* General use engine to be implemented in various use cases
-* Intake and execute FHIR TestScript resources
-* Output TestReport resources that summarize the result of executing each TestScripts against a given endpoint or system
-* Aligned with standard FHIR architecture
-* Extensible to be integrated with key FHIR toolchains in the future (FHIR Shorthand, [TestScript Generator](https://github.com/fhir-crucible/testscript-generator), Synthea)
+* Align with and help to further develop the FHIR standard's approach to [testing](http://www.hl7.org/fhir/testing.html)
+* Provide to the FHIR community with an open source implementation that can execute tests described by [TestScript](http://www.hl7.org/fhir/testscript.html) instances.
+* Generate results that help testers understand the results of a test run using [TestReport](http://www.hl7.org/fhir/testreport.html) instances
+* Support integration with additional FHIR IG authoring, implementation, and testing tools, such as the [TestScript Generator](https://github.com/fhir-crucible/testscript-generator) and [Synthea](https://github.com/synthetichealth/synthea).
 
 ## Running the Engine
 
@@ -87,7 +86,7 @@ TestScripts are validated and loaded in by the engine. By default, the engine lo
 ## Features
 ### Assertion
 The engine uses various algorithms to evaluate the results of previous operations to determine if the server under test behaves appropriately.
-* minimum_id: Asserts that the response contains at a minimum the fixture specified by minimumId. The definition of minimum is if and only if the response has all the FHIR resource elements of the minimumId fixture, with exactly same element names, values, levels and hierarchies. No consideration of range, pre/post-coordination, or order of the items.
+* minimum_id: Per the [TestScript specification](http://www.hl7.org/fhir/testscript-definitions.html#TestScript.setup.action.assert.minimumId), an assertion with the minimumId element populated asserts that the target instance (current response or instance pointed to by sourceId) "contains all the element/content" from the minimumId instance (the instance pointed to by the minimumId element). For the implementation within this engine, an assertion with minimumId specified passes if and only if each element and list entry within the minimumId instance can be found within the target instance at the same levels within the heirarchy. With respect to lists, entries are not required to appear at the same index or in the same order. Instead, for each entry within the minimumId instance the engine must find a unique corresponding list entry within the target instance that contains all of the elements and content in the minimumId instance's entry. Note that the engine takes a greedy approach to identifying list entries that match, which could lead to pathological cases for which the implementation fails to find matches when they do in fact exist.
 
 ## Limitations
 The TestScript Engine is still in the infancy of its development; it is neither fully complete nor bug-free and we encourage contributions, feedback, and issue-opening from the community. There are known gaps in the TestScript Engine:
