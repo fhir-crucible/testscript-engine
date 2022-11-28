@@ -1,0 +1,26 @@
+{
+    "resourceType": "Patient",
+    "name" : [
+      { 
+        "use": "official",
+        "family": "test",
+        "given": [
+          "Joey"
+        ]
+      },
+      { 
+        "use": "official",
+        "family": "test",
+        "given": [
+          "Joseph"
+        ]
+      },
+      { 
+        "use": "usual",
+        "family": "test",
+        "given": [
+          "Joseph"
+        ]
+      }
+    ]
+  }

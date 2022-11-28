@@ -124,6 +124,7 @@ GEM
 
 PLATFORMS
   x86_64-darwin-20
+  x86_64-darwin-21
   x86_64-linux
 
 DEPENDENCIES
@@ -133,4 +134,4 @@ DEPENDENCIES
   webmock (~> 3.10)
 
 BUNDLED WITH
-   2.3.22
+   2.3.13
