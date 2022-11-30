@@ -12,7 +12,7 @@ testscript_file: general_testscript.json
 testreport_path: "./TestReports"
 
 # Whether to run the engine with interactive mode
-interactive: true
+interactive: false
 
 # Whether to ignore non-FHIR fixtures
 load_non_fhir_fixtures: true
