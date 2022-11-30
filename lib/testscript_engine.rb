@@ -11,7 +11,7 @@ class TestScriptEngine
   prepend MessageHandler
   include Validation
 
-  attr_accessor :endpoint, :input_path, :testreport_path, :load_non_fhir_fixtures
+  attr_accessor :endpoint, :input_path, :testreport_path, :load_non_fhir_fixtures, :resource_validator, :fhirpath_evaluator
 
   def fixtures
     @fixtures ||= {}
@@ -43,7 +43,9 @@ class TestScriptEngine
     self.input_path = path_to_scripts
     self.testreport_path = testreport_path
     self.load_non_fhir_fixtures = options[:load_non_fhir_fixtures]
-    self.debug_mode = true
+    # self.debug_mode = true
+    self.resource_validator = options[:resource_validator]
+    self.fhirpath_evaluator = options[:fhirpath_evaluator]
   end
 
   # TODO: Tie-in stronger validation. Possibly, Inferno validator.

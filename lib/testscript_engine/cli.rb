@@ -1,30 +1,20 @@
 # frozen_string_literal: true
+require 'yaml'
 
 class TestScriptEngine
   module CLI
     def self.start
+      config = YAML.load(File.read("./config.yml"))
+      
+      @interactive = config["interactive"]
+      @test_server_url = config["test_server_url"]
+      @load_non_fhir_fixtures = config["load_non_fhir_fixtures"]
+      @resource_validator = config["resource_validator"]
+      @fhirpath_evaluator = config["fhirpath_evaluator"]
+      @testscript_path = config["testscript_path"]
+      @testreport_path = config["testreport_path"]
 
-      @test_server_url = "http://hapi.fhir.org/baseR4"
-      @load_non_fhir_fixtures = true
-      @testscript_path = "./TestScripts"
-      @testreport_path = "./TestReports"
-      @interactive = true
       runnable = nil
-
-      i = 0
-      while i < ARGV.length
-        arg = ARGV[i]
-        if (arg == "-n" or arg == "--noninteractive") 
-          @interactive = false
-        elsif (arg == "-r" or arg == "--runnable")
-          runnable = ARGV[i+=1]
-        else
-          raise ArgumentError.new("unexpected command line input at position #{i}: #{arg}")
-        end
-        i += 1
-      end
-
-
 
       Dir.glob("#{Dir.getwd}/**").each do |path|
         @testscript_path = path if path.split('/').last.downcase == 'testscripts'
@@ -36,13 +26,12 @@ class TestScriptEngine
         approve_configuration
       end
 
-      engine = TestScriptEngine.new(@test_server_url, @testscript_path, @testreport_path, load_non_fhir_fixtures: @load_non_fhir_fixtures)
+      option = {load_non_fhir_fixtures: @load_non_fhir_fixtures, resource_validator: @resource_validator, fhirpath_evaluator: @fhirpath_evaluator}
+      engine = TestScriptEngine.new(@test_server_url, @testscript_path, @testreport_path, option)
       engine.load_input
       engine.make_runnables
 
-      if (@interactive)
-        print "Now able to execute runnables. \n"
-      end
+      print "Now able to execute runnables. \n" if (@interactive)
 
       while true
         if (@interactive)
@@ -59,7 +48,6 @@ class TestScriptEngine
 
           puts
         end
-
         
         if (@interactive)
           print "Enter the ID of a runnable to execute, or press return to execute all runnables: "
