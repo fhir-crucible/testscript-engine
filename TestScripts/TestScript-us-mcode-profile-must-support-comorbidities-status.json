@@ -1,0 +1,105 @@
+{
+  "resourceType": "TestScript",
+  "id": "us-mcode-profile-must-support-comorbidities-status",
+  "url": "https://github.com/fhir-crucible/testscript-generator/UsMcodeProfileMustSupportComorbiditiesStatus",
+  "version": "0.1",
+  "name": "UsMcodeProfileMustSupportComorbiditiesStatus",
+  "title": "Us Mcode Profile Must Support Properties - Comorbidities - status",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-10-08T13:00:51-04:00",
+  "publisher": "The MITRE Corporation",
+  "contact": [
+    {
+      "name": "Karl Naden"
+    }
+  ],
+  "variable": [
+    {
+      "name": "comorbidityObservationId",
+      "defaultValue": "example",
+      "hint": "[resource.id]",
+      "description": "Enter a known comorbidity observation instance id on the destination system."
+    }
+  ],
+  "profile": [
+    {
+      "id": "mCodeComorbidityObservation",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-comorbidities"
+    }
+  ],
+  "setup": {
+    "action": [
+      {
+        "operation": {
+          "description": "Read Metadata",
+          "label": "Read_Metadata",
+          "type": {
+            "code": "read",
+            "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes"
+          },
+          "encodeRequestUrl": false,
+          "url": "/metadata"
+        }
+      },
+      {
+        "assert": {
+          "description": "Validate Comorbidity Profile Support",
+          "label": "Validate_Comorbidity_Profile_Support",
+          "warningOnly": false,
+          "expression": "rest.resource.where(type = 'Observation').supportedProfile contains 'http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-comorbidities'"
+        }
+      }
+    ]
+  },
+  "test": [
+    {
+      "name": "Validate the Observation is a mCode Comorbidity Observation and status is populated",
+      "action": [
+        {
+          "operation": {
+            "description": "Read Observation",
+            "label": "Read_Observation",
+            "type": {
+              "code": "read",
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes"
+            },
+            "resource": "Observation",
+            "encodeRequestUrl": false,
+            "params": "/${comorbidityObservationId}",
+            "responseId": "observationRead"
+          },
+          "assert": {
+            "label": "Assert_Response_OK",
+            "warningOnly": false,
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Observation Returned",
+            "label": "Assert_Observation_Returned",
+            "warningOnly": false,
+            "resource": "Observation"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Observation Conforms to Comorbidities Profile",
+            "label": "Assert_Observation_Conforms_to_Comorbidities_Profile",
+            "warningOnly": false,
+            "validateProfileId": "mCodeComorbidityObservation"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Observation status is populated",
+            "label": "Assert_Observation_Status_is_populated",
+            "warningOnly": false,
+            "expression": "status.exists() and status.length() > 0"
+          }
+        }
+      ]
+    }
+  ]
+}

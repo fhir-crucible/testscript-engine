@@ -1,0 +1,180 @@
+{
+  "resourceType": "TestScript",
+  "id": "us-mcode-profile-search-comorbidities",
+  "url": "https://github.com/fhir-crucible/testscript-generator/UsMcodeProfileSearchComorbidities",
+  "version": "0.1",
+  "name": "UsMcodeProfileSearchComorbidities",
+  "title": "Us Mcode Profile Search - Comorbidities",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-09-21T13:00:51-04:00",
+  "publisher": "The MITRE Corporation",
+  "contact": [
+    {
+      "name": "Karl Naden"
+    }
+  ],
+  "variable": [
+    {
+      "name": "firstBundleEntryId",
+      "expression": "entry[0].resource.id",
+      "sourceId": "comorbiditySearchBundle"
+    },
+    {
+      "name": "cancerPatientId",
+      "defaultValue": "example",
+      "hint": "[resource.id]",
+      "description": "Enter a known cancer patient id on the destination system."
+    }
+  ],
+  "profile": [
+    {
+      "id": "mCodeCancerPatient",
+      "reference": "http://hl7.org/fhir/StructureDefinition/Patient"
+    },
+    {
+      "id": "mCodeComorbidityObservation",
+      "reference": "http://hl7.org/fhir/StructureDefinition/Observation"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the Patient is a mCode CancerPatient",
+      "action": [
+        {
+          "operation": {
+            "description": "Read Patient",
+            "label": "Read_Patient",
+            "type": {
+              "code": "read",
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes"
+            },
+            "resource": "Patient",
+            "encodeRequestUrl": false,
+            "params": "/${cancerPatientId}",
+            "responseId": "patientRead"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "warningOnly": false,
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Patient Returned",
+            "label": "Assert_Patient_Returned",
+            "warningOnly": false,
+            "resource": "Patient"
+          }
+        },
+        {
+          "assert": {
+            "description": "Patient Conforms to Cancer Patient Profile",
+            "label": "Assert_Patient_Conforms_to_Cancer_Patient_Profile",
+            "warningOnly": false,
+            "validateProfileId": "mCodeCancerPatient"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Find comorbidities associated with this patient",
+      "action": [
+        {
+          "operation": {
+            "description": "Comorbidity Search",
+            "label": "Comorbidity_Search",
+            "type": {
+              "code": "search",
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes"
+            },
+            "resource": "Observation",
+            "encodeRequestUrl": false,
+            "params": "?patient=Patient/${cancerPatientId}&code=http%3A%2F%2Fsnomed.info%2Fsct%7C398192003",
+            "responseId": "comorbiditySearchBundle"
+          }
+          
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "warningOnly": false,
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Bundle Returned",
+            "label": "Assert_Bundle_Returned",
+            "warningOnly": false,
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "warningOnly": false,
+            "expression": "link.where(relation = 'self').url.contains('code=http%3A%2F%2Fsnomed.info%2Fsct%7C398192003') and link.where(relation = 'self').url.contains('patient=Patient%2F${cancerPatientId}')"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert At Least One Entry Returned",
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "warningOnly": false,
+            "expression": "entry.count() > 0"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert First Entry Is An Observation",
+            "label": "Assert_First_Entry_Is_An_Observation",
+            "warningOnly": false,
+            "expression": "entry[0].resource.is(FHIR.Observation)"
+          }
+        },
+        {
+          "operation": {
+            "description": "Read Observation",
+            "label": "Read_Observation_Member",
+            "type": {
+              "code": "read",
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes"
+            },
+            "encodeRequestUrl": true,
+            "params": "/${firstBundleEntryId}",
+            "resource": "Observation"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Read Response OK",
+            "label": "Assert_Read_Response_OK",
+            "warningOnly": false,
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Observation Returned",
+            "label": "Assert_Observation_Returned",
+            "warningOnly": false,
+            "resource": "Observation"
+          }
+        },
+        {
+          "assert": {
+            "description": "Observation Conforms to Comorbidity Profile",
+            "label": "Assert_Observation_Conforms_to_Comorbidity_Profile",
+            "warningOnly": false,
+            "validateProfileId": "mCodeComorbidityObservation"
+          }
+        }
+      ]
+    }
+  ]
+}
