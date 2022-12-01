@@ -5,7 +5,8 @@ require_relative '../../lib/testscript_engine'
 describe TestScriptEngine do
   before(:all) do
     input_path = "#{Dir.pwd}/spec/examples"
-    @engine = TestScriptEngine.new('endpoint', 'input_path', 'output_path')
+    options = {"server_url" => 'endpoint', "testscript_path" => 'input_path', "testreport_path" => 'output_path'}
+    @engine = TestScriptEngine.new(options)
   end
   before(:each) do
     @engine.instance_variable_set(:@scripts, {})
@@ -136,7 +137,7 @@ describe TestScriptEngine do
         end
 
         it 'stores fixture if non-FHIR allowed' do
-          @engine.load_non_fhir_fixtures = true
+          @engine.nonfhir_fixture = true
           @engine.load_input
 
           expect(@engine.scripts.keys).to be_empty

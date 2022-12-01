@@ -1,8 +1,8 @@
 # Endpoint against which TestScripts will be executed
-test_server_url: http://server.fire.ly
+server_url: http://server.fire.ly
 
 # The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine
-testscript_path: "./TestScripts/basic"
+testscript_path: "./TestScripts"
  
 # Name(s) of TestScript under TESTSCRIPT_PATH to be executed
 # If empty, all files under TESTSCRIPT_PATH will be executed
@@ -15,7 +15,7 @@ testreport_path: "./TestReports"
 interactive: false
 
 # Whether to ignore non-FHIR fixtures
-load_non_fhir_fixtures: true
+nonfhir_fixture: true
   
 # Resource validator options:
 # - "internal" uses the ruby validator from the fhir_models gem

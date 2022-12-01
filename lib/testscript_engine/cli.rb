@@ -1,19 +1,35 @@
 # frozen_string_literal: true
 require 'yaml'
+require 'thor'
 
 class TestScriptEngine
-  module CLI
-    def self.start
-      config = YAML.load(File.read("./config.yml"))
-      
-      @interactive = config["interactive"]
-      @test_server_url = config["test_server_url"]
-      @load_non_fhir_fixtures = config["load_non_fhir_fixtures"]
-      @resource_validator = config["resource_validator"]
-      @fhirpath_evaluator = config["fhirpath_evaluator"]
-      @testscript_path = config["testscript_path"]
-      @testreport_path = config["testreport_path"]
 
+  module CLI 
+    class MyCLI < Thor
+      desc "option [OPTIONS]", "interactive; nonfhir_fixture; resource_validator; fhirpath_evaluator; server_url; testscript_path; testreport_path; external_resource_validator_url; external_fhirpath_evaluator_url"
+      option :interactive, :type => :boolean
+      option :nonfhir_fixture, :type => :boolean
+      option :resource_validator
+      option :fhirpath_evaluator
+      option :server_url
+      option :testscript_path
+      option :testreport_path
+      option :external_resource_validator_url
+      option :external_fhirpath_evaluator_url
+      def option()
+        return options
+      end
+    end
+
+    def self.start
+      options = YAML.load(File.read("./config.yml"))
+      options.merge!(MyCLI.start(ARGV))
+      @interactive = options["interactive"]
+      @test_server_url = options["server_url"]
+      @testscript_path = options["testscript_path"]
+      @testreport_path = options["testreport_path"]
+      @load_non_fhir_fixtures = options["nonfhir_fixture"]
+      
       runnable = nil
 
       Dir.glob("#{Dir.getwd}/**").each do |path|
@@ -26,8 +42,7 @@ class TestScriptEngine
         approve_configuration
       end
 
-      option = {load_non_fhir_fixtures: @load_non_fhir_fixtures, resource_validator: @resource_validator, fhirpath_evaluator: @fhirpath_evaluator}
-      engine = TestScriptEngine.new(@test_server_url, @testscript_path, @testreport_path, option)
+      engine = TestScriptEngine.new(options)
       engine.load_input
       engine.make_runnables
 
