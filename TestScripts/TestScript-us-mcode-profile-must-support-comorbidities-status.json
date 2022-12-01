@@ -68,7 +68,9 @@
             "encodeRequestUrl": false,
             "params": "/${comorbidityObservationId}",
             "responseId": "observationRead"
-          },
+          }
+        },
+        {
           "assert": {
             "label": "Assert_Response_OK",
             "warningOnly": false,
