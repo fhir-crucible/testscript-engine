@@ -56,7 +56,7 @@ class TestScriptEngine
       @testreport_path = options["testreport_path"] if options["testreport_path"]
       @load_non_fhir_fixtures = options["nonfhir_fixture"] if options["nonfhir_fixture"]
       
-      runnable = nil
+      runnable = options["runnable"] unless options["runnable"]
 
       Dir.glob("#{Dir.getwd}/**").each do |path|
         @testscript_path = path if path.split('/').last.downcase == 'testscripts'
