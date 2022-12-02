@@ -26,20 +26,28 @@ This is the recommended method if you already have a collection of your own Test
 
 ## Configure the Engine
 
-The engine can be configured through several variables, each of which has a preset value that can be modifed during runtime:
-
-- `TEST_SERVER_URL`: The endpoint against which the runnables will be executed.
-- `LOAD_NON_FHIR_FIXTURES`: Whether to ignore non-FHIR fixtures. Non-FHIR fixtures are not currently supported by the [spec](https://build.fhir.org/testscript.html), however we recognize several use cases where they would be valuable. Expects [T/F].
-- `TESTSCRIPT_PATH`: The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine. If any TestScript in the directory uses a fixture, the directory MUST also include a `fixtures` subfolder containing files whose relative paths match the reference value of a fixture within a TestScript.
-- `TESTREPORT_PATH`: The relative to the directory containing the TestReports output following their partner TestScript execution.
+The engine can be configured through three methods: config.yml, commandline arguments, and interactive mode.
 
 ### Commandline Arguments
 
-Some configurations can be set using command line arguments:
-- `-r` or `--runnable`: the next argument must be the name of runnable to execute (from `TestScript.name`). Only works if the noninteractive flag is provided. 
-- `-n` or `--noninteractive`: disable confirmation of configuration settings
+Command line arguments can be used when starting the engine with the following format:
+`bundle exec bin/testscript_engine option [OPTIONS]`
 
-For example, to execute the TestScript runnable in file `TestScripts/read_testscript.json` (with name `TestScript Example Read Test`) in non-interactive mode, execute `bundle exec bin/testscript_engine -n -r "TestScript Example Read Test"`.
+[OPTIONS]
+- `--interactive`: run the engine on interactive mode
+- `--config`: run the engine on YAML configuration file. Only works on non-interactive mode. The next argument(optional) must be the name of YAML file. Without it, the engine intakes default YAML file (config.yml) 
+
+### config.yml
+
+- `server_url`: Endpoint against which TestScripts will be executed
+- `testscript_path`: The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine
+- `testscript_file`: Name(s) of TestScript under TESTSCRIPT_PATH to be executed. If empty, all files under TESTSCRIPT_PATH will be executed
+- `testreport_path`: The relative to the directory containing the TestReports output following their partner TestScript execution
+- `nonfhir_fixture`: Whether to ignore non-FHIR fixtures (true or false)
+- `resource_validator`: FHIR Resource validator options (internal / external)
+- `external_resource_validator_url`: The url where the external validator can be reached. Ignored when using the internal validator.
+- `fhirpath_evaluator`: FHIRPath evaluator options (internal / external)
+- `external_fhirpath_evaluator_url`: The url where the external FHIR path evaluator can be reached. Ignored when using the internal evaluator.
 
 ## Folders and Files
 
