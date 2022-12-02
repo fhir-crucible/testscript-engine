@@ -6,29 +6,55 @@ class TestScriptEngine
 
   module CLI 
     class MyCLI < Thor
-      desc "option [OPTIONS]", "interactive; nonfhir_fixture; resource_validator; fhirpath_evaluator; server_url; testscript_path; testreport_path; external_resource_validator_url; external_fhirpath_evaluator_url"
+      desc "option [OPTIONS]", "--interactive --config [FILEPATH] --nonfhir_fixture --ext_validator [URL] --ext_fhirpath [URL] --server_url [URL] --testscript_path [FILEPATH] --testreport_path [FILEPATH]"
       option :interactive, :type => :boolean
+      option :config
       option :nonfhir_fixture, :type => :boolean
-      option :resource_validator
-      option :fhirpath_evaluator
+      option :ext_validator
+      option :ext_fhirpath
       option :server_url
       option :testscript_path
       option :testreport_path
-      option :external_resource_validator_url
-      option :external_fhirpath_evaluator_url
+
       def option()
+        if options == {}
+          puts "option [OPTIONS]"
+          puts " --interactive: run on interactive mode. Rest of arguments will be ignored."
+          puts " --config [FILEPATH]: run on configuration file on the path. Rest of arguments will be ignored. If path is not specified, default will be used."
+          puts " --nonfhir_fixture : allow to intake non-FHIR fixture"
+          puts " --ext_validator [URL]: when specified, use external resource validator"
+          puts " --ext_fhirpath [URL]: when specified, use external FHIR path evaluator"
+          puts " --server_url [URL]: when specified, replace the default FHIR server"
+          puts " --testscript_path [FILEPATH]: TestScript location (default: /TestScripts)"
+          puts " --testreport_path [FILEPATH]: TestReport location (default: /TestReports)"
+        end
+          
         return options
       end
     end
 
     def self.start
-      options = YAML.load(File.read("./config.yml"))
-      options.merge!(MyCLI.start(ARGV))
+      options = MyCLI.start(ARGV)
       @interactive = options["interactive"]
-      @test_server_url = options["server_url"]
-      @testscript_path = options["testscript_path"]
-      @testreport_path = options["testreport_path"]
-      @load_non_fhir_fixtures = options["nonfhir_fixture"]
+      config = options["config"]
+
+      if @interactive == nil
+        if config == nil || config == "config"
+          options = YAML.load(File.read("./config.yml"))
+        else
+          begin
+            options = YAML.load(File.read(config))
+          rescue
+            print "Failed to open file: #{config}\n"
+            exit
+          end
+        end
+      end
+
+      @test_server_url = options["server_url"] if options["server_url"]
+      @testscript_path = options["testscript_path"] if options["testscript_path"]
+      @testreport_path = options["testreport_path"] if options["testreport_path"]
+      @load_non_fhir_fixtures = options["nonfhir_fixture"] if options["nonfhir_fixture"]
       
       runnable = nil
 

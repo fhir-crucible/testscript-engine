@@ -1,3 +1,9 @@
+# Whether to run the engine with interactive mode
+interactive: false
+
+# Whether to ignore non-FHIR fixtures
+nonfhir_fixture: true
+
 # Endpoint against which TestScripts will be executed
 server_url: http://server.fire.ly
 
@@ -6,29 +12,18 @@ testscript_path: "./TestScripts"
  
 # Name(s) of TestScript under TESTSCRIPT_PATH to be executed
 # If empty, all files under TESTSCRIPT_PATH will be executed
-testscript_file: general_testscript.json
+runnable:
 
 # The relative to the directory containing the TestReports output following their partner TestScript execution
 testreport_path: "./TestReports"
 
-# Whether to run the engine with interactive mode
-interactive: false
-
-# Whether to ignore non-FHIR fixtures
-nonfhir_fixture: true
-  
+# If specified, the url where the external validator can be reached. If not use the internal validator
 # Resource validator options:
 # - "internal" uses the ruby validator from the fhir_models gem
 #   https://github.com/fhir-crucible/fhir_models
 # - "external" uses the a web interface for the L7 FHIR validator.
 #   https://github.com/inferno-community/fhir-validator-wrapper
-resource_validator: internal
+ext_validator: http://resource_validator_service:1234
 
-# The url where the external validator can be reached. Ignored when using the internal validator
-external_resource_validator_url: http://resource_validator_service:1234
-
-# FHIRPath evaluator options: must be one of "internal" or "external".
-fhirpath_evaluator: internal
-
-# external_fhirpath_evaluator_url is only used if fhirpath_evaluator is set to external.
-external_fhirpath_evaluator_url: http://fhirpath_validator_service:1234
+# If specified, the url where the external fhirpath will be used. If not use the internal fhirpath.
+ext_fhirpath: http://fhirpath_validator_service:1234
