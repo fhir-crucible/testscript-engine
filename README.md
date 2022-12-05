@@ -62,6 +62,7 @@ Command line arguments can be used when starting the engine with the following f
 ### Interactive mode
 
 Running on interactive mode provides flexibility to change the attributes above while executing testing.
+
 `bundle exec bin/testscript_engine option --interactive`
 
 ## Folders and Files
