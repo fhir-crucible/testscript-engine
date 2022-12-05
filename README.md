@@ -30,9 +30,9 @@ The engine can be configured through three methods: config.yml, commandline argu
 
 ### Config.yml
 
-Configuration file based be used by two ways:
-`bundle exec bin/testscript_engine` : use default configuration file (config.yml)
-`bundle exec bin/testscript_engine option --config [FILEPATH]` : use custom configuration file
+Configuration file can be used by two ways:
+`bundle exec bin/testscript_engine` : use the default configuration file (config.yml)
+`bundle exec bin/testscript_engine option --config [FILEPATH]` : use a custom configuration file
 
 - `interactive`: [TRUE/FALSE] Run on interactive mode.
 - `server_url`: [URL] Endpoint against which TestScripts will be executed.
