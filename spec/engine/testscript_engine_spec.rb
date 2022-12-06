@@ -5,8 +5,7 @@ require_relative '../../lib/testscript_engine'
 describe TestScriptEngine do
   before(:all) do
     input_path = "#{Dir.pwd}/spec/examples"
-    options = {"server_url" => 'endpoint', "testscript_path" => 'input_path', "testreport_path" => 'output_path'}
-    @engine = TestScriptEngine.new(options)
+    @engine = TestScriptEngine.new('endpoint', 'input_path', 'output_path', {})
   end
   before(:each) do
     @engine.instance_variable_set(:@scripts, {})

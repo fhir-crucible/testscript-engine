@@ -38,10 +38,10 @@ class TestScriptEngine
     end
   end
 
-  def initialize(options)
-    self.endpoint = options["server_url"]
-    self.input_path = options["testscript_path"]
-    self.testreport_path = options["testreport_path"]
+  def initialize(test_server_url, testscript_path, testreport_path, options)
+    self.endpoint = test_server_url
+    self.input_path = testscript_path
+    self.testreport_path = testreport_path
     self.nonfhir_fixture = options[:nonfhir_fixture]
     self.resource_validator = options[:resource_validator]
     self.fhirpath_evaluator = options[:fhirpath_evaluator]

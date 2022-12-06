@@ -26,23 +26,20 @@ This is the recommended method if you already have a collection of your own Test
 
 ## Configure the Engine
 
-The engine can be configured through three methods: config.yml, commandline arguments, and interactive mode.
+The engine can be configured through three methods: configuration file, commandline arguments, and interactive mode.
 
-### Config.yml
+### Configuration file
 
-Running the engine on configuration file provides tesinting on predefined and organized settings.
+Running the engine on a configuration file provides testing on predefined settings.
 
-`bundle exec bin/testscript_engine` : use default configuration file (config.yml)
+`bundle exec bin/testscript_engine execute --config [FILEPATH]` : Put name and path of configuration YAML file.
 
-`bundle exec bin/testscript_engine config [FILEPATH]` : use a custom configuration file
-
-Below are properties in the configuration YAML files.
-- `interactive : [TRUE/FALSE]` Run on the engine on interactive mode default.
+Below are properties in the configuration files.
+- `testscript_name : [TESTSCRIPT.NAME]` Name of TestScript to be executed. If empty, all files under testscript_path will be executed.
+- `testscript_path : [PATH]` The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine.
+- `testreport_path : [PATH]` The relative to the directory containing the TestReports output following their partner TestScript execution.
 - `server_url : [URL]` Endpoint against which TestScripts will be executed.
 - `nonfhir_fixture : [TRUE/FALSE]` Whether to allow intake non-FHIR fixtures.
-- `testscript_path : [FILEPATH]` The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine.
-- `testscript_file : [FILENAME]` Name(s) of TestScript under TESTSCRIPT_PATH to be executed. If empty, all files under testscript_path will be executed.
-- `testreport_path : [FILEPATH]` The relative to the directory containing the TestReports output following their partner TestScript execution.
 - `ext_validator : [URL]` If specified, use external resource validator instead of internal validator.
 - `ext_fhirpath : [URL]` If specified, use external FHIR path evaluator instead of internal evaluator.
 
@@ -53,11 +50,12 @@ Command line arguments can be used when you want to run specific files and/or co
 `bundle exec bin/testscript_engine execute [OPTIONS]`
 
 [OPTIONS]
-- `--testscript_file [FILEPATH]`: Name(s) of TestScripts. If not specified, all files under testscript_path will be executed.
-- `--testscript_path [FILEPATH]`: Folder location of TestScripts (default: /TestScripts)
-- `--testreport_path [FILEPATH]`: Folder location of TestReports (default: /TestReports)
+- `--config [FILENAME]`: Name of configuration file.
+- `--testscript_name [TESTSCRIPT.NAME]`: Name of TestScript to be execute. If not specified, all files under testscript_path will be executed.
+- `--testscript_path [PATH]`: Folder location of TestScripts (default: /TestScripts)
+- `--testreport_path [PATH]`: Folder location of TestReports (default: /TestReports)
 - `--server_url [URL]`: If specified, it will replace the default FHIR server in the configuration file.
-- `--nonfhir_fixture [true/false]`: Whether allow to intake non-FHIR fixture or not.
+- `--nonfhir_fixture [TRUE/FALSE]`: Whether allow to intake non-FHIR fixture or not.
 - `--ext_validator [URL]`: If specified, use external resource validator.
 - `--ext_fhirpath [URL]`: If specified, use external FHIR path evaluator.
 
