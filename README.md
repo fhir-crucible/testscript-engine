@@ -30,40 +30,42 @@ The engine can be configured through three methods: config.yml, commandline argu
 
 ### Config.yml
 
-Configuration file can be used by two ways:
-`bundle exec bin/testscript_engine` : use the default configuration file (config.yml)
-`bundle exec bin/testscript_engine option --config [FILEPATH]` : use a custom configuration file
+Running the engine on configuration file provides tesinting on predefined and organized settings.
 
-- `interactive`: [TRUE/FALSE] Run on interactive mode.
-- `server_url`: [URL] Endpoint against which TestScripts will be executed.
-- `nonfhir_fixture`: [TRUE/FALSE] Whether to allow intake non-FHIR fixtures.
-- `testscript_path`: [FILEPATH] The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine.
-- `runnable`: [FILENAME] Name(s) of TestScript under TESTSCRIPT_PATH to be executed. If empty, all files under testscript_path will be executed.
-- `testreport_path`: [FILEPATH] The relative to the directory containing the TestReports output following their partner TestScript execution.
-- `ext_validator`: [URL] If specified, use external resource validator.
-- `ext_fhirpath`: [URL] If specified, use external FHIR path evaluator.
+`bundle exec bin/testscript_engine` : use default configuration file (config.yml)
+
+`bundle exec bin/testscript_engine config [FILEPATH]` : use a custom configuration file
+
+Below are properties in the configuration YAML files.
+- `interactive : [TRUE/FALSE]` Run on the engine on interactive mode default.
+- `server_url : [URL]` Endpoint against which TestScripts will be executed.
+- `nonfhir_fixture : [TRUE/FALSE]` Whether to allow intake non-FHIR fixtures.
+- `testscript_path : [FILEPATH]` The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine.
+- `testscript_file : [FILENAME]` Name(s) of TestScript under TESTSCRIPT_PATH to be executed. If empty, all files under testscript_path will be executed.
+- `testreport_path : [FILEPATH]` The relative to the directory containing the TestReports output following their partner TestScript execution.
+- `ext_validator : [URL]` If specified, use external resource validator instead of internal validator.
+- `ext_fhirpath : [URL]` If specified, use external FHIR path evaluator instead of internal evaluator.
 
 ### Commandline Arguments
 
-Command line arguments can be used when starting the engine with the following format:
-`bundle exec bin/testscript_engine option [OPTIONS]`
+Command line arguments can be used when you want to run specific files and/or conditions. Run the engine with the following format:
+
+`bundle exec bin/testscript_engine execute [OPTIONS]`
 
 [OPTIONS]
-- `--interactive`: Run on interactive mode.
-- `--config [FILEPATH]`: Run on specified configuration file. Rest of arguments will be ignored. If path is not specified, default file will be used.
-- `--nonfhir_fixture`: Allow to intake non-FHIR fixture.
+- `--testscript_file [FILEPATH]`: Name(s) of TestScripts. If not specified, all files under testscript_path will be executed.
+- `--testscript_path [FILEPATH]`: Folder location of TestScripts (default: /TestScripts)
+- `--testreport_path [FILEPATH]`: Folder location of TestReports (default: /TestReports)
+- `--server_url [URL]`: If specified, it will replace the default FHIR server in the configuration file.
+- `--nonfhir_fixture [true/false]`: Whether allow to intake non-FHIR fixture or not.
 - `--ext_validator [URL]`: If specified, use external resource validator.
 - `--ext_fhirpath [URL]`: If specified, use external FHIR path evaluator.
-- `--server_url [URL]`: If specified, replace the default FHIR server.
-- `--testscript_path [FILEPATH]`: Location of TestScripts (default: /TestScripts)
-- `--runnable [FILEPATH]`: Location of runnables. If not specified, all runnables under testscript_path will be executed.
-- `--testreport_path [FILEPATH]`: Location of TestReports (default: /TestReports)
 
 ### Interactive mode
 
-Running on interactive mode provides flexibility to change the attributes above while executing testing.
+Running the engine on interactive mode provides flexibility to change the properties while executing testing. Simply run the command below.
 
-`bundle exec bin/testscript_engine option --interactive`
+`bundle exec bin/testscript_engine interactive`
 
 ## Folders and Files
 
