@@ -28,11 +28,6 @@ This is the recommended method if you already have a collection of your own Test
 
 The engine can be configured through three methods: config.yml, commandline arguments, and interactive mode.
 
-### Interactive mode
-
-Running the engine on interactive mode provides flexibility to change the properties while executing testing. Simply run the command below.
-`bundle exec bin/testscript_engine interactive`
-
 ### Config.yml
 
 Running the engine on configuration file provides tesinting on predefined and organized settings.
