@@ -1,6 +1,3 @@
-# Whether to run the engine with interactive mode
-interactive: false
-
 # Whether to ignore non-FHIR fixtures
 nonfhir_fixture: true
 
@@ -10,9 +7,12 @@ server_url: http://server.fire.ly
 # The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine
 testscript_path: "./TestScripts"
  
-# Name(s) of TestScript under TESTSCRIPT_PATH to be executed
+# Name of TestScript under TESTSCRIPT_PATH to be executed
 # If empty, all files under TESTSCRIPT_PATH will be executed
-runnable:
+testscript_name:
+# Example:
+# testscript_name: TestScript Example General
+# Handling multiple TestScript names will be added
 
 # The relative to the directory containing the TestReports output following their partner TestScript execution
 testreport_path: "./TestReports"
