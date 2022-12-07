@@ -26,20 +26,44 @@ This is the recommended method if you already have a collection of your own Test
 
 ## Configure the Engine
 
-The engine can be configured through several variables, each of which has a preset value that can be modifed during runtime:
+The engine can be configured through three methods: configuration file, commandline arguments, and interactive mode.
 
-- `TEST_SERVER_URL`: The endpoint against which the runnables will be executed.
-- `LOAD_NON_FHIR_FIXTURES`: Whether to ignore non-FHIR fixtures. Non-FHIR fixtures are not currently supported by the [spec](https://build.fhir.org/testscript.html), however we recognize several use cases where they would be valuable. Expects [T/F].
-- `TESTSCRIPT_PATH`: The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine. If any TestScript in the directory uses a fixture, the directory MUST also include a `fixtures` subfolder containing files whose relative paths match the reference value of a fixture within a TestScript.
-- `TESTREPORT_PATH`: The relative to the directory containing the TestReports output following their partner TestScript execution.
+### Configuration file
+
+Running the engine on a configuration file provides testing on predefined settings.
+
+`bundle exec bin/testscript_engine execute --config [FILEPATH]` : Put name and path of configuration YAML file.
+
+Below are properties in the configuration files.
+- `testscript_name : [TESTSCRIPT.NAME]` Name of TestScript to be executed. If empty, all files under testscript_path will be executed.
+- `testscript_path : [PATH]` The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine.
+- `testreport_path : [PATH]` The relative to the directory containing the TestReports output following their partner TestScript execution.
+- `server_url : [URL]` Endpoint against which TestScripts will be executed.
+- `nonfhir_fixture : [TRUE/FALSE]` Whether to allow intake non-FHIR fixtures.
+- `ext_validator : [URL]` If specified, use external resource validator instead of internal validator.
+- `ext_fhirpath : [URL]` If specified, use external FHIR path evaluator instead of internal evaluator.
 
 ### Commandline Arguments
 
-Some configurations can be set using command line arguments:
-- `-r` or `--runnable`: the next argument must be the name of runnable to execute (from `TestScript.name`). Only works if the noninteractive flag is provided. 
-- `-n` or `--noninteractive`: disable confirmation of configuration settings
+Command line arguments can be used when you want to run specific files and/or conditions. Run the engine with the following format:
 
-For example, to execute the TestScript runnable in file `TestScripts/read_testscript.json` (with name `TestScript Example Read Test`) in non-interactive mode, execute `bundle exec bin/testscript_engine -n -r "TestScript Example Read Test"`.
+`bundle exec bin/testscript_engine execute [OPTIONS]`
+
+[OPTIONS]
+- `--config [FILENAME]`: Name of configuration file.
+- `--testscript_name [TESTSCRIPT.NAME]`: Name of TestScript to be execute. If not specified, all files under testscript_path will be executed.
+- `--testscript_path [PATH]`: Folder location of TestScripts (default: /TestScripts)
+- `--testreport_path [PATH]`: Folder location of TestReports (default: /TestReports)
+- `--server_url [URL]`: If specified, it will replace the default FHIR server in the configuration file.
+- `--nonfhir_fixture [TRUE/FALSE]`: Whether allow to intake non-FHIR fixture or not.
+- `--ext_validator [URL]`: If specified, use external resource validator.
+- `--ext_fhirpath [URL]`: If specified, use external FHIR path evaluator.
+
+### Interactive mode
+
+Running the engine on interactive mode provides flexibility to change the properties while executing testing. Simply run the command below.
+
+`bundle exec bin/testscript_engine interactive`
 
 ## Folders and Files
 

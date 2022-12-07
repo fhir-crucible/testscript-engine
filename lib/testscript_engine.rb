@@ -11,7 +11,7 @@ class TestScriptEngine
   prepend MessageHandler
   include Validation
 
-  attr_accessor :endpoint, :input_path, :testreport_path, :load_non_fhir_fixtures
+  attr_accessor :endpoint, :input_path, :testreport_path, :nonfhir_fixture, :resource_validator, :fhirpath_evaluator
 
   def fixtures
     @fixtures ||= {}
@@ -38,12 +38,14 @@ class TestScriptEngine
     end
   end
 
-  def initialize(endpoint, path_to_scripts, testreport_path, **options)
-    self.endpoint = endpoint
-    self.input_path = path_to_scripts
+  def initialize(test_server_url, testscript_path, testreport_path, options)
+    self.endpoint = test_server_url
+    self.input_path = testscript_path
     self.testreport_path = testreport_path
-    self.load_non_fhir_fixtures = options[:load_non_fhir_fixtures]
-    self.debug_mode = true
+    self.nonfhir_fixture = options[:nonfhir_fixture]
+    self.resource_validator = options[:resource_validator]
+    self.fhirpath_evaluator = options[:fhirpath_evaluator]
+    # self.debug_mode = true
   end
 
   # TODO: Tie-in stronger validation. Possibly, Inferno validator.
@@ -57,7 +59,7 @@ class TestScriptEngine
 
     input.each do |filename|
       fixture = filename.include?('/fixtures/')
-      allow_non_fhir = fixture && load_non_fhir_fixtures
+      allow_non_fhir = fixture && nonfhir_fixture
 
       info(:loading_script, filename)
       increase_space
