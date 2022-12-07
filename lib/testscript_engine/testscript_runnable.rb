@@ -176,7 +176,22 @@ class TestScriptRunnable
     end
   end
 
-  def get_resource_from_ref(reference)
+  def load_profiles
+    script.profile.each do |profile|
+      next warning(:no_static_profile_id) unless profile.id
+      next warning(:no_static_profile_reference) unless profile.reference
+
+      profile_server = FHIR::Client.new("")
+      response = profile_server.send(:get, profile.reference, { 'Content-Type' => 'json' })
+      next if response.response[:code].to_s.starts_with?('2')
+
+      profiles[profile.id] = FHIR.from_contents(response.response[:body].to_s)
+      info(:loaded_profile, profile.id, profile.reference)
+    end
+  end
+
+  def get_fixture_from_ref(reference)
+
     return warning(:bad_reference) unless reference.is_a?(FHIR::Reference)
 
     ref = reference.reference

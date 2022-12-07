@@ -1,6 +1,11 @@
-# TestScript Engine
-The TestScript Engine is an open source, command-line tool for executing [Fast
-Healthcare Interoperability Resources (FHIR)](http://hl7.org/fhir/) TestScript resources.
+# About the Project
+
+The TestScript Engine is an open source, command-line tool for executing tests described by [Fast Healthcare Interoperability Resources (FHIR)](http://hl7.org/fhir/) TestScript instances. The key goals of the project include: 
+
+* Align with and help to further develop the FHIR standard's approach to [testing](http://www.hl7.org/fhir/testing.html)
+* Provide to the FHIR community with an open source implementation that can execute tests described by [TestScript](http://www.hl7.org/fhir/testscript.html) instances.
+* Generate results that help testers understand the results of a test run using [TestReport](http://www.hl7.org/fhir/testreport.html) instances
+* Support integration with additional FHIR IG authoring, implementation, and testing tools, such as the [TestScript Generator](https://github.com/fhir-crucible/testscript-generator) and [Synthea](https://github.com/synthetichealth/synthea).
 
 ## Running the Engine
 
@@ -21,47 +26,49 @@ This is the recommended method if you already have a collection of your own Test
 
 ## Configure the Engine
 
-The engine can be configured through several variables, each of which has a preset value that can be modifed during runtime:
+The engine can be configured through three methods: configuration file, commandline arguments, and interactive mode.
 
-- `TEST_SERVER_URL`: The endpoint against which the runnables will be executed.
-- `LOAD_NON_FHIR_FIXTURES`: Whether to ignore non-FHIR fixtures. Non-FHIR fixtures are not currently supported by the [spec](https://build.fhir.org/testscript.html), however we recognize several use cases where they would be valuable. Expects [T/F].
-- `TESTSCRIPT_PATH`: The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine. If any TestScript in the directory uses a fixture, the directory MUST also include a `fixtures` subfolder containing files whose relative paths match the reference value of a fixture within a TestScript.
-- `TESTREPORT_PATH`: The relative to the directory containing the TestReports output following their partner TestScript execution.
+### Configuration file
+
+Running the engine on a configuration file provides testing on predefined settings.
+
+`bundle exec bin/testscript_engine execute --config [FILEPATH]` : Put name and path of configuration YAML file.
+
+Below are properties in the configuration files.
+- `testscript_name : [TESTSCRIPT.NAME]` Name of TestScript to be executed. If empty, all files under testscript_path will be executed.
+- `testscript_path : [PATH]` The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine.
+- `testreport_path : [PATH]` The relative to the directory containing the TestReports output following their partner TestScript execution.
+- `server_url : [URL]` Endpoint against which TestScripts will be executed.
+- `nonfhir_fixture : [TRUE/FALSE]` Whether to allow intake non-FHIR fixtures.
+- `ext_validator : [URL]` If specified, use external resource validator instead of internal validator.
+- `ext_fhirpath : [URL]` If specified, use external FHIR path evaluator instead of internal evaluator.
 
 ### Commandline Arguments
 
-Some configurations can be set using command line arguments:
-- `-r` or `--runnable`: the next argument must be the name of runnable to execute (from `TestScript.name`). Only works if the noninteractive flag is provided. 
-- `-n` or `--noninteractive`: disable confirmation of configuration settings
+Command line arguments can be used when you want to run specific files and/or conditions. Run the engine with the following format:
 
-For example, to execute the TestScript runnable in file `TestScripts/read_testscript.json` (with name `TestScript Example Read Test`) in non-interactive mode, execute `bundle exec bin/testscript_engine -n -r "TestScript Example Read Test"`.
+`bundle exec bin/testscript_engine execute [OPTIONS]`
 
-## Details
+[OPTIONS]
+- `--config [FILENAME]`: Name of configuration file.
+- `--testscript_name [TESTSCRIPT.NAME]`: Name of TestScript to be execute. If not specified, all files under testscript_path will be executed.
+- `--testscript_path [PATH]`: Folder location of TestScripts (default: /TestScripts)
+- `--testreport_path [PATH]`: Folder location of TestReports (default: /TestReports)
+- `--server_url [URL]`: If specified, it will replace the default FHIR server in the configuration file.
+- `--nonfhir_fixture [TRUE/FALSE]`: Whether allow to intake non-FHIR fixture or not.
+- `--ext_validator [URL]`: If specified, use external resource validator.
+- `--ext_fhirpath [URL]`: If specified, use external FHIR path evaluator.
+
+### Interactive mode
+
+Running the engine on interactive mode provides flexibility to change the properties while executing testing. Simply run the command below.
+
+`bundle exec bin/testscript_engine interactive`
+
+## Folders and Files
 
 TestScripts are validated and loaded in by the engine. By default, the engine looks for a `./TestScripts` folder in its given context, but will allow the user to specify an alternate path. Once scripts are loaded, they are converted into 'runnables'. The engine allows users to specify which runnable to execute, and by default will execute all available runnables. Likewise, the user can specify the endpoint upon which the runnable(s) should be executed. Following execution, the user can either re-execute -- specifying a different runnable or endpoint -- or shut-down the engine. Finally, the results from each runnable's latest execution are written out to the `./TestReports` folder.
 
-## Limitations
-There are known gaps in the TestScript Engine:
-* Support for minimumId
-* Support for validateProfileId
-* Support for use of an external validator
-* Support for multiple origins and/or destinations
-
-
-The TestScript Engine is still in the infancy of its development; it is neither fully complete nor bug-free and we encourage contributions, feedback, and issue-opening from the community.
-
-## About the Project
-
-The purpose of the TestScript Engine is to support and encourage essential aspects of FHIR testing through the following features:
-
-* General use engine to be implemented in various use cases
-* Intake and execution of FHIR TestScript resources and output of TestReport resources that summarize the result of executing each TestScripts against a given endpoint or system
-* Aligned with existing FHIR architecture
-* Extensible to be integrated with key FHIR toolchains in the future (FHIR Shorthand, [TestScript Generator](https://github.com/fhir-crucible/testscript-generator), Synthea)
-
-
-
-## Folders and Files
   - `./lib`
     - `assertion.rb`
     - `operation.rb`
@@ -99,6 +106,18 @@ The purpose of the TestScript Engine is to support and encourage essential aspec
 
 `./TestScripts`:
   - Folder that contains the TestScripts to be executed. Any example resources used within those TestScripts (i.e. using a patient resource as a fixture) should be located within the `./fixtures` subfolder.
+
+## Features
+### Assertion
+The engine uses various algorithms to evaluate the results of previous operations to determine if the server under test behaves appropriately.
+* minimum_id: Per the [TestScript specification](http://www.hl7.org/fhir/testscript-definitions.html#TestScript.setup.action.assert.minimumId), an assertion with the minimumId element populated asserts that the target instance (current response or instance pointed to by sourceId) "contains all the element/content" from the minimumId instance (the instance pointed to by the minimumId element). For the implementation within this engine, an assertion with minimumId specified passes if and only if each element and list entry within the minimumId instance can be found within the target instance at the same levels within the heirarchy. With respect to lists, entries are not required to appear at the same index or in the same order. Instead, for each entry within the minimumId instance the engine must find a unique corresponding list entry within the target instance that contains all of the elements and content in the minimumId instance's entry. Note that the engine takes a greedy approach to identifying list entries that match, which means there exist pathological cases for which the implementation fails to find matches when they do in fact exist.
+
+## Limitations
+The TestScript Engine is still in the infancy of its development; it is neither fully complete nor bug-free and we encourage contributions, feedback, and issue-opening from the community. There are known gaps in the TestScript Engine:
+
+* Support for validateProfileId
+* Support for use of an external validator
+* Support for multiple origins and/or destinations
 
 ## References
 
