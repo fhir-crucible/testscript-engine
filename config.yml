@@ -2,7 +2,7 @@
 nonfhir_fixture: true
 
 # Endpoint against which TestScripts will be executed
-server_url: http://server.fire.ly
+server_url: https://server.fire.ly
 
 # The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine
 testscript_path: "./TestScripts"

@@ -47,7 +47,7 @@ class TestScriptEngine
 
     def self.start
   
-      @test_server_url = "http://server.fire.ly"
+      @test_server_url = "https://server.fire.ly"
       @testscript_path = "./TestScripts"
       @testscript_name = nil
       @testreport_path = "./TestReports"
