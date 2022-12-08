@@ -6,19 +6,6 @@ class TestScriptEngine
 
   module CLI 
     class MyCLI < Thor
-      desc "help", "Show all options"
-      def help()
-        puts "bundle exec bin/testscript_engine [PARAMETERS]"
-        puts "  interactive: run on interactive mode. Rest of arguments will be ignored."
-        puts "  config [FILEPATH]: run on configuration file on the path. Rest of arguments will be ignored. If path is not specified, default will be used."
-        puts "  execute --nonfhir_fixture [true/false]: allow to intake non-FHIR fixture"
-        puts "  execute --ext_validator [URL]: when specified, use external resource validator"
-        puts "  execute --ext_fhirpath [URL]: when specified, use external FHIR path evaluator"
-        puts "  execute --server_url [URL]: when specified, replace the default FHIR server"
-        puts "  execute --testscript_path [FILEPATH]: TestScript location (default: /TestScripts)"
-        puts "  execute --testreport_path [FILEPATH]: TestReport location (default: /TestReports)"
-      end
-
       desc "execute [OPTIONS]", "--nonfhir_fixture --ext_validator [URL] --ext_fhirpath [URL] --server_url [URL] --testscript_path [FILEPATH] --testreport_path [FILEPATH]"
       option :config
       option :nonfhir_fixture
@@ -32,7 +19,7 @@ class TestScriptEngine
       option :testreport_path
       def execute()
         if options == {}
-          puts "No argument to run to engine. Run 'bundle exec bin/testscript_engine help' to see available arguments" 
+          puts "No argument to run to engine. Run 'bundle exec bin/testscript_engine option' to see available arguments" 
           exit
         end
         return options
@@ -43,13 +30,32 @@ class TestScriptEngine
         return {"interactive" => true} if options == {}
       end
 
+      # Empty method to hide default Thor message
+      desc "", ""
+      def help()
+      end
+
+      desc "option", "Show all options"
+      def option()
+        puts "bundle exec bin/testscript_engine [OPTIONS]"
+        puts "  interactive: run on interactive mode. Rest of arguments will be ignored."
+        puts "  execute --config [FILEPATH]: run on configuration file on the path."
+        puts "  execute --nonfhir_fixture [true/false]: allow to intake non-FHIR fixture"
+        puts "  execute --ext_validator [URL]: when specified, use external resource validator"
+        puts "  execute --ext_fhirpath [URL]: when specified, use external FHIR path evaluator"
+        puts "  execute --server_url [URL]: when specified, replace the default FHIR server"
+        puts "  execute --testscript_path [FILEPATH]: TestScript location (default: /TestScripts)"
+        puts "  execute --testreport_path [FILEPATH]: TestReport location (default: /TestReports)"
+      
+        exit
+      end
+      
     end
 
     def self.start
   
       @test_server_url = "http://server.fire.ly"
       @testscript_path = "./TestScripts"
-      @testscript_name = nil
       @testreport_path = "./TestReports"
       @load_non_fhir_fixtures = true
       @ext_validator = nil
@@ -83,6 +89,7 @@ class TestScriptEngine
       @testreport_path = options["testreport_path"] if options["testreport_path"]
       @load_non_fhir_fixtures = options["nonfhir_fixture"] if options["nonfhir_fixture"]
       runnable = options["testscript_name"] if options["testscript_name"]
+      runnable = "TestScript_Example_ValidateProfileId"
 
       Dir.glob("#{Dir.getwd}/**").each do |path|
         @testscript_path = path if path.split('/').last.downcase == 'testscripts'

@@ -154,6 +154,19 @@ module Assertion
     compare("Header #{assert.headerField}", received, assert.operator, expected)
   end
 
+  def validate_profile_id(assert)
+    puts @
+    outcome = profiles[assert.validateProfileId].validates_resource?(get_resource(assert.sourceId))
+
+    if outcome
+      "validateProfileId: As expected, fixture '#{assert.sourceId}' conforms to profile: '#{assert.validateProfileId}'"
+    else
+      fail_message = "validateProfileId: Failure: fixture '#{assert.sourceId}' didn't conform to profile: '#{assert.validateProfileId}' \n Details: #{outcome.to_s}"
+      
+      raise AssertionException.new(fail_message, :fail)
+    end
+  end
+
   def minimum_id(assert)
     specErrorPaths = []
     path = ""
@@ -258,13 +271,6 @@ module Assertion
     received_code = get_response(assert.sourceId)&.[](:code).to_s
     received = CODE_MAP[received_code]
     compare("Response", received, assert.operator, assert.response)
-  end
-
-  # TODO: Hook-in validation module
-  def validate_profile_id(assert)
-    received = get_resource(assert.sourceId)
-
-    raise AssertionException.new('validateProfileId assert not yet supported.', :skip)
   end
 
   def request_url(assert)
