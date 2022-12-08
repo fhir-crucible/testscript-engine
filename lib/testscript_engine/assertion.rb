@@ -13,6 +13,8 @@ module Assertion
     end
   end
 
+  @options = {}
+
   ASSERT_TYPES_MATCHER = /(?<=\p{Ll})(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})/
 
   ASSERT_TYPES = [
@@ -45,8 +47,9 @@ module Assertion
     '422' => 'unprocessable'
   }
 
-  def evaluate(assert)
+  def evaluate(assert, options)
     @direction = assert.direction
+    @options = options
     assert_elements = assert.to_hash.keys
     assert_type = determine_assert_type(assert_elements)
 
@@ -155,15 +158,17 @@ module Assertion
   end
 
   def validate_profile_id(assert)
-    puts @
-    outcome = profiles[assert.validateProfileId].validates_resource?(get_resource(assert.sourceId))
-
-    if outcome
-      "validateProfileId: As expected, fixture '#{assert.sourceId}' conforms to profile: '#{assert.validateProfileId}'"
+    
+    if @options["ext_validator"] == nil
+      outcome = profiles[assert.validateProfileId].validates_resource?(get_resource(assert.sourceId))
+      if outcome
+        "validateProfileId: As expected, fixture '#{assert.sourceId}' conforms to profile: '#{assert.validateProfileId}'"
+      else
+        fail_message = "validateProfileId: Failed; fixture '#{assert.sourceId}' didn't conform to profile: '#{assert.validateProfileId}'"
+        raise AssertionException.new(fail_message, :fail)
+      end
     else
-      fail_message = "validateProfileId: Failure: fixture '#{assert.sourceId}' didn't conform to profile: '#{assert.validateProfileId}' \n Details: #{outcome.to_s}"
-      
-      raise AssertionException.new(fail_message, :fail)
+      raise AssertionException.new("External validator '#{@options["ext_validator"]}' not supported.", :skip)      
     end
   end
 

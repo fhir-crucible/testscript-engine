@@ -85,7 +85,7 @@
       "autocreate": false,
       "autodelete": false,
       "resource": {
-        "reference": "fixtures/Patient/patient_example_non_uscore.json",
+        "reference": "fixtures/Patient/patient_example_uscore.json",
         "display": "Peter Chalmers"
       }
     }

@@ -11,7 +11,7 @@ class TestScriptEngine
   prepend MessageHandler
   include Validation
 
-  attr_accessor :endpoint, :input_path, :testreport_path, :nonfhir_fixture, :resource_validator, :fhirpath_evaluator
+  attr_accessor :endpoint, :input_path, :testreport_path, :nonfhir_fixture, :options
 
   def fixtures
     @fixtures ||= {}
@@ -43,8 +43,7 @@ class TestScriptEngine
     self.input_path = testscript_path
     self.testreport_path = testreport_path
     self.nonfhir_fixture = options[:nonfhir_fixture]
-    self.resource_validator = options[:resource_validator]
-    self.fhirpath_evaluator = options[:fhirpath_evaluator]
+    self.options = options
     # self.debug_mode = true
   end
 
@@ -95,11 +94,11 @@ class TestScriptEngine
     get_fixtures = ->(fixture_name) { fixtures[fixture_name] }
     if valid_testscript? script
       info(:creating_runnable, script.name)
-      runnables[script.name] = TestScriptRunnable.new(script, get_fixtures)
+      runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options)
     else
       scripts.each do |_name, script|
         info(:creating_runnable, script.name)
-        runnables[script.name] = TestScriptRunnable.new(script, get_fixtures)
+        runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options)
       end
     end
   rescue StandardError

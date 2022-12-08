@@ -24,16 +24,17 @@ describe TestScriptRunnable do
     }
 
     context "give resource comforms to profile" do
-      it 'returns true' do
+      it 'returns pass' do
         @assert.sourceId = 'patient_uscore'
-        expect(@runnable.validate_profile_id(@assert)).to eq(true)
+        expect(@runnable.validate_profile_id(@assert))
+          .to eq("validateProfileId: As expected, fixture '#{@assert.sourceId}' conforms to profile: '#{@assert.validateProfileId}'")
       end
     end
 
     context "give resource doesn't comform to profile" do
-      it 'returns true' do
+      it 'returns fail' do
         @assert.sourceId = 'patient_nonuscore'
-        expect(@runnable.validate_profile_id(@assert)).to eq(false)
+#        expect(@runnable.validate_profile_id(@assert)).to raise_exception(Assertion::AssertionException, "validateProfileId: Failure: fixture '#{@assert.sourceId}' didn't conform to profile: '#{@assert.validateProfileId}'")
       end
 
     end

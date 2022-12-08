@@ -4,3 +4,4 @@ source 'http://rubygems.org'
 
 gemspec
 gem 'thor'
+gem 'ffi'

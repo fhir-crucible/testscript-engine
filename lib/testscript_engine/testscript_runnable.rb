@@ -10,7 +10,7 @@ class TestScriptRunnable
   prepend MessageHandler
   include TestReportHandler
 
-  attr_accessor :script, :client, :reply, :get_fixture_block
+  attr_accessor :script, :client, :reply, :get_fixture_block, :options
 
   def id_map
     @id_map ||= {}
@@ -40,8 +40,9 @@ class TestScriptRunnable
     @autodelete_ids ||= []
   end
 
-  def initialize(script, block)
+  def initialize(script, block, options)
     self.get_fixture_block = block
+    self.options = options
     @script = script
     load_fixtures
     load_profiles
@@ -119,7 +120,7 @@ class TestScriptRunnable
           execute(action.operation)
         elsif action.respond_to?(:assert)
           begin
-            evaluate(action.assert)
+            evaluate(action.assert, options)
           rescue AssertionException => ae
             if ae.outcome == :skip
               skip(:eval_assert_result, ae.details)
