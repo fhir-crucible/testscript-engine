@@ -158,17 +158,28 @@ module Assertion
   end
 
   def validate_profile_id(assert)
-    
-    if @options["ext_validator"] == nil
+    ext_validator_url = @options["ext_validator"]
+
+    if ext_validator_url == nil
       outcome = profiles[assert.validateProfileId].validates_resource?(get_resource(assert.sourceId))
       if outcome
         "validateProfileId: As expected, fixture '#{assert.sourceId}' conforms to profile: '#{assert.validateProfileId}'"
       else
-        fail_message = "validateProfileId: Failed; fixture '#{assert.sourceId}' didn't conform to profile: '#{assert.validateProfileId}'"
+        fail_message = "validateProfileId: Failed; fixture '#{assert.sourceId}' doesn't conform to profile: '#{assert.validateProfileId}'"
         raise AssertionException.new(fail_message, :fail)
       end
     else
-      raise AssertionException.new("External validator '#{@options["ext_validator"]}' not supported.", :skip)      
+      path = "/validate?profile=#{profiles[assert.validateProfileId].url}"
+      validator = FHIR::Client.new(ext_validator_url)
+      validator.send(:post, path, get_resource(assert.sourceId), { 'Content-Type' => 'json' })
+
+      if validator.reply.response[:code] == "200"
+        puts JSON.parse(validator.reply.response[:body].body)["issue"][0]["details"]["text"]
+      else
+        fail_message = "Failed: Response code: #{response.response[:code]} from #{profiles[assert.validateProfileId].url}"
+        raise AssertionException.new(fail_message, :fail)
+      end
+
     end
   end
 
