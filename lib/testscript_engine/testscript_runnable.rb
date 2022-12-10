@@ -177,15 +177,17 @@ class TestScriptRunnable
   end
 
   def load_profiles
-    puts ("     Loading profiles...")
+    puts ("      Loading profiles...")
     script.profile.each do |profile|
       next warning(:no_static_profile_id) unless profile.id
       next warning(:no_static_profile_reference) unless profile.reference
 
       profile_server = FHIR::Client.new("")
       response = profile_server.send(:get, profile.reference, { 'Content-Type' => 'json' })
-      next if response.response[:code].to_s != "200"
-
+      if response.response[:code].to_s != "200"
+        puts ("      Failed to load profile '#{profile.id}' from '#{profile.reference}': Response code #{response.response[:code]}")
+        next 
+      end
       profiles[profile.id] = FHIR.from_contents(response.response[:body].to_s)
       info(:loaded_profile, profile.id, profile.reference)
     end

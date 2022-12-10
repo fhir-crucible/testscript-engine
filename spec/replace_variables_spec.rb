@@ -47,7 +47,7 @@ describe TestScriptRunnable do
         "status": 'draft',
         "variable": [var, var1, var2]
       }
-    ), lambda { |k| {}[k] }
+    ), lambda { |k| {}[k] }, {"ext_validator" => nil, "ext_fhirpath" => nil}
   end
 
   let(:client) { FHIR::Client.new('https://example.com') }

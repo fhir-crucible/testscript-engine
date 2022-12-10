@@ -159,24 +159,31 @@ module Assertion
 
   def validate_profile_id(assert)
     ext_validator_url = @options["ext_validator"]
+    sourceId = assert.sourceId
+    validateProfileId = assert.validateProfileId
 
     if ext_validator_url == nil
-      outcome = profiles[assert.validateProfileId].validates_resource?(get_resource(assert.sourceId))
+      outcome = profiles[validateProfileId].validates_resource?(get_resource(sourceId))
       if outcome
-        "validateProfileId: As expected, fixture '#{assert.sourceId}' conforms to profile: '#{assert.validateProfileId}'"
+        "validateProfileId: As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
       else
-        fail_message = "validateProfileId: Failed; fixture '#{assert.sourceId}' doesn't conform to profile: '#{assert.validateProfileId}'"
+        fail_message = "validateProfileId: Failed; fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
         raise AssertionException.new(fail_message, :fail)
       end
     else
-      path = "/validate?profile=#{profiles[assert.validateProfileId].url}"
+      path = "/validate?profile=#{profiles[validateProfileId].url}"
       validator = FHIR::Client.new(ext_validator_url)
-      validator.send(:post, path, get_resource(assert.sourceId), { 'Content-Type' => 'json' })
+      validator.send(:post, path, get_resource(sourceId), { 'Content-Type' => 'json' })
 
-      if validator.reply.response[:code] == "200"
-        puts JSON.parse(validator.reply.response[:body].body)["issue"][0]["details"]["text"]
+      if validator.reply.response[:code].start_with?("2")
+        if JSON.parse(validator.reply.response[:body].body)["issue"][0]["details"]["text"] == "All OK"
+          "validateProfileId: As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
+        else
+          fail_message = "validateProfileId: Failed; fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
+          raise AssertionException.new(fail_message, :fail)
+        end        
       else
-        fail_message = "Failed: Response code: #{response.response[:code]} from #{profiles[assert.validateProfileId].url}"
+        fail_message = "Failed: Response code: #{response.response[:code]} from #{ext_validator_url}"
         raise AssertionException.new(fail_message, :fail)
       end
 

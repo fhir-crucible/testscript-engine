@@ -18,7 +18,8 @@ describe TestScriptRunnable do
           }).
     to_return(status: 200, body: "#{@structure_definition}", headers: {})
          
-    @runnable = described_class.new(@script, lambda { |k| {}[k] })
+    options = {"ext_validator" => nil, "ext_fhirpath" => nil}
+    @runnable = described_class.new(@script, lambda { |k| {}[k] }, options)
   end
 
   describe '.load_profiles' do
