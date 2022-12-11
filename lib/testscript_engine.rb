@@ -11,7 +11,7 @@ class TestScriptEngine
   prepend MessageHandler
   include Validation
 
-  attr_accessor :endpoint, :input_path, :testreport_path, :nonfhir_fixture, :resource_validator, :fhirpath_evaluator
+  attr_accessor :endpoint, :input_path, :testreport_path, :nonfhir_fixture, :resource_validator, :fhirpath_evaluator, :variable
 
   def fixtures
     @fixtures ||= {}
@@ -45,6 +45,7 @@ class TestScriptEngine
     self.nonfhir_fixture = options[:nonfhir_fixture]
     self.resource_validator = options[:resource_validator]
     self.fhirpath_evaluator = options[:fhirpath_evaluator]
+    self.variable = options["variable"]
     # self.debug_mode = true
   end
 
@@ -93,17 +94,29 @@ class TestScriptEngine
   #                            transformed into and stored as runnables.
   def make_runnables(script = nil)
     get_fixtures = ->(fixture_name) { fixtures[fixture_name] }
+    
     if valid_testscript? script
       info(:creating_runnable, script.name)
+      script = dynamic_variable(script) if script.variable && variable
       runnables[script.name] = TestScriptRunnable.new(script, get_fixtures)
     else
       scripts.each do |_name, script|
         info(:creating_runnable, script.name)
+        script = dynamic_variable(script) if script.variable && variable
         runnables[script.name] = TestScriptRunnable.new(script, get_fixtures)
       end
     end
   rescue StandardError
     error(:unable_to_create_runnable, script.name)
+  end
+
+  def dynamic_variable(script)
+    script.variable.each do |v|
+      variable.each do |v2|
+        v.defaultValue = v2.gsub(" =","=").gsub("= ","=").split("=").last if v2.gsub(" =","=").gsub("= ","=").split("=").first == v.name && v.defaultValue != nil
+      end
+    end
+    return script
   end
 
   # TODO: Clean-up, possibly modularize into a pretty_print type method
