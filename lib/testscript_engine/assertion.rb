@@ -176,7 +176,7 @@ module Assertion
       validator.send(:post, path, get_resource(sourceId), { 'Content-Type' => 'json' })
 
       if validator.reply.response[:code].start_with?("2")
-        if JSON.parse(validator.reply.response[:body].body)["issue"][0]["details"]["text"] == "All OK"
+        if JSON.parse(validator.reply.response[:body].body)["issue"][0]["severity"] != "error"
           "validateProfileId: As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
         else
           fail_message = "validateProfileId: Failed; fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
