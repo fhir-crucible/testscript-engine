@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'http'
 require 'pry-nav'
 require 'fhir_client'
 require_relative 'testscript_engine/testscript_runnable'

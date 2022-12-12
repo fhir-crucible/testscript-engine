@@ -194,7 +194,16 @@ class TestScriptRunnable
 
     ref = reference.reference
     return warning(:no_reference) unless ref
-    return warning(:unsupported_ref, ref) if ref.start_with? 'http'
+
+    if ref.start_with? 'http'
+      response = HTTP.get(ref)
+      if response.code == 200
+        info(:added_fixture, ref)
+        return FHIR.from_contents(response.body) 
+      else
+        warning(:missed_fixture, ref)
+      end
+    end
 
     if ref.start_with? '#'
       contained = script.contained.find { |r| r.id == ref[1..] }
