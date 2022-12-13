@@ -11,7 +11,11 @@
     "value": "urn:oid:1.3.6.1.4.1.21367.2005.3.7.9876"
   },
   "version": "1.0",
+<<<<<<< HEAD:TestScripts/testscript_fixture_test.json
   "name": "testscript-example-fixture-test",
+=======
+  "name": "testscript-example-general",
+>>>>>>> main:TestScripts/general_testscript.json
   "title": "TestScript Example General",
   "status": "draft",
   "experimental": true,
