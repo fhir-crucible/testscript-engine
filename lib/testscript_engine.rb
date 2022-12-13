@@ -113,7 +113,7 @@ class TestScriptEngine
   def dynamic_variable(script)
     script.variable.each do |v|
       variable.each do |v2|
-        v.defaultValue = v2.gsub(" =","=").gsub("= ","=").split("=").last if v2.gsub(" =","=").gsub("= ","=").split("=").first == v.name && v.defaultValue != nil
+        v.defaultValue = v2.split("=").last if v2.split("=").first == v.name && v.defaultValue != nil
       end
     end
     return script
