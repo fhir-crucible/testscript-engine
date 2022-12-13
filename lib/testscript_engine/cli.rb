@@ -14,7 +14,7 @@ class TestScriptEngine
         puts "  execute --nonfhir_fixture [true/false]: allow to intake non-FHIR fixture"
         puts "  execute --ext_validator [URL]: when specified, use external resource validator"
         puts "  execute --ext_fhirpath [URL]: when specified, use external FHIR path evaluator"
-        puts "  execute --variable ['name1=value1' 'name2=value2'...]: when specified, replace the default FHIR server"
+        puts "  execute --variable ['name1=value1' 'name2=value2'...]: when specified, replace defaultValue in variable"
         puts "  execute --server_url [URL]: when specified, replace the default FHIR server"
         puts "  execute --testscript_path [FILEPATH]: TestScript location (default: /TestScripts)"
         puts "  execute --testreport_path [FILEPATH]: TestReport location (default: /TestReports)"
