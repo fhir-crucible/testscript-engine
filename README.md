@@ -38,6 +38,7 @@ Below are properties in the configuration files.
 - `testscript_name : [TESTSCRIPT.NAME]` Name of TestScript to be executed. If empty, all files under testscript_path will be executed.
 - `testscript_path : [PATH]` The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine.
 - `testreport_path : [PATH]` The relative to the directory containing the TestReports output following their partner TestScript execution.
+- `variable : [- name1=value1 - name2=value2 ..]`: Replace defaultValue in variable by user defined value. This will apply to all runnables uniformly as long as names match. No space before and after =. Multiple variables are distinguished by line.
 - `server_url : [URL]` Endpoint against which TestScripts will be executed.
 - `nonfhir_fixture : [TRUE/FALSE]` Whether to allow intake non-FHIR fixtures.
 - `ext_validator : [URL]` If specified, use external resource validator instead of internal validator.
@@ -55,6 +56,7 @@ Command line arguments can be used when you want to run specific files and/or co
 - `--testscript_path [PATH]`: Folder location of TestScripts (default: /TestScripts)
 - `--testreport_path [PATH]`: Folder location of TestReports (default: /TestReports)
 - `--server_url [URL]`: If specified, it will replace the default FHIR server in the configuration file.
+- `--variable [name1=value1 name2=value2 ..]`: Replace defaultValue in variable by user defined value. This will apply to all runnables uniformly as long as names match. No space before and after =. Use quotations if value has space.
 - `--nonfhir_fixture [TRUE/FALSE]`: Whether allow to intake non-FHIR fixture or not.
 - `--ext_validator [URL]`: If specified, use external resource validator.
 - `--ext_fhirpath [URL]`: If specified, use external FHIR path evaluator.
