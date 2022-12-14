@@ -11,11 +11,7 @@
     "value": "urn:oid:1.3.6.1.4.1.21367.2005.3.7.9876"
   },
   "version": "1.0",
-<<<<<<< HEAD:TestScripts/testscript_fixture_test.json
   "name": "testscript-example-fixture-test",
-=======
-  "name": "testscript-example-general",
->>>>>>> main:TestScripts/general_testscript.json
   "title": "TestScript Example General",
   "status": "draft",
   "experimental": true,
@@ -69,19 +65,6 @@
         "url": "http://hl7.org/fhir/patient.html",
         "description": "Demographics and other administrative information about an individual or animal receiving care or other health-related services."
       }
-    ],
-    "capability": [
-      {
-        "required": true,
-        "validated": false,
-        "description": "Patient Update, Read and Delete Operations",
-        "link": [
-          "http://hl7.org/fhir/http.html#delete",
-          "http://hl7.org/fhir/http.html#read",
-          "http://hl7.org/fhir/http.html#update"
-        ],
-        "capabilities": "http://hl7.org/fhir/CapabilityStatement/example"
-      }
     ]
   },
   "fixture": [
@@ -91,15 +74,6 @@
       "autodelete": false,
       "resource": {
         "reference": "http://hl7.org/fhir/patient-example.json",
-        "display": "Peter Chalmers"
-      }
-    },
-    {
-      "id": "fixture-patient-create2",
-      "autocreate": false,
-      "autodelete": false,
-      "resource": {
-        "reference": "Patient/example.json",
         "display": "Peter Chalmers"
       }
     }
