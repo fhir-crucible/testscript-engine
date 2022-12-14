@@ -5,14 +5,20 @@ nonfhir_fixture: true
 server_url: https://server.fire.ly
 
 # The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine
-testscript_path: "./TestScripts"
+testscript_path: "/spec/examples/testscript_unittest"
  
 # Name of TestScript under TESTSCRIPT_PATH to be executed
 # If empty, all files under TESTSCRIPT_PATH will be executed
 testscript_name: TestScript_Example_ValidateProfileId
-# Example:
 # testscript_name: TestScript Example General
 # Handling multiple TestScript names will be added
+
+# Dynamic variables will replace defaultValue in variable in TestScript
+# Dynamic variables uniformly apply to all runnables. For example, if two TestScripts have same variable names, dynamic variable will apply to both of them.
+# Example: PatientResourceId1=var1changed
+variable:
+- PatientResourceId1 = var1changed
+- PatientResourceId2 = var2changed
 
 # The relative to the directory containing the TestReports output following their partner TestScript execution
 testreport_path: "./TestReports"

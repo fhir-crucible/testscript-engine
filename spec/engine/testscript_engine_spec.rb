@@ -19,7 +19,7 @@ describe TestScriptEngine do
       @engine.load_input
 
       expect(@engine.fixtures.keys.length).to be(1)
-      expect(@engine.scripts.keys.length).to be(14)
+      expect(@engine.scripts.keys.length).to be(15)
     end
 
     it 'loads file if given file path' do

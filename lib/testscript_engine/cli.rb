@@ -14,17 +14,19 @@ class TestScriptEngine
         puts "  execute --nonfhir_fixture [true/false]: allow to intake non-FHIR fixture"
         puts "  execute --ext_validator [URL]: when specified, use external resource validator"
         puts "  execute --ext_fhirpath [URL]: when specified, use external FHIR path evaluator"
+        puts "  execute --variable ['name1=value1' 'name2=value2'...]: when specified, replace defaultValue in variable"
         puts "  execute --server_url [URL]: when specified, replace the default FHIR server"
         puts "  execute --testscript_path [FILEPATH]: TestScript location (default: /TestScripts)"
         puts "  execute --testreport_path [FILEPATH]: TestReport location (default: /TestReports)"
       end
 
-      desc "execute [OPTIONS]", "--nonfhir_fixture --ext_validator [URL] --ext_fhirpath [URL] --server_url [URL] --testscript_path [FILEPATH] --testreport_path [FILEPATH]"
+      desc "execute [OPTIONS]", "--nonfhir_fixture --ext_validator [URL] --ext_fhirpath [URL] --variable ['name = value'] --server_url [URL] --testscript_path [FILEPATH] --testreport_path [FILEPATH]"
       option :config
       option :nonfhir_fixture
       option :ext_validator
       option :ext_fhirpath
       option :server_url
+      option :variable, :type => :array
       option :testscript_path
       option :testscript_name
       #We will change later to accommodate multiple testscript names
@@ -47,10 +49,10 @@ class TestScriptEngine
 
     def self.start
   
-      @test_server_url = "https://server.fire.ly"
-      @testscript_path = "./TestScripts"
+      @test_server_url = "http://server.fire.ly"
+      @testscript_path = "/TestScripts"
       @testscript_name = nil
-      @testreport_path = "./TestReports"
+      @testreport_path = "/TestReports"
       @load_non_fhir_fixtures = true
 
       options = MyCLI.start(ARGV)
@@ -76,16 +78,19 @@ class TestScriptEngine
       else
         options = {"ext_validator" => "inferno", "ext_fhirpath" => nil}
       end
-
+      
       @test_server_url = options["server_url"] if options["server_url"]
       @testscript_path = options["testscript_path"] if options["testscript_path"]
       @testreport_path = options["testreport_path"] if options["testreport_path"]
       @load_non_fhir_fixtures = options["nonfhir_fixture"] if options["nonfhir_fixture"]
       runnable = options["testscript_name"] if options["testscript_name"]
+      
+      @testscript_path = Dir.getwd + @testscript_path
+      @testreport_path = Dir.getwd + @testreport_path
 
       Dir.glob("#{Dir.getwd}/**").each do |path|
-        @testscript_path = path if path.split('/').last.downcase == 'testscripts'
-        @testreport_path = path if path.split('/').last.downcase == 'testreports'
+        #@testscript_path = path if path.split('/').last.downcase == 'testscripts'
+        #@testreport_path = path if path.split('/').last.downcase == 'testreports'
       end
 
       if (@interactive)
