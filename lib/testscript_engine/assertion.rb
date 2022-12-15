@@ -167,29 +167,35 @@ module Assertion
       outcome = profiles[validateProfileId].validates_resource?(get_resource(sourceId))
 
       if outcome
-        " -> As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
+        return " -> As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
       else
         fail_message = " -> Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
         raise AssertionException.new(fail_message, :fail)
       end
     else
       puts "validateProfileId: trying external validator '#{ext_validator_url}'"
-      path = "/validate?profile=#{profiles[validateProfileId].url}"
       validator = FHIR::Client.new(ext_validator_url)
-      validator.send(:post, path, get_resource(sourceId), { 'Content-Type' => 'json' })
+      reply = validator.send(:get, "/profiles", { 'Content-Type' => 'json' })
+      profiles = JSON.parse(reply.to_hash[:response][:body])
 
-      if validator.reply.response[:code].start_with?("2")
-        if JSON.parse(validator.reply.response[:body].body)["issue"][0]["severity"] != "error"
-          " -> As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
-        else
-          fail_message = " -> Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
-          raise AssertionException.new(fail_message, :fail)
-        end        
+      if !profiles.include?(profiles[validateProfileId].url)
+        "External validator '#{ext_validator_url}' doesn't have a profile #{profiles[validateProfileId].url}"
       else
-        fail_message = " -> Failed, response code #{response.response[:code]}."
-        raise AssertionException.new(fail_message, :fail)
+        path = "/validate?profile=#{profiles[validateProfileId].url}"
+        validator.send(:post, path, get_resource(sourceId), { 'Content-Type' => 'json' })
+  
+        if validator.reply.response[:code].start_with?("2")
+          if JSON.parse(validator.reply.response[:body].body)["issue"][0]["severity"] != "error"
+            return " -> As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
+          else
+            fail_message = " -> Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
+            raise AssertionException.new(fail_message, :fail)
+          end        
+        else
+          fail_message = " -> Failed, response code #{response.response[:code]}."
+          raise AssertionException.new(fail_message, :fail)
+        end
       end
-
     end
   end
 
@@ -227,7 +233,7 @@ module Assertion
 
   def check_minimum_id_hash(spec, actual, currentSpecPath, specErrorPaths)
     pass_flg = true
-  
+  q
     spec.each do |k, v|
       newSpecPath = currentSpecPath.length == 0 ? k : currentSpecPath + ".#{k}"
       keyResult = check_minimum_id(spec[k], actual[k], newSpecPath, specErrorPaths)
