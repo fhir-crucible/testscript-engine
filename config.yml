@@ -23,6 +23,9 @@ variable:
 # The relative to the directory containing the TestReports output following their partner TestScript execution
 testreport_path: "./TestReports"
 
+# Whether use FHIR logger
+verbose: false
+
 # If specified, the url where the external validator can be reached. If not use the internal validator
 # Resource validator options:
 # - "internal" uses the ruby validator from the fhir_models gem

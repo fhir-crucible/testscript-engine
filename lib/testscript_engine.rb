@@ -50,7 +50,7 @@ class TestScriptEngine
 
   # TODO: Tie-in stronger validation. Possibly, Inferno validator.
   def valid_testscript? script
-    return (script.is_a? FHIR::TestScript) && valid_resource?(script)
+    return (script.is_a? FHIR::TestScript) && valid_resource?(script, options)
   end
 
   # Load TestScripts and fixtures from the input_path
