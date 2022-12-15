@@ -64,10 +64,13 @@
   ],
   "profile": [
     {
-      "id": "patient-uscore-profile",
+      "id": "patient-uscore-profile-remote",
       "reference": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
+    },
+    {
+      "id": "patient-uscore-profile-local",
+      "reference": "spec/fixtures/structuredefinition-us-core-patient.json"
     }
-
   ],
   "test": [
     {
@@ -77,8 +80,16 @@
       "action": [
         {
           "assert": {
-            "description": "Confirm that the returned Patient conforms to the base FHIR specification.",
-            "validateProfileId": "patient-uscore-profile",
+            "description": "Confirm that the Patient conforms to the remote profile.",
+            "validateProfileId": "patient-uscore-profile-remote",
+            "sourceId": "fixture-patient-uscore",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "description": "Confirm that the Patient conforms to the local profile.",
+            "validateProfileId": "patient-uscore-profile-local",
             "sourceId": "fixture-patient-uscore",
             "warningOnly": false
           }

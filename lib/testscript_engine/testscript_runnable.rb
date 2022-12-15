@@ -182,14 +182,20 @@ class TestScriptRunnable
       next warning(:no_static_profile_id) unless profile.id
       next warning(:no_static_profile_reference) unless profile.reference
 
-      profile_server = FHIR::Client.new("")
-      response = profile_server.send(:get, profile.reference, { 'Content-Type' => 'json' })
-      if response.response[:code].to_s != "200"
-        puts ("      Failed to load profile '#{profile.id}' from '#{profile.reference}': Response code #{response.response[:code]}")
-        next 
+      if profile.reference.start_with? 'http'
+        profile_server = FHIR::Client.new("")
+        response = profile_server.send(:get, profile.reference, { 'Content-Type' => 'json' })
+        if response.response[:code].to_s != "200"
+          puts ("      Failed to load profile '#{profile.id}' from '#{profile.reference}': Response code #{response.response[:code]}")
+          next 
+        end
+        profiles[profile.id] = FHIR.from_contents(response.response[:body].to_s)
+        info(:loaded_remote_profile, profile.id, profile.reference)
+      else
+        profiles[profile.id] = FHIR.from_contents(File.read(profile.reference))
+        info(:loaded_local_profile, profile.id, profile.reference)
       end
-      profiles[profile.id] = FHIR.from_contents(response.response[:body].to_s)
-      info(:loaded_profile, profile.id, profile.reference)
+
     end
   end
 
