@@ -163,27 +163,30 @@ module Assertion
     validateProfileId = assert.validateProfileId
 
     if ext_validator_url == nil
+      puts "validateProfileId: trying Ruby Crucible validator"
       outcome = profiles[validateProfileId].validates_resource?(get_resource(sourceId))
+
       if outcome
-        "validateProfileId: As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
+        " -> As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
       else
-        fail_message = "validateProfileId: Failed; fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
+        fail_message = " -> Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
         raise AssertionException.new(fail_message, :fail)
       end
     else
+      puts "validateProfileId: trying external validator '#{ext_validator_url}'"
       path = "/validate?profile=#{profiles[validateProfileId].url}"
       validator = FHIR::Client.new(ext_validator_url)
       validator.send(:post, path, get_resource(sourceId), { 'Content-Type' => 'json' })
 
       if validator.reply.response[:code].start_with?("2")
         if JSON.parse(validator.reply.response[:body].body)["issue"][0]["severity"] != "error"
-          "validateProfileId: As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
+          " -> As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
         else
-          fail_message = "validateProfileId: Failed; fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
+          fail_message = " -> Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
           raise AssertionException.new(fail_message, :fail)
         end        
       else
-        fail_message = "Failed: Response code: #{response.response[:code]} from #{ext_validator_url}"
+        fail_message = " -> Failed, response code #{response.response[:code]}."
         raise AssertionException.new(fail_message, :fail)
       end
 
