@@ -4,7 +4,7 @@ require_relative '../lib/testscript_engine/output/message_handler'
 
 describe TestScriptRunnable do
   before(:all) do
-    @structure_definition = File.read('spec/examples/StructureDefinition-us-core-patient.json')
+    @structure_definition = File.read('spec/fixtures/structuredefinition-us-core-patient.json')
     @script = FHIR.from_contents(File.read('spec/examples/basic_testscript_profile.json'))
 
     stub_request(:get, "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient").
@@ -18,7 +18,8 @@ describe TestScriptRunnable do
           }).
     to_return(status: 200, body: "#{@structure_definition}", headers: {})
          
-    @runnable = described_class.new(@script, lambda { |k| {}[k] })
+    options = {"ext_validator" => nil, "ext_fhirpath" => nil}
+    @runnable = described_class.new(@script, lambda { |k| {}[k] }, options)
   end
 
   describe '.load_profiles' do

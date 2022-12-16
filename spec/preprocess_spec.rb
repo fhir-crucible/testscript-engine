@@ -5,7 +5,8 @@ describe TestScriptRunnable do
 	before(:all) do
 		@script = FHIR.from_contents(File.read('spec/examples/basic_testscript.json'))
 		@patient = FHIR.from_contents(File.read('spec/examples/example_patient.json'))
-		@runnable = described_class.new(@script.deep_dup, lambda { |k| {}[k] })
+		options = {"ext_validator" => nil, "ext_fhirpath" => nil}
+		@runnable = described_class.new(@script.deep_dup, lambda { |k| {}[k] }, options)
 		@runnable.client = FHIR::Client.new("https://example.com")
   end
 

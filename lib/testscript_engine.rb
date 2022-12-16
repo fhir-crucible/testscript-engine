@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'http'
 require 'pry-nav'
 require 'fhir_client'
 require_relative 'testscript_engine/testscript_runnable'
@@ -12,7 +11,7 @@ class TestScriptEngine
   prepend MessageHandler
   include Validation
 
-  attr_accessor :endpoint, :input_path, :testreport_path, :nonfhir_fixture, :resource_validator, :fhirpath_evaluator, :variable
+  attr_accessor :endpoint, :input_path, :testreport_path, :nonfhir_fixture, :options, :variable
 
   def fixtures
     @fixtures ||= {}
@@ -44,15 +43,14 @@ class TestScriptEngine
     self.input_path = testscript_path
     self.testreport_path = testreport_path
     self.nonfhir_fixture = options[:nonfhir_fixture]
-    self.resource_validator = options[:resource_validator]
-    self.fhirpath_evaluator = options[:fhirpath_evaluator]
     self.variable = options["variable"]
+    self.options = options
     # self.debug_mode = true
   end
 
   # TODO: Tie-in stronger validation. Possibly, Inferno validator.
   def valid_testscript? script
-    return (script.is_a? FHIR::TestScript) && valid_resource?(script)
+    return (script.is_a? FHIR::TestScript) && valid_resource?(script, options)
   end
 
   # Load TestScripts and fixtures from the input_path
@@ -99,12 +97,12 @@ class TestScriptEngine
     if valid_testscript? script
       info(:creating_runnable, script.name)
       script = dynamic_variable(script) if script.variable && variable
-      runnables[script.name] = TestScriptRunnable.new(script, get_fixtures)
+      runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options)
     else
       scripts.each do |_name, script|
         info(:creating_runnable, script.name)
         script = dynamic_variable(script) if script.variable && variable
-        runnables[script.name] = TestScriptRunnable.new(script, get_fixtures)
+        runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options)
       end
     end
   rescue StandardError

@@ -2,15 +2,14 @@
 nonfhir_fixture: true
 
 # Endpoint against which TestScripts will be executed
-server_url: http://server.fire.ly
+server_url: https://server.fire.ly
 
 # The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine
 testscript_path: "/spec/examples/testscript_unittest"
  
 # Name of TestScript under TESTSCRIPT_PATH to be executed
 # If empty, all files under TESTSCRIPT_PATH will be executed
-testscript_name: testscript_dynamic_variable
-# Example: 
+testscript_name: TestScript_Example_ValidateProfileId
 # testscript_name: TestScript Example General
 # Handling multiple TestScript names will be added
 
@@ -24,13 +23,16 @@ variable:
 # The relative to the directory containing the TestReports output following their partner TestScript execution
 testreport_path: "./TestReports"
 
+# Whether use FHIR logger
+verbose: false
+
 # If specified, the url where the external validator can be reached. If not use the internal validator
 # Resource validator options:
 # - "internal" uses the ruby validator from the fhir_models gem
 #   https://github.com/fhir-crucible/fhir_models
 # - "external" uses the a web interface for the L7 FHIR validator.
 #   https://github.com/inferno-community/fhir-validator-wrapper
-ext_validator: 
+ext_validator: https://inferno.healthit.gov/validatorapi
 
 # If specified, the url where the external fhirpath will be used. If not use the internal fhirpath.
 ext_fhirpath: 

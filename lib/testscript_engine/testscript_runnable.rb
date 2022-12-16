@@ -10,7 +10,7 @@ class TestScriptRunnable
   prepend MessageHandler
   include TestReportHandler
 
-  attr_accessor :script, :client, :reply, :get_fixture_block
+  attr_accessor :script, :client, :reply, :get_fixture_block, :options
 
   def id_map
     @id_map ||= {}
@@ -40,8 +40,9 @@ class TestScriptRunnable
     @autodelete_ids ||= []
   end
 
-  def initialize(script, block)
+  def initialize(script, block, options)
     self.get_fixture_block = block
+    self.options = options
     @script = script
     load_fixtures
     load_profiles
@@ -119,7 +120,7 @@ class TestScriptRunnable
           execute(action.operation)
         elsif action.respond_to?(:assert)
           begin
-            evaluate(action.assert)
+            evaluate(action.assert, options)
           rescue AssertionException => ae
             if ae.outcome == :skip
               skip(:eval_assert_result, ae.details)
@@ -176,16 +177,25 @@ class TestScriptRunnable
   end
 
   def load_profiles
+    puts ("      Loading profiles...")
     script.profile.each do |profile|
       next warning(:no_static_profile_id) unless profile.id
       next warning(:no_static_profile_reference) unless profile.reference
 
-      profile_server = FHIR::Client.new("")
-      response = profile_server.send(:get, profile.reference, { 'Content-Type' => 'json' })
-      next if response.response[:code].to_s.starts_with?('2')
+      if profile.reference.start_with? 'http'
+        profile_server = FHIR::Client.new("")
+        response = profile_server.send(:get, profile.reference, { 'Content-Type' => 'json' })
+        if response.response[:code].to_s != "200"
+          puts ("      Failed to load profile '#{profile.id}' from '#{profile.reference}': Response code #{response.response[:code]}")
+          next 
+        end
+        profiles[profile.id] = FHIR.from_contents(response.response[:body].to_s)
+        info(:loaded_remote_profile, profile.id, profile.reference)
+      else
+        profiles[profile.id] = FHIR.from_contents(File.read(profile.reference))
+        info(:loaded_local_profile, profile.id, profile.reference)
+      end
 
-      profiles[profile.id] = FHIR.from_contents(response.response[:body].to_s)
-      info(:loaded_profile, profile.id, profile.reference)
     end
   end
 

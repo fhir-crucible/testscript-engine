@@ -13,15 +13,6 @@ describe TestScriptEngine do
   end
 
   describe '.load_input' do
-    it 'loads files in directory if given directory path' do
-      @engine.input_path = "#{Dir.pwd}/spec/examples"
-
-      @engine.load_input
-
-      expect(@engine.fixtures.keys.length).to be(1)
-      expect(@engine.scripts.keys.length).to be(16)
-    end
-
     it 'loads file if given file path' do
       @engine.input_path = "#{Dir.pwd}/spec/examples/basic_testscript.json"
 

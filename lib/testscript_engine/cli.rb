@@ -11,6 +11,7 @@ class TestScriptEngine
         puts "bundle exec bin/testscript_engine [PARAMETERS]"
         puts "  interactive: run on interactive mode. Rest of arguments will be ignored."
         puts "  config [FILEPATH]: run on configuration file on the path. Rest of arguments will be ignored. If path is not specified, default will be used."
+        puts "  execute --verbose : when specified, use FHIR Logger"
         puts "  execute --nonfhir_fixture [true/false]: allow to intake non-FHIR fixture"
         puts "  execute --ext_validator [URL]: when specified, use external resource validator"
         puts "  execute --ext_fhirpath [URL]: when specified, use external FHIR path evaluator"
@@ -20,7 +21,7 @@ class TestScriptEngine
         puts "  execute --testreport_path [FILEPATH]: TestReport location (default: /TestReports)"
       end
 
-      desc "execute [OPTIONS]", "--nonfhir_fixture --ext_validator [URL] --ext_fhirpath [URL] --variable ['name = value'] --server_url [URL] --testscript_path [FILEPATH] --testreport_path [FILEPATH]"
+      desc "execute [OPTIONS]", "--nonfhir_fixture --verbose --ext_validator [URL] --ext_fhirpath [URL] --variable ['name = value'] --server_url [URL] --testscript_path [FILEPATH] --testreport_path [FILEPATH]"
       option :config
       option :nonfhir_fixture
       option :ext_validator
@@ -32,6 +33,7 @@ class TestScriptEngine
       #We will change later to accommodate multiple testscript names
       #option :testscript_name, :type => :array
       option :testreport_path
+      option :verbose, :type => :boolean
       def execute()
         if options == {}
           puts "No argument to run to engine. Run 'bundle exec bin/testscript_engine help' to see available arguments" 
@@ -54,9 +56,7 @@ class TestScriptEngine
       @testscript_name = nil
       @testreport_path = "/TestReports"
       @load_non_fhir_fixtures = true
-      @ext_validator = nil
-      @ext_fhirpath = nil
-
+      
       options = MyCLI.start(ARGV)
 
       if options != nil
@@ -75,9 +75,10 @@ class TestScriptEngine
               exit
             end
           end
+
         end
       else
-        options = {}
+        options = {"ext_validator" => "inferno", "ext_fhirpath" => nil, "verbose" => false}
       end
       
       @test_server_url = options["server_url"] if options["server_url"]
@@ -88,11 +89,6 @@ class TestScriptEngine
       
       @testscript_path = Dir.getwd + @testscript_path
       @testreport_path = Dir.getwd + @testreport_path
-
-      Dir.glob("#{Dir.getwd}/**").each do |path|
-        #@testscript_path = path if path.split('/').last.downcase == 'testscripts'
-        #@testreport_path = path if path.split('/').last.downcase == 'testreports'
-      end
 
       if (@interactive)
         print "Hello from the TestScriptEngine! "

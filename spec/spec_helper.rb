@@ -7,8 +7,9 @@ WebMock.enable!
 
 RSpec.configure do |config|
   config.before(:all) do
-    #FHIR.logger = Logger.new('/dev/null')
-    FHIR.logger = Logger.new(STDOUT)
+    # FHIR.logger = Logger.new('/dev/null')
+    # FHIR.logger = Logger.new(RUBY_PLATFORM != 'i386-mingw32' ? '/dev/null' : 'NUL')
+    # FHIR.logger = Logger.new(STDOUT)
     $stdout = File.open(File::NULL, "w")
   end
 end
