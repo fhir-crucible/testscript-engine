@@ -76,7 +76,7 @@
     {
       "id": "Validate",
       "name": "Validate Patient",
-      "description": "Validate Patient.",
+      "description": "Validate Patient Resource with US Core Patient profile",
       "action": [
         {
           "assert": {
