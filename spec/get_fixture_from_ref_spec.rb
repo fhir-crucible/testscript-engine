@@ -29,16 +29,6 @@ describe TestScriptRunnable do
 			expect(result).to be(nil)
 		end
 
-		it 'given remote reference logs warning' do
-			@reference.reference = 'http'
-
-			expect(@runnable).to receive(:warning).with(:unsupported_ref, 'http')
-
-			result = @runnable.get_fixture_from_ref(@reference)
-
-			expect(result).to be(nil)
-		end
-
 		context 'given contained resource reference' do
 			it 'logs warning if no contained resource' do
 				@reference.reference = '#'
