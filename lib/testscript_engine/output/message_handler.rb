@@ -383,8 +383,6 @@ module MessageHandler
         "See more execution details in the TestReports at: [#{options[0]}]."
       when :uncaught_error
         "Uncaught error: [#{options[0]}]."
-      when :unsupported_ref
-        "Remote reference: [#{options[0]}] not supported. No reference extracted."
       when :validation_msg
         options[0]
       when :loading_script

@@ -204,7 +204,18 @@ class TestScriptRunnable
 
     ref = reference.reference
     return warning(:no_reference) unless ref
-    return warning(:unsupported_ref, ref) if ref.start_with? 'http'
+
+    if ref.start_with? 'http'
+      fixture_server = FHIR::Client.new("")
+      response = fixture_server.send(:get, ref, { 'Content-Type' => 'json' })
+
+      if response.response[:code].to_s.starts_with?('2')
+        info(:added_remote_fixture, ref)
+        return FHIR.from_contents(response.response[:body].to_s)
+      else
+        warning(:missed_remote_fixture, ref)
+      end
+    end
 
     if ref.start_with? '#'
       contained = script.contained.find { |r| r.id == ref[1..] }
