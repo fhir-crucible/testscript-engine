@@ -26,44 +26,41 @@ This is the recommended method if you already have a collection of your own Test
 
 ## Configure the Engine
 
-The engine can be configured through three methods: configuration file, commandline arguments, and interactive mode.
+The engine can be configured by configuration file, commandline arguments, and interactive mode.
 
 ### Configuration file
 
-Running the engine on a configuration file provides testing on predefined settings.
-
 `bundle exec bin/testscript_engine execute --config [FILEPATH]` : Put name and path of configuration YAML file.
 
-Below are properties in the configuration files.
+Property in configuration file:
+- `testscript_path : [PATH]` Relative path to the directory containing the TestScript resources (as JSON or XML) to be executed.
 - `testscript_name : [TESTSCRIPT.NAME]` Name of TestScript to be executed. If empty, all files under testscript_path will be executed.
-- `testscript_path : [PATH]` The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine.
-- `testreport_path : [PATH]` The relative to the directory containing the TestReports output following their partner TestScript execution.
-- `variable : [- name1=value1 - name2=value2 ..]`: Replace defaultValue in variable by user defined value. This will apply to all runnables uniformly as long as names match. No space before and after =. Multiple variables are distinguished by line.
+- `testreport_path : [PATH]` Relative path to the directory containing TestReports output following their partner TestScript execution.
+- `variable : [- name1=value1 - name2=value2 ..]`: Replace defaultValue in variable by user defined value. This will apply to all runnables uniformly as long as names match. No space before and after =. Multiple variables are separated by line.
 - `server_url : [URL]` Endpoint against which TestScripts will be executed.
-- `nonfhir_fixture : [TRUE/FALSE]` If yes, allow to intake non-FHIR fixture (local only).
+- `nonfhir_fixture : [TRUE/FALSE]` If true, allow to intake non-FHIR fixture (local only).
+- `verbose : [TRUE/FALSE]` If true, run FHIR logger.
 - `ext_validator : [URL]` If specified, use external resource validator instead of internal validator.
 - `ext_fhirpath : [URL]` If specified, use external FHIR path evaluator instead of internal evaluator.
 
 ### Commandline Arguments
 
-Command line arguments can be used when you want to run specific files and/or conditions. Run the engine with the following format:
-
 `bundle exec bin/testscript_engine execute [OPTIONS]`
 
 [OPTIONS]
-- `--config [FILENAME]`: Name of configuration file.
+- `--testscript_path [PATH]`: Relative path to the directory containing the TestScript resources (as JSON or XML) to be executed.
 - `--testscript_name [TESTSCRIPT.NAME]`: Name of TestScript to be execute. If not specified, all files under testscript_path will be executed.
-- `--testscript_path [PATH]`: Folder location of TestScripts (default: /TestScripts)
-- `--testreport_path [PATH]`: Folder location of TestReports (default: /TestReports)
+- `--testreport_path [PATH]`: Relative path to the directory containing TestReports output following their partner TestScript execution.
 - `--server_url [URL]`: If specified, it will replace the default FHIR server in the configuration file.
 - `--variable [name1=value1 name2=value2 ..]`: Replace defaultValue in variable by user defined value. This will apply to all runnables uniformly as long as names match. No space before and after =. Use quotations if value has space.
-- `--nonfhir_fixture [TRUE/FALSE]`: If yes, allow to intake non-FHIR fixture (local only).
+- `--verbose' : If specified, run FHIR logger.
+- `--nonfhir_fixture `: If specified, allow to intake non-FHIR fixture (local only).
 - `--ext_validator [URL]`: If specified, use external resource validator.
 - `--ext_fhirpath [URL]`: If specified, use external FHIR path evaluator.
 
 ### Interactive mode
 
-Running the engine on interactive mode provides flexibility to change the properties while executing testing. Simply run the command below.
+Running the engine on interactive mode provides flexibility to change the properties while executing testing. Run the command below.
 
 `bundle exec bin/testscript_engine interactive`
 
