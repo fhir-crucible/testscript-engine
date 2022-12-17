@@ -164,7 +164,7 @@ module Assertion
     profile = profiles[validateProfileId]
 
     if ext_validator_url == nil #Run internal validator
-      puts "         validateProfileId: trying the Ruby Crucible validator"
+      puts " "*10 + "validateProfileId: trying the Ruby Crucible validator"
       outcome = profile.validates_resource?(get_resource(sourceId))
 
       if outcome
@@ -175,24 +175,25 @@ module Assertion
       end
 
     else #Run external validator
-      puts "         validateProfileId: trying external validator '#{ext_validator_url}'"
+      puts " "*10 + "validateProfileId: trying external validator '#{ext_validator_url}'"
       validator = FHIR::Client.new(ext_validator_url)
       reply = validator.send(:get, "/profiles", { 'Content-Type' => 'json' })
       profiles_received = JSON.parse(reply.to_hash["response"][:body])
 
+      # If external validator doesn't support profile, add one.
       if !profiles_received.include?(profile.url)
-        puts "         External validator doesn't support profile '#{profile.url}'"
-        puts "          -> Trying to add '#{validateProfileId}' to the external validator.."
+        puts " "*8 + "External validator doesn't support profile '#{profile.url}'"
+        puts " "*10 + "-> Trying to add '#{validateProfileId}' to external validator.."
         reply = validator.send(:post, "/profiles", profile, { 'Content-Type' => 'json' })
 
         if reply.response[:code].start_with?("2")
-          puts " -> Success! Added '#{validateProfileId}' to the External validator."
+          puts " -> Success! Added '#{validateProfileId}' to External validator."
         else
           raise AssertionException.new(" -> Failed! Stop validation.", :fail)
         end
       end
 
-      puts "         External validator supports profile #{profile.url}"
+      puts " "*8 + "External validator supports profile #{profile.url}"
       path = "/validate?profile=#{profile.url}"
       validator.send(:post, path, get_resource(sourceId), { 'Content-Type' => 'json' })
 
@@ -321,8 +322,6 @@ module Assertion
     received = get_request(assert.sourceId)[:url]
     compare("RequestURL", received, assert.operator, assert.requestURL)
   end
-
-  # <--- TO DO: MOVE TO UTILITIES MODULE --->
 
   def get_resource(id)
     if direction == 'request'

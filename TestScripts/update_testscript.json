@@ -79,14 +79,14 @@
       "autodelete": false,
       "resource": {
         "reference": "fixtures/Patient/example2.json",
-        "display": "Donald Duck"
+        "display": "Jaehoon Lee"
       }
     }
   ],
   "profile": [
     {
       "id": "patient-profile",
-      "reference": "http://hl7.org/fhir/StructureDefinition/Patient"
+      "reference": "http://hl7.org/fhir/R4B/patient.profile.json"
     }
   ],
   "variable": [
@@ -115,6 +115,7 @@
       {
         "assert": {
           "description": "Confirm that the returned HTTP status is 200(OK) or 204(No Content).",
+          "label": "01-Response200",
           "direction": "response",
           "operator": "in",
           "responseCode": "200,204",
@@ -141,6 +142,7 @@
         "assert": {
           "description": "Confirm that the returned HTTP status is 201(Created).",
           "direction": "response",
+          "label": "01-Response201",
           "responseCode": "201",
           "warningOnly": false
         }
@@ -172,6 +174,7 @@
         {
           "assert": {
             "description": "Confirm that the returned HTTP status is 200(OK).",
+            "label": "01-Response200",
             "response": "okay",
             "warningOnly": false
           }
@@ -179,6 +182,7 @@
         {
           "assert": {
             "description": "Confirm that the returned format is XML.",
+            "label": "02-ResponseFormat",
             "contentType": "application/fhir+xml",
             "warningOnly": false
           }
@@ -186,6 +190,7 @@
         {
           "assert": {
             "description": "Confirm that the returned HTTP Header Last-Modified is present. Warning only as the server might not support versioning.",
+            "label": "03-ResponseHTTPheader",
             "headerField": "Last-Modified",
             "operator": "notEmpty",
             "warningOnly": true

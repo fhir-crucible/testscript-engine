@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../../lib/testscript_engine'
+require_relative '../lib/testscript_engine'
 
 describe TestScriptEngine do
   before(:all) do

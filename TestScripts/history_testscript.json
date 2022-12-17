@@ -87,7 +87,7 @@
   "profile": [
     {
       "id": "bundle-profile",
-      "reference": "http://hl7.org/fhir/StructureDefinition/Bundle"
+      "reference": "https://hl7.org/fhir/R4B/bundle.profile.json"
     }
   ],
   "variable": [
@@ -117,6 +117,7 @@
         "assert": {
           "description": "Confirm that the returned HTTP status is 200(OK) or 204(No Content).",
           "direction": "response",
+          "label": "01-Response200or204",
           "operator": "in",
           "responseCode": "200,204",
           "warningOnly": false
@@ -142,6 +143,7 @@
         "assert": {
           "description": "Confirm that the returned HTTP status is 201(Created).",
           "direction": "response",
+          "label": "01-Response201",
           "responseCode": "201",
           "warningOnly": false
         }
@@ -166,6 +168,7 @@
         "assert": {
           "description": "Confirm that the returned HTTP status is 200(OK).",
           "direction": "response",
+          "label": "01-Response200",
           "responseCode": "200",
           "warningOnly": false
         }
@@ -186,6 +189,7 @@
             },
             "resource": "Patient",
             "description": "Get the Patient history on the test server using the id from fixture-patient-create.",
+            "label": "GetPatientHistory",
             "accept": "json",
             "contentType": "json",
             "encodeRequestUrl": true,
@@ -196,6 +200,7 @@
           "assert": {
             "description": "Confirm that the returned HTTP status is 200(OK).",
             "direction": "response",
+            "label": "01-Response200",
             "response": "okay",
             "warningOnly": false
           }
@@ -203,6 +208,7 @@
         {
           "assert": {
             "description": "Confirm that the returned resource type is Bundle.",
+            "label": "02-ResponseBundle",
             "resource": "Bundle",
             "warningOnly": false
           }
@@ -211,6 +217,7 @@
           "assert": {
             "description": "Confirm that the returned Bundle conforms to the base FHIR specification.",
             "validateProfileId": "bundle-profile",
+            "label": "03-ResponseProfile",
             "warningOnly": false
           }
         },
@@ -218,6 +225,7 @@
           "assert": {
             "description": "Confirm that the returned Bundle type equals 'history'.",
             "operator": "equals",
+            "label": "04-ResponseBundleType",
             "path": "fhir:Bundle/fhir:type/@value",
             "value": "history",
             "warningOnly": false

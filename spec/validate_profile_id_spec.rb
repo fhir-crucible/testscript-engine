@@ -1,6 +1,6 @@
 # frozen_string_literal: true
-require_relative '../../lib/testscript_engine/testscript_runnable'
-require_relative '../../lib/testscript_engine/message_handler'
+require_relative '../lib/testscript_engine/testscript_runnable'
+require_relative '../lib/testscript_engine/message_handler'
 
 describe TestScriptRunnable do
   before(:all) do

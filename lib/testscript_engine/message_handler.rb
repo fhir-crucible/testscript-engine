@@ -1,3 +1,5 @@
+require 'yaml'
+
 module MessageHandler
   attr_accessor :debug_mode, :modify_report
 
@@ -39,7 +41,9 @@ module MessageHandler
   end
 
   def info(message_type, *options)
+    increase_space if (message_type == :added_fixture)
     print_out messages(message_type, *options)
+    decrease_space if (message_type == :added_fixture)
   end
 
   def execution_results
@@ -86,17 +90,15 @@ module MessageHandler
     decrease_space
   end
 
-  def load_scripts
-    print_out messages(:begin_loading_scripts, testscript_path)
+  def load_input
+    print_out messages(:begin_loading_scripts, input_path)
     super
     print_out messages(:finish_loading_scripts)
   end
 
   def make_runnables
     print_out messages(:begin_creating_runnables)
-    increase_space
     super
-    decrease_space
     print_out messages(:finish_creating_runnables)
   end
 
@@ -140,7 +142,7 @@ module MessageHandler
 
   def load_fixtures
     increase_space
-    super
+    super()
     decrease_space
   end
 
@@ -235,138 +237,159 @@ module MessageHandler
     [024465].pack("U*")
   end
 
+  def config
+    @config ||= begin
+      path = Dir.pwd + '/lib/testscript_engine/output/output_config.yml'
+      begin
+        YAML.safe_load(File.read(path)) || {}
+      rescue
+        {}
+      end
+    end
+  end
+
+  def message_dictionary
+    @message_dictionary ||= (config["dictionary"] || {})
+  end
+
   def messages(message, *options)
-    message_text = case message
-    when :abort_test
-      "Due to an unsuccessful action in the [#{options[0]}] phase, remaining actions in this test will be skipped. Skipping the next #{options[1]} action(s)."
-    when :bad_script
-      "Given non-TestScript resource. Can not create runnable."
-    when :bad_serialized_script
-      "Can not deserialize resource into TestScript: [#{options[0]}]."
-    when :begin_initialize_client
-      start_message_format("INITIALIZE CLIENT")
-    when :begin_creating_runnables
-      start_message_format("MAKE RUNNABLE(S)")
-    when :created_runnable
-      "Created runnable from TestScript: [#{options[0]}]."
-    when :finish_creating_runnables
-      finish_message_format("MAKING RUNNABLE(S)")
-    when :finish_initialize_client
-      finish_message_format("INITIALIZING CLIENT")
-    when :invalid_script
-      "Can not load TestScript. Invalid resource: [#{options[0]}]."
-    when :invalid_script
-      "Given invalid TestScript resource. Can not create runnable."
-    when :loaded_script
-      "Successfully loaded."
-    when :loaded_static_fixture
-      "Loaded static fixture [#{options[0]}]."
-    when :no_postprocess
-      "Nothing to postprocess."
-    when :no_preprocess
-      "Nothing to preprocess."
-    when :no_setup
-      "Nothing to setup."
-    when :no_teardown
-      "Nothing to teardown."
-    when :overwrite_existing_script
-      "Overwriting previously loaded TestScript: [#{options[0]}]."
-    when :skip_on_fail
-      "Due to the preceeding unsuccessful action, skipping the next #{options[0]} action(s)."
-    when :unable_to_create_runnable
-      "Can not create runnable from TestScript: [#{options[0]}]."
-    when :unable_to_locate_runnable
-      "Can not locate runnable with id: [#{options[0]}]. Can not execute."
-    when :assertion_error
-      "ERROR: Unable to process assertion: #{options[0]}"
-    when :assertion_exception
-      "#{options[0]}"
-    when :bad_reference
-      "Unable to read contents of reference: [#{options[0]}]. No reference extracted."
-    when :bad_request
-      "Unable to create a request from operation."
-    when :bad_static_fixture_reference
-      "Static fixture included unresolvable reference. Can not load fixture. Moving on."
-    when :begin_loading_scripts
-      start_message_format("LOAD TESTSCRIPTS", options[0])
-    when :begin_preprocess
-      start_message_format("PREPROCESS", options[0])
-    when :begin_postprocess
-      start_message_format("POSTPROCESS", options[0])
-    when :begin_runnable_execution
-      start_message_format("EXECUTE RUNNABLE", options[0])
-    when :begin_setup
-      start_message_format("SETUP")
-    when :begin_teardown
-      start_message_format("TEARDOWN")
-    when :begin_test
-      start_message_format("TEST")
-    when :eval_assert_result
-      "#{options[0]}"
-    when :evaluate_assert
-      "EVALUATING ASSERTION"
-    when :execute_operation
-      "OPERATION EXECUTION"
-    when :execute_operation_error
-      "Unable to execute operation. ERROR: [#{options[0]}]. [#{options[1]}]"
-    when :fail_execution_result
-      "Execution of [#{options[0]}] failed with score: [#{options[1]}]."
-    when :finish_loading_scripts
-      finish_message_format("LOADING SCRIPTS")
-    when :finish_preprocess
-      finish_message_format("PREPROCESS")
-    when :finish_postprocess
-      finish_message_format("POSTPROCESS")
-    when :finish_runnable_execution
-      finish_message_format("EXECUTING RUNNABLE. FINAL EXECUTION SCORE: [#{testreport.score}]")
-    when :finish_setup
-      finish_message_format("SETUP")
-    when :finish_teardown
-      finish_message_format("TEARDOWN")
-    when :finish_test
-      finish_message_format("TEST")
-    when :invalid_assert
-      "Invalid assert. Can not evaluate."
-    when :invalid_dump
-      "Validation error: [#{options[0]}]"
-    when :invalid_operation
-      "Invalid operation. Can not execute."
-    when :invalid_request
-      "Unable to create a request using operation: [#{options[0]}]. Can not execute."
-    when :no_contained_resource
-      "Reference [#{options[0]}] refers to a contained resource that does not exist. Moving on."
-    when :no_path
-      "Unable to extract path from operation."
-    when :no_reference
-      "Reference element of reference object is nil. Can not get resource from reference."
-    when :no_static_fixture_id
-      "No ID for static fixture. Can not load."
-    when :no_static_fixture_reference
-      "No reference for static fixture. Can not load."
-    when :no_static_fixture_resource
-      "No resource for static fixture. Can not load."
-    when :no_static_profile_id
-      "No ID for profile. Can not load."
-    when :no_static_profile_reference
-      "No reference for profile. Can not load."
-    when :pass_execute_operation
-      "Executed Operation: [#{options[0]}]"
-    when :pass_execution_result
-      "Execution of [#{options[0]}] passed."
-    when :unable_to_load_reference
-      "Unable to load reference #{"[#{options[0]}] " unless options[0].nil?}from path [#{options[1]}] or fixtures folder. Encountered: [#{options[2]}]."
-    when :see_reports
-      "See more execution details in the TestReports at: [#{options[0]}]."
-    when :uncaught_error
-      "Uncaught error: [#{options[0]}]."
-    when :unsupported_ref
-      "Remote reference: [#{options[0]}] not supported. No reference extracted."
-    when :validation_msg
-      options[0]
-    when :loading_script
-      "Loading TestScript from file: [#{options[0]}]. Validating ..."
+    loaded_message = message_dictionary[message.to_s].clone
+    if loaded_message
+      (0...options.length).each { |i| loaded_message.gsub!("{option#{i}}", options[i]) }
+      return loaded_message
     else
-      "! unknown message type !"
+      case message
+      when :abort_test
+        "Due to an unsuccessful action in the [#{options[0]}] phase, remaining actions in this test will be skipped. Skipping the next #{options[1]} action(s)."
+      when :bad_script
+        "Given non-TestScript resource. Can not create runnable."
+      when :bad_serialized_script
+        "Can not deserialize resource into TestScript: [#{options[0]}]."
+      when :begin_initialize_client
+        start_message_format("INITIALIZE CLIENT")
+      when :begin_creating_runnables
+        start_message_format("MAKE RUNNABLE(S)")
+      when :created_runnable
+        "Created runnable from TestScript: [#{options[0]}]."
+      when :finish_creating_runnables
+        finish_message_format("MAKING RUNNABLE(S)")
+      when :finish_initialize_client
+        finish_message_format("INITIALIZING CLIENT")
+      when :invalid_script
+        "Can not load TestScript. Invalid resource: [#{options[0]}]."
+      when :invalid_script
+        "Given invalid TestScript resource. Can not create runnable."
+      when :loaded_script
+        "Successfully loaded."
+      when :loaded_remote_profile
+        "Loaded remote profile [#{options[0]}] from #{options[1]}"
+      when :loaded_local_profile
+        "Loaded local profile [#{options[0]}] from #{options[1]}"
+      when :loaded_static_fixture
+        "Loaded static fixture [#{options[0]}]."
+      when :no_postprocess
+        "Nothing to postprocess."
+      when :no_preprocess
+        "Nothing to preprocess."
+      when :no_setup
+        "Nothing to setup."
+      when :no_teardown
+        "Nothing to teardown."
+      when :overwrite_existing_script
+        "Overwriting previously loaded TestScript: [#{options[0]}]."
+      when :skip_on_fail
+        "Due to the preceeding unsuccessful action, skipping the next #{options[0]} action(s)."
+      when :unable_to_create_runnable
+        "Can not create runnable from TestScript: [#{options[0]}]."
+      when :unable_to_locate_runnable
+        "Can not locate runnable with id: [#{options[0]}]. Can not execute."
+      when :assertion_error
+        "ERROR: Unable to process assertion: #{options[0]}"
+      when :assertion_exception
+        "#{options[0]}"
+      when :bad_reference
+        "Unable to read contents of reference: [#{options[0]}]. No reference extracted."
+      when :bad_request
+        "Unable to create a request from operation."
+      when :bad_static_fixture_reference
+        "Static fixture included unresolvable reference. Can not load fixture. Moving on."
+      when :begin_loading_scripts
+        start_message_format("LOAD INPUT", options[0])
+      when :begin_preprocess
+        start_message_format("PREPROCESS", options[0])
+      when :begin_postprocess
+        start_message_format("POSTPROCESS", options[0])
+      when :begin_runnable_execution
+        start_message_format("EXECUTE RUNNABLE", options[0])
+      when :begin_setup
+        start_message_format("SETUP")
+      when :begin_teardown
+        start_message_format("TEARDOWN")
+      when :begin_test
+        start_message_format("TEST")
+      when :eval_assert_result
+        "#{options[0]}"
+      when :evaluate_assert
+        "EVALUATING ASSERTION"
+      when :execute_operation
+        "OPERATION EXECUTION"
+      when :execute_operation_error
+        "Unable to execute operation. ERROR: [#{options[0]}]. [#{options[1]}]"
+      when :fail_execution_result
+        "Execution of [#{options[0]}] failed with score: [#{options[1]}]."
+      when :finish_loading_scripts
+        finish_message_format("LOADING INPUT")
+      when :finish_preprocess
+        finish_message_format("PREPROCESS")
+      when :finish_postprocess
+        finish_message_format("POSTPROCESS")
+      when :finish_runnable_execution
+        finish_message_format("EXECUTING RUNNABLE. FINAL EXECUTION SCORE: [#{testreport.score}]")
+      when :finish_setup
+        finish_message_format("SETUP")
+      when :finish_teardown
+        finish_message_format("TEARDOWN")
+      when :finish_test
+        finish_message_format("TEST")
+      when :invalid_assert
+        "Invalid assert. Can not evaluate."
+      when :invalid_dump
+        "Validation error: [#{options[0]}]"
+      when :invalid_operation
+        "Invalid operation. Can not execute."
+      when :invalid_request
+        "Unable to create a request using operation: [#{options[0]}]. Can not execute."
+      when :no_contained_resource
+        "Reference [#{options[0]}] refers to a contained resource that does not exist. Moving on."
+      when :no_path
+        "Unable to extract path from operation."
+      when :no_reference
+        "Reference element of reference object is nil. Can not get resource from reference."
+      when :no_static_fixture_id
+        "No ID for static fixture. Can not load."
+      when :no_static_profile_id
+        "No ID for static profile. Can not load."
+      when :no_static_fixture_reference
+        "No reference for static fixture. Can not load."
+      when :no_static_fixture_resource
+        "No resource for static fixture. Can not load."
+      when :pass_execute_operation
+        "Executed Operation: [#{options[0]}]"
+      when :pass_execution_result
+        "Execution of [#{options[0]}] passed."
+      when :unable_to_load_reference
+        "Unable to load reference #{"[#{options[0]}] " unless options[0].nil?}from path [#{options[1]}] or fixtures folder. Encountered: [#{options[2]}]."
+      when :see_reports
+        "See more execution details in the TestReports at: [#{options[0]}]."
+      when :uncaught_error
+        "Uncaught error: [#{options[0]}]."
+      when :validation_msg
+        options[0]
+      when :loading_script
+        "Loading input from file: [#{options[0]}].."
+      else
+        "! unknown message type !"
+      end
     end
   end
 end
