@@ -345,6 +345,10 @@ module MessageHandler
       "No reference for static fixture. Can not load."
     when :no_static_fixture_resource
       "No resource for static fixture. Can not load."
+    when :no_static_profile_id
+      "No ID for profile. Can not load."
+    when :no_static_profile_reference
+      "No reference for profile. Can not load."
     when :pass_execute_operation
       "Executed Operation: [#{options[0]}]"
     when :pass_execution_result

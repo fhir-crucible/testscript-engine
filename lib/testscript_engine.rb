@@ -11,7 +11,7 @@ class TestScriptEngine
   prepend MessageHandler
   include Validation
 
-  attr_accessor :endpoint, :input_path, :testreport_path, :load_non_fhir_fixtures
+  attr_accessor :endpoint, :input_path, :testreport_path, :nonfhir_fixture, :options, :variable
 
   def fixtures
     @fixtures ||= {}
@@ -38,17 +38,19 @@ class TestScriptEngine
     end
   end
 
-  def initialize(endpoint, path_to_scripts, testreport_path, **options)
-    self.endpoint = endpoint
-    self.input_path = path_to_scripts
+  def initialize(test_server_url, testscript_path, testreport_path, options)
+    self.endpoint = test_server_url
+    self.input_path = testscript_path
     self.testreport_path = testreport_path
-    self.load_non_fhir_fixtures = options[:load_non_fhir_fixtures]
-    self.debug_mode = true
+    self.nonfhir_fixture = options[:nonfhir_fixture]
+    self.variable = options["variable"]
+    self.options = options
+    # self.debug_mode = true
   end
 
   # TODO: Tie-in stronger validation. Possibly, Inferno validator.
   def valid_testscript? script
-    return (script.is_a? FHIR::TestScript) && valid_resource?(script)
+    return (script.is_a? FHIR::TestScript) && valid_resource?(script, options)
   end
 
   # Load TestScripts and fixtures from the input_path
@@ -57,7 +59,7 @@ class TestScriptEngine
 
     input.each do |filename|
       fixture = filename.include?('/fixtures/')
-      allow_non_fhir = fixture && load_non_fhir_fixtures
+      allow_non_fhir = fixture && nonfhir_fixture
 
       info(:loading_script, filename)
       increase_space
@@ -91,17 +93,29 @@ class TestScriptEngine
   #                            transformed into and stored as runnables.
   def make_runnables(script = nil)
     get_fixtures = ->(fixture_name) { fixtures[fixture_name] }
+    
     if valid_testscript? script
       info(:creating_runnable, script.name)
-      runnables[script.name] = TestScriptRunnable.new(script, get_fixtures)
+      script = dynamic_variable(script) if script.variable && variable
+      runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options)
     else
       scripts.each do |_name, script|
         info(:creating_runnable, script.name)
-        runnables[script.name] = TestScriptRunnable.new(script, get_fixtures)
+        script = dynamic_variable(script) if script.variable && variable
+        runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options)
       end
     end
   rescue StandardError
     error(:unable_to_create_runnable, script.name)
+  end
+
+  def dynamic_variable(script)
+    script.variable.each do |v|
+      variable.each do |v2|
+        v.defaultValue = v2.split("=").last if v2.split("=").first == v.name && v.defaultValue != nil
+      end
+    end
+    return script
   end
 
   # TODO: Clean-up, possibly modularize into a pretty_print type method

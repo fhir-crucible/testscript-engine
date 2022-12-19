@@ -1,0 +1,60 @@
+{
+  "resourceType": "TestScript",
+  "id": "sample-minimumId-symmetric-expectFailure",
+  "url": "https://github.com/fhir-crucible/testscript-generator/sampleMinimumIdSymmetricExpectFailure",
+  "version": "0.1",
+  "name": "sampleMinimumIdSymmetricExpectFailure",
+  "title": "Sample TestScript - minimumId not symmetric (expect failure)",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-11-21T13:00:51-04:00",
+  "publisher": "The MITRE Corporation",
+  "contact": [
+    {
+      "name": "Karl Naden"
+    }
+  ],
+  "fixture": [
+    {
+      "id": "fixture-minimumId",
+      "autocreate": false,
+      "autodelete": false,
+      "resource": {
+        "reference": "fixtures/Patient/example_min.json"
+      }
+    },
+    {
+      "id": "fixture-example",
+      "autocreate": false,
+      "autodelete": false,
+      "resource": {
+        "reference": "fixtures/Patient/example.json"
+      }
+    }
+  ],
+  "test": [
+    {
+      "name": "Demonstrate minimumId is not symmetric",
+      "action": [
+        {
+          "assert": {
+            "label": "Assert_minimumId_not_symmetric_succeed",
+            "description": "Assert minimumId works in one direction",
+            "warningOnly": false,
+            "minimumId": "fixture-minimumId",
+            "sourceId": "fixture-example"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_minimumId_not_symmetric_fail",
+            "description": "Assert minimumId fails in the other direction",
+            "warningOnly": false,
+            "minimumId": "fixture-example",
+            "sourceId": "fixture-minimumId"
+          }
+        }
+      ]
+    }
+  ]
+}

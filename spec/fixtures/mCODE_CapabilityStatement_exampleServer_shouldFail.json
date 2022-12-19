@@ -1,0 +1,185 @@
+{
+    "resourceType": "CapabilityStatement",
+    "rest": [
+      {
+        "mode": "server",
+        "resource": [
+          {
+            "type": "Patient",
+            "supportedProfile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient",
+              "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-cancer-patient"
+            ],
+          "interaction": [
+              {
+                "code": "search-type"
+              },
+              {
+                "code": "read"
+              }
+            ],
+            "referencePolicy": [
+              "resolves"
+            ],
+            "searchRevInclude": [
+              "Provenance:target"
+            ],
+            "searchParam": [
+              {
+                "name": "_id",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-patient-id",
+                "type": "token"
+              },
+              {
+                "name": "birthdate",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-patient-birthdate",
+                "type": "date"
+              },
+              {
+                "name": "family",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-patient-family",
+                "type": "string"
+              },
+              {
+                "name": "gender",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-patient-gender",
+                "type": "token"
+              },
+              {
+                "name": "given",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-patient-given",
+                "type": "string"
+              },
+              {
+                "name": "identifier",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-patient-identifier",
+                "type": "token"
+              },
+              {
+                "name": "name",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-patient-name",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "type": "Condition",
+            "supportedProfile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-encounter-diagnosis",
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-problems-health-concerns",
+              "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-primary-cancer-condition"
+            ],
+            "interaction": [
+              {
+                "code": "create"
+              },
+              {
+                "code": "search-type"
+              },
+              {
+                "code": "read"
+              },
+              {
+                "code": "vread"
+              },
+              {
+                "code": "update"
+              },
+              {
+                "code": "patch"
+              },
+              {
+                "code": "delete"
+              },
+              {
+                "code": "history-instance"
+              },
+              {
+                "code": "history-type"
+              }
+            ],
+            "referencePolicy": [
+              "resolves"
+            ],
+            "searchRevInclude": [
+              "Provenance:target"
+            ],
+            "searchInclude" : [
+              "Condition:subject"
+            ],
+            "searchParam": [
+              {
+                "name": "category",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-condition-category",
+                "type": "token"
+              },
+              {
+                "name": "clinical-status",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-condition-clinical-status",
+                "type": "token"
+              },
+              {
+                "name": "patient",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-condition-patient",
+                "type": "reference"
+              },
+              {
+                "name": "onset-date",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-condition-onset-date",
+                "type": "date"
+              },
+              {
+                "name": "asserted-date",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-condition-asserted-date",
+                "type": "date"
+              },
+              {
+                "name": "recorded-date",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-condition-recorded-date",
+                "type": "date"
+              },
+              {
+                "name": "abatement-date",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-condition-abatement-date",
+                "type": "date"
+              },
+              {
+                "name": "code",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-condition-code",
+                "type": "token"
+              },
+              {
+                "name": "encounter",
+                "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-condition-encounter",
+                "type": "reference"
+              }
+            ]
+          },
+          {
+            "type": "Observation",
+            "searchParam": [
+              {
+                "name" : "code:in",
+                "definition" : "http://hl7.org/fhir/us/mcode/SearchParameter/Condition-code",
+                "type" : "uri"
+              }
+            ]
+          }
+        ],
+        "interaction": [
+          {
+            "code": "transaction"
+          },
+          {
+            "code": "batch"
+          },
+          {
+            "code": "search-system"
+          },
+          {
+            "code": "history-system"
+          }
+        ]
+      }
+    ]
+  }

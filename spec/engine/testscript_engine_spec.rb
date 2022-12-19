@@ -5,7 +5,7 @@ require_relative '../../lib/testscript_engine'
 describe TestScriptEngine do
   before(:all) do
     input_path = "#{Dir.pwd}/spec/examples"
-    @engine = TestScriptEngine.new('endpoint', 'input_path', 'output_path')
+    @engine = TestScriptEngine.new('endpoint', 'input_path', 'output_path', {})
   end
   before(:each) do
     @engine.instance_variable_set(:@scripts, {})
@@ -13,15 +13,6 @@ describe TestScriptEngine do
   end
 
   describe '.load_input' do
-    it 'loads files in directory if given directory path' do
-      @engine.input_path = "#{Dir.pwd}/spec/examples"
-
-      @engine.load_input
-
-      expect(@engine.fixtures.keys.length).to be(1)
-      expect(@engine.scripts.keys.length).to be(1)
-    end
-
     it 'loads file if given file path' do
       @engine.input_path = "#{Dir.pwd}/spec/examples/basic_testscript.json"
 
@@ -136,7 +127,7 @@ describe TestScriptEngine do
         end
 
         it 'stores fixture if non-FHIR allowed' do
-          @engine.load_non_fhir_fixtures = true
+          @engine.nonfhir_fixture = true
           @engine.load_input
 
           expect(@engine.scripts.keys).to be_empty

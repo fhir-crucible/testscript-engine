@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../lib/testscript_engine/validation/validation'
-require_relative '../lib/testscript_engine/message_handler'
+require_relative '../lib/testscript_engine/output/message_handler'
 
 class ValidationTestClass
   prepend MessageHandler
@@ -17,6 +17,7 @@ describe Validation do
     request = { method: :post, url: @url, path: 'Patient/$validate' }
     @reply = FHIR::ClientReply.new(request, response, FHIR::Client.new(@url))
     @profile = 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient'
+    @options = {"verbose" => true}
   end
 
   describe '.valid_resource?' do
@@ -27,7 +28,7 @@ describe Validation do
         stub_request(:post, "#{@url}/Patient/$validate")
           .with(body: "{\n  \"parameter\": [\n    {\n      \"name\": \"resource\",\n      \"resource\": {\n        \"resourceType\": \"Patient\"\n      }\n    }\n  ],\n  \"resourceType\": \"Parameters\"\n}") # rubocop:disable Layout/LineLength
 
-        @validation_tester.valid_resource?(@resource)
+        @validation_tester.valid_resource?(@resource, @options)
 
         expect(@validation_tester).not_to receive(:validate_using_route)
       end
@@ -41,7 +42,7 @@ describe Validation do
           .with(body: "{\n  \"parameter\": [\n    {\n      \"name\": \"resource\",\n      \"resource\": {\n        \"resourceType\": \"Patient\"\n      }\n    }\n  ],\n  \"resourceType\": \"Parameters\"\n}") # rubocop:disable Layout/LineLength
           .to_return(status: 404)
 
-        @validation_tester.valid_resource?(@resource)
+        @validation_tester.valid_resource?(@resource, @options)
       end
     end
   end

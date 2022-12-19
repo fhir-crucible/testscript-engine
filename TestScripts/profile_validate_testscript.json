@@ -1,0 +1,100 @@
+{
+  "resourceType": "TestScript",
+  "id": "testscript-example-validateprofileid",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"></div>"
+  },
+  "url": "http://hl7.org/fhir/TestScript/testscript-example",
+  "identifier": {
+    "system": "urn:ietf:rfc:3986",
+    "value": "urn:oid:1.3.6.1.4.1.21367.2005.3.7.9876"
+  },
+  "version": "1.0",
+  "name": "testscript-example-validateprofileid",
+  "title": "TestScript Example ValidateProfileId",
+  "status": "draft",
+  "experimental": true,
+  "date": "2017-01-18",
+  "publisher": "HL7",
+  "contact": [
+    {
+      "name": "Support",
+      "telecom": [
+        {
+          "system": "email",
+          "value": "support@HL7.org",
+          "use": "work"
+        }
+      ]
+    }
+  ],
+  "description": "TestScript example for testing validateProfileId.",
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "US",
+          "display": "United States of America (the)"
+        }
+      ]
+    }
+  ],
+  "purpose": "TestScript example for testing validateProfileId.",
+  "copyright": "© HL7.org 2011+",
+  "metadata": {
+    "link": [
+      {
+        "url": "http://hl7.org/fhir/patient.html",
+        "description": "Demographics and other administrative information about an individual or animal receiving care or other health-related services."
+      }
+    ]
+  },
+  "fixture": [
+    {
+      "id": "fixture-patient-uscore",
+      "autocreate": false,
+      "autodelete": false,
+      "resource": {
+        "reference": "Patient/patient_example_uscore.json",
+        "display": "Peter Chalmers"
+      }
+    }
+  ],
+  "profile": [
+    {
+      "id": "patient-uscore-profile-remote",
+      "reference": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
+    },
+    {
+      "id": "patient-uscore-profile-local",
+      "reference": "spec/fixtures/structuredefinition-us-core-patient.json"
+    }
+  ],
+  "test": [
+    {
+      "id": "Validate",
+      "name": "Validate Patient",
+      "description": "Validate Patient Resource with US Core Patient profile",
+      "action": [
+        {
+          "assert": {
+            "description": "Confirm that the Patient conforms to the remote profile.",
+            "validateProfileId": "patient-uscore-profile-remote",
+            "sourceId": "fixture-patient-uscore",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "description": "Confirm that the Patient conforms to the local profile.",
+            "validateProfileId": "patient-uscore-profile-local",
+            "sourceId": "fixture-patient-uscore",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ]
+}

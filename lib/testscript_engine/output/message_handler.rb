@@ -281,6 +281,10 @@ module MessageHandler
         "Given invalid TestScript resource. Can not create runnable."
       when :loaded_script
         "Successfully loaded."
+      when :loaded_remote_profile
+        "Loaded remote profile [#{options[0]}] from #{options[1]}"
+      when :loaded_local_profile
+        "Loaded local profile [#{options[0]}] from #{options[1]}"
       when :loaded_static_fixture
         "Loaded static fixture [#{options[0]}]."
       when :no_postprocess
@@ -363,6 +367,8 @@ module MessageHandler
         "Reference element of reference object is nil. Can not get resource from reference."
       when :no_static_fixture_id
         "No ID for static fixture. Can not load."
+      when :no_static_profile_id
+        "No ID for static profile. Can not load."
       when :no_static_fixture_reference
         "No reference for static fixture. Can not load."
       when :no_static_fixture_resource
@@ -377,8 +383,6 @@ module MessageHandler
         "See more execution details in the TestReports at: [#{options[0]}]."
       when :uncaught_error
         "Uncaught error: [#{options[0]}]."
-      when :unsupported_ref
-        "Remote reference: [#{options[0]}] not supported. No reference extracted."
       when :validation_msg
         options[0]
       when :loading_script

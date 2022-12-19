@@ -31,12 +31,11 @@ module Validation
 
   # Try using the $validate operation first, followed by the `/validate`
   # endpoint, and return whether the response conveys validation errors
-  def valid_resource?(resource, *profiles)
-    initial_logger = FHIR.logger
-    FHIR.logger = Logger.new('/dev/null')
+  def valid_resource?(resource, *profiles, options)
+    FHIR.logger = Logger.new(STDOUT) if options["verbose"]
+
     validate_using_operation(resource, profiles)
     validate_using_route(resource, profiles) unless reply.response[:code].start_with?('2')
-    FHIR.logger = initial_logger
     !validation_errors?
   end
 

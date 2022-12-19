@@ -1,0 +1,43 @@
+{
+  "resourceType": "TestScript",
+  "id": "sample-minimumId-reflexive",
+  "url": "https://github.com/fhir-crucible/testscript-generator/sampleMinimumIdReflexive",
+  "version": "0.1",
+  "name": "sampleMinimumIdReflexive",
+  "title": "Sample TestScript - minimumId reflexive",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-11-21T13:00:51-04:00",
+  "publisher": "The MITRE Corporation",
+  "contact": [
+    {
+      "name": "Karl Naden"
+    }
+  ],
+  "fixture": [
+    {
+      "id": "fixture",
+      "autocreate": false,
+      "autodelete": false,
+      "resource": {
+        "reference": "fixtures/Patient/example.json"
+      }
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate minimumId is reflexive",
+      "action": [
+        {
+          "assert": {
+            "label": "Assert_minimumId_reflexive",
+            "description": "Assert minimumId is reflexive",
+            "warningOnly": false,
+            "minimumId": "fixture",
+            "sourceId": "fixture"
+          }
+        }
+      ]
+    }
+  ]
+}

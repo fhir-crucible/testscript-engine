@@ -24,7 +24,8 @@ describe TestScriptRunnable do
     @client_reply = FHIR::ClientReply.new(request, response, client)
     @operation = FHIR::TestScript::Setup::Action::Operation.new
     @script = FHIR.from_contents(File.read('spec/examples/basic_testscript.json'))
-    @runnable = TestScriptRunnable.new(@script, lambda { |k| {}[k] })
+    options = {"ext_validator" => nil, "ext_fhirpath" => nil}
+    @runnable = TestScriptRunnable.new(@script, lambda { |k| {}[k] }, options)
     @runnable.client = client
   end
 

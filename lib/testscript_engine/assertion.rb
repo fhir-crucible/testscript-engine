@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'jsonpath'
+require 'json'
 
 module Assertion
   class AssertionException < StandardError
@@ -11,6 +12,8 @@ module Assertion
 			super(details)
     end
   end
+
+  @options = {}
 
   ASSERT_TYPES_MATCHER = /(?<=\p{Ll})(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})/
 
@@ -44,8 +47,9 @@ module Assertion
     '422' => 'unprocessable'
   }
 
-  def evaluate(assert)
+  def evaluate(assert, options)
     @direction = assert.direction
+    @options = options
     assert_elements = assert.to_hash.keys
     assert_type = determine_assert_type(assert_elements)
 
@@ -153,13 +157,127 @@ module Assertion
     compare("Header #{assert.headerField}", received, assert.operator, expected)
   end
 
-  # TODO: Hook-in validation module
-  def minimum_id(assert)
-    received = get_resource(assert.sourceId)
+  def validate_profile_id(assert)
+    ext_validator_url = @options["ext_validator"]
+    sourceId = assert.sourceId
+    validateProfileId = assert.validateProfileId
+    profile = profiles[validateProfileId]
 
-    raise AssertionException.new('minimumId assert not yet supported.', :skip)
+    if ext_validator_url == nil #Run internal validator
+      puts "         validateProfileId: trying the Ruby Crucible validator"
+      outcome = profile.validates_resource?(get_resource(sourceId))
+
+      if outcome
+        return " -> As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
+      else
+        fail_message = " -> Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
+        raise AssertionException.new(fail_message, :fail)
+      end
+
+    else #Run external validator
+      puts "         validateProfileId: trying external validator '#{ext_validator_url}'"
+      validator = FHIR::Client.new(ext_validator_url)
+      reply = validator.send(:get, "/profiles", { 'Content-Type' => 'json' })
+      profiles_received = JSON.parse(reply.to_hash["response"][:body])
+
+      if !profiles_received.include?(profile.url)
+        puts "         External validator doesn't support profile '#{profile.url}'"
+        puts "          -> Trying to add '#{validateProfileId}' to the external validator.."
+        reply = validator.send(:post, "/profiles", profile, { 'Content-Type' => 'json' })
+
+        if reply.response[:code].start_with?("2")
+          puts " -> Success! Added '#{validateProfileId}' to the External validator."
+        else
+          raise AssertionException.new(" -> Failed! Stop validation.", :fail)
+        end
+      end
+
+      puts "         External validator supports profile #{profile.url}"
+      path = "/validate?profile=#{profile.url}"
+      validator.send(:post, path, get_resource(sourceId), { 'Content-Type' => 'json' })
+
+      if validator.reply.response[:code].start_with?("2")
+        if JSON.parse(validator.reply.response[:body].body)["issue"][0]["severity"] != "error"
+          return " -> As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
+        else
+          fail_message = " -> Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
+          raise AssertionException.new(fail_message, :fail)
+        end        
+      else
+        fail_message = " -> Failed, response code #{response.response[:code]}."
+        raise AssertionException.new(fail_message, :fail)
+      end
+
+    end
   end
 
+  def minimum_id(assert)
+    specErrorPaths = []
+    path = ""
+    outcome = check_minimum_id(get_resource(assert.minimumId).to_hash, get_resource(assert.sourceId).to_hash, path, specErrorPaths)
+    
+    if outcome
+      "minimumId: As expected, minimum content from fixture '#{assert.minimumId}' found in '#{assert.sourceId == nil ? "the latest response" : assert.sourceId}'."
+    else
+      fail_message = "minimunId: content from fixture '#{assert.minimumId}' not found in '#{assert.sourceId == nil ? "the latest response" : assert.sourceId}'. Differences found at path#{"s" unless specErrorPaths.count < 2}: "
+      specErrorPaths.each_index { |_index| fail_message << (_index == 0 ? specErrorPaths[_index] : ", #{specErrorPaths[_index]}") }
+      fail_message << "."
+      raise AssertionException.new(fail_message, :fail)
+    end
+  end
+
+  def check_minimum_id(spec, actual, currentSpecPath, specErrorPaths)
+    if spec.is_a?(Hash) && actual.is_a?(Hash)
+        return check_minimum_id_hash(spec, actual, currentSpecPath, specErrorPaths)
+    end
+
+    if spec.is_a?(Array) && actual.is_a?(Array)
+        return check_minimum_id_array(spec, actual, currentSpecPath, specErrorPaths)
+    end
+
+    if spec == actual
+      return true
+    else
+      specErrorPaths.push(currentSpecPath)
+      return false
+    end
+  end
+
+  def check_minimum_id_hash(spec, actual, currentSpecPath, specErrorPaths)
+    pass_flg = true
+  
+    spec.each do |k, v|
+      newSpecPath = currentSpecPath.length == 0 ? k : currentSpecPath + ".#{k}"
+      keyResult = check_minimum_id(spec[k], actual[k], newSpecPath, specErrorPaths)
+      pass_flg = keyResult && pass_flg
+    end
+
+    return pass_flg
+  end
+
+  def check_minimum_id_array(spec, actual, currentSpecPath, specErrorPaths)
+    pass_flg = true
+
+    spec.each_index do |_index|
+      _spec = spec[_index]
+      found_flg = false
+      newPath = currentSpecPath + "[#{_index}]"
+      actual.each do |_actual|
+        if check_minimum_id(_spec, _actual, newPath, []) # drop errors under list entries
+          actual.delete(_actual) 
+          found_flg = true
+          break
+        end
+      end
+      if (!found_flg)
+        specErrorPaths.push(newPath)
+      end
+      pass_flg = pass_flg && found_flg
+    end
+
+    return pass_flg
+  end
+  
   def navigation_links(assert)
     received = get_resource(assert.sourceId)
     result = received&.first_link && received&.last_link && received&.next_link
@@ -197,13 +315,6 @@ module Assertion
     received_code = get_response(assert.sourceId)&.[](:code).to_s
     received = CODE_MAP[received_code]
     compare("Response", received, assert.operator, assert.response)
-  end
-
-  # TODO: Hook-in validation module
-  def validate_profile_id(assert)
-    received = get_resource(assert.sourceId)
-
-    raise AssertionException.new('validateProfileId assert not yet supported.', :skip)
   end
 
   def request_url(assert)

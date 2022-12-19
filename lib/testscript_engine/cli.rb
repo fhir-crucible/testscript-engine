@@ -1,65 +1,154 @@
 # frozen_string_literal: true
+require 'yaml'
+require 'thor'
 
 class TestScriptEngine
-  module CLI
-    def self.start
-      @test_server_url = "http://hapi.fhir.org/baseR4"
-      @load_non_fhir_fixtures = true
-      @testscript_path = "./TestScripts"
-      @testreport_path = "./TestReports"
 
-      Dir.glob("#{Dir.getwd}/**").each do |path|
-        @testscript_path = path if path.split('/').last.downcase == 'testscripts'
-        @testreport_path = path if path.split('/').last.downcase == 'testreports'
+  module CLI 
+    class MyCLI < Thor
+      desc "help", "Show all options"
+      def help()
+        puts "bundle exec bin/testscript_engine [PARAMETERS]"
+        puts "  interactive: run on interactive mode. Rest of arguments will be ignored."
+        puts "  config [FILEPATH]: run on configuration file on the path. Rest of arguments will be ignored. If path is not specified, default will be used."
+        puts "  execute --verbose : when specified, use FHIR Logger"
+        puts "  execute --nonfhir_fixture [true/false]: allow to intake non-FHIR fixture"
+        puts "  execute --ext_validator [URL]: when specified, use external resource validator"
+        puts "  execute --ext_fhirpath [URL]: when specified, use external FHIR path evaluator"
+        puts "  execute --variable ['name1=value1' 'name2=value2'...]: when specified, replace defaultValue in variable"
+        puts "  execute --server_url [URL]: when specified, replace the default FHIR server"
+        puts "  execute --testscript_path [FILEPATH]: TestScript location (default: /TestScripts)"
+        puts "  execute --testreport_path [FILEPATH]: TestReport location (default: /TestReports)"
       end
 
-      print "Hello from the TestScriptEngine! "
-      approve_configuration
+      desc "execute [OPTIONS]", "--nonfhir_fixture --verbose --ext_validator [URL] --ext_fhirpath [URL] --variable ['name = value'] --server_url [URL] --testscript_path [FILEPATH] --testreport_path [FILEPATH]"
+      option :config
+      option :nonfhir_fixture
+      option :ext_validator
+      option :ext_fhirpath
+      option :server_url
+      option :variable, :type => :array
+      option :testscript_path
+      option :testscript_name
+      #We will change later to accommodate multiple testscript names
+      #option :testscript_name, :type => :array
+      option :testreport_path
+      option :verbose, :type => :boolean
+      def execute()
+        if options == {}
+          puts "No argument to run to engine. Run 'bundle exec bin/testscript_engine help' to see available arguments" 
+          exit
+        end
+        return options
+      end
 
-      engine = TestScriptEngine.new(@test_server_url, @testscript_path, @testreport_path, load_non_fhir_fixtures: @load_non_fhir_fixtures)
+      desc "interactive", "Run the engine based on interactive mode. Rest of arguments will be ignored."
+      def interactive()
+        return {"interactive" => true} if options == {}
+      end
+
+    end
+
+    def self.start
+  
+      @test_server_url = "http://server.fire.ly"
+      @testscript_path = "/TestScripts"
+      @testscript_name = nil
+      @testreport_path = "/TestReports"
+      @load_non_fhir_fixtures = true
+      
+      options = MyCLI.start(ARGV)
+
+      if options != nil
+        @interactive = options["interactive"]
+  
+        if @interactive == nil
+          config = options["config"]
+
+          if config != nil
+            begin
+              ymloptions = YAML.load(File.read(config))
+              puts "Successfully loaded custom config file: #{config}"
+              options = ymloptions.merge(options)
+            rescue
+              puts "Failed to open file: #{config}"
+              exit
+            end
+          end
+
+        end
+      else
+        options = {"ext_validator" => "inferno", "ext_fhirpath" => nil, "verbose" => false}
+      end
+      
+      @test_server_url = options["server_url"] if options["server_url"]
+      @testscript_path = options["testscript_path"] if options["testscript_path"]
+      @testreport_path = options["testreport_path"] if options["testreport_path"]
+      @load_non_fhir_fixtures = options["nonfhir_fixture"] if options["nonfhir_fixture"]
+      runnable = options["testscript_name"] if options["testscript_name"]
+      
+      @testscript_path = Dir.getwd + @testscript_path
+      @testreport_path = Dir.getwd + @testreport_path
+
+      if (@interactive)
+        print "Hello from the TestScriptEngine! "
+        approve_configuration
+      end
+
+      engine = TestScriptEngine.new(@test_server_url, @testscript_path, @testreport_path, options)
       engine.load_input
       engine.make_runnables
 
-      print "Now able to execute runnables. \n"
+      print "Now able to execute runnables. \n" if (@interactive)
 
       while true
-        puts
-        print "The SERVER UNDER TEST is [#{@test_server_url}]. Would you like to change the SERVER UNDER TEST? [Y/N] "
-        input = gets.chomp
-        if input.strip.downcase == 'y'
+        if (@interactive)
           puts
-          print "Set [SERVER UNDER TEST]: "
-          input = gets.chomp
-          @test_server_url = input unless input.strip == ""
-          engine.new_client(@test_server_url)
-        end
-
-        puts
-
-        print "Enter the ID of a runnable to execute, or press return to execute all runnables: "
-        input = gets.chomp
-        if input.strip == ''
-          input = nil
-        else
-          while !engine.verify_runnable(input)
-            print "	Invalid runnable ID given. Please try again: "
-            input = gets.chomp
+          print "The SERVER UNDER TEST is [#{@test_server_url}]. Would you like to change the SERVER UNDER TEST? [Y/N] "
+          input = STDIN.gets.chomp
+          if input.strip.downcase == 'y'
+            puts
+            print "Set [SERVER UNDER TEST]: "
+            input = STDIN.gets.chomp
+            @test_server_url = input unless input.strip == ""
+            engine.new_client(@test_server_url)
           end
+
+          puts
+        end
+        
+        if (@interactive)
+          print "Enter the ID of a runnable to execute, or press return to execute all runnables: "
+          runnable = STDIN.gets.chomp
+          if runnable.strip == ''
+            runnable = nil
+          else
+            while !engine.verify_runnable(runnable)
+              print "	Invalid runnable ID given. Please try again: "
+              runnable = STDIN.gets.chomp
+            end
+          end
+        elsif (runnable != nil) && !engine.verify_runnable(runnable)
+          raise ArgumentError.new("invalid runnable provided via command line argument: #{runnable}")
         end
 
-        engine.execute_runnables(input)
+        engine.execute_runnables(runnable)
 
-        puts
-        print "Execution finished. Enter (q) to quit, press any other key to continue execution: "
-        input = gets.chomp
-        break if input == 'q'
+        if (@interactive)
+          puts
+          print "Execution finished. Enter (q) to quit, press any other key to continue execution: "
+          input = STDIN.gets.chomp
+          break if input == 'q'
+        else 
+          break
+        end
       end
 
       engine.write_reports
 
-      print "Goodbye!"
+      print "Goodbye!" if (@interactive)
     end
-
+    
     def self.configuration
       %(The configuration is as follows: \n
         SERVER UNDER TEST: [#{@test_server_url}]
@@ -73,30 +162,30 @@ class TestScriptEngine
       while true
         break if File.file?(path) || File.directory?(path)
         print "	Invalid file or directory path given. Current working directory: [#{Dir.getwd}]. Try again: "
-        path = gets.chomp
+        path = STDIN.gets.chomp
       end
       path
     end
 
     def self.modify_configuration
       print "Set [SERVER UNDER TEST] (press return to skip): "
-      input = gets.chomp
+      input = STDIN.gets.chomp
       @test_server_url = input unless input.strip == ""
 
       print "Set [LOAD NON-FHIR FIXTURES] (expecting T/F, press return to skip): "
-      input = gets.chomp
+      input = STDIN.gets.chomp
       unless input.strip == ""
         @load_non_fhir_fixtures = (input.downcase == 'f' ? false : true )
       end
 
       print "Set [TESTSCRIPT INPUT DIRECTORY or FILE] (press return to skip): "
-      input = gets.chomp
+      input = STDIN.gets.chomp
       unless input.strip == ""
         @testscript_path = validate_path(input.strip)
       end
 
       print "Set [TESTREPORT OUTPUT DIRECTORY] (press return to skip): "
-      input = gets.chomp
+      input = STDIN.gets.chomp
       unless input.strip == ""
         @testreport_path = validate_path(input.strip)
       end
@@ -107,7 +196,7 @@ class TestScriptEngine
     def self.approve_configuration
       while true
         print configuration
-        input = gets.chomp
+        input = STDIN.gets.chomp
         puts
         if input.strip.downcase == 'y'
           modify_configuration

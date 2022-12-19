@@ -10,7 +10,7 @@ class TestScriptRunnable
   prepend MessageHandler
   include TestReportHandler
 
-  attr_accessor :script, :client, :reply, :get_fixture_block
+  attr_accessor :script, :client, :reply, :get_fixture_block, :options
 
   def id_map
     @id_map ||= {}
@@ -18,6 +18,10 @@ class TestScriptRunnable
 
   def fixtures
     @fixtures ||= {}
+  end
+
+  def profiles
+    @profiles ||= {}
   end
 
   def request_map
@@ -36,10 +40,12 @@ class TestScriptRunnable
     @autodelete_ids ||= []
   end
 
-  def initialize(script, block)
+  def initialize(script, block, options)
     self.get_fixture_block = block
+    self.options = options
     @script = script
     load_fixtures
+    load_profiles
   end
 
   def run(client)
@@ -114,7 +120,7 @@ class TestScriptRunnable
           execute(action.operation)
         elsif action.respond_to?(:assert)
           begin
-            evaluate(action.assert)
+            evaluate(action.assert, options)
           rescue AssertionException => ae
             if ae.outcome == :skip
               skip(:eval_assert_result, ae.details)
@@ -170,12 +176,46 @@ class TestScriptRunnable
     end
   end
 
+  def load_profiles
+    puts ("      Loading profiles...")
+    script.profile.each do |profile|
+      next warning(:no_static_profile_id) unless profile.id
+      next warning(:no_static_profile_reference) unless profile.reference
+
+      if profile.reference.start_with? 'http'
+        profile_server = FHIR::Client.new("")
+        response = profile_server.send(:get, profile.reference, { 'Content-Type' => 'json' })
+        if response.response[:code].to_s != "200"
+          puts ("      Failed to load profile '#{profile.id}' from '#{profile.reference}': Response code #{response.response[:code]}")
+          next 
+        end
+        profiles[profile.id] = FHIR.from_contents(response.response[:body].to_s)
+        info(:loaded_remote_profile, profile.id, profile.reference)
+      else
+        profiles[profile.id] = FHIR.from_contents(File.read(profile.reference))
+        info(:loaded_local_profile, profile.id, profile.reference)
+      end
+
+    end
+  end
+
   def get_fixture_from_ref(reference)
     return warning(:bad_reference) unless reference.is_a?(FHIR::Reference)
 
     ref = reference.reference
     return warning(:no_reference) unless ref
-    return warning(:unsupported_ref, ref) if ref.start_with? 'http'
+
+    if ref.start_with? 'http'
+      fixture_server = FHIR::Client.new("")
+      response = fixture_server.send(:get, ref, { 'Content-Type' => 'json' })
+
+      if response.response[:code].to_s.starts_with?('2')
+        info(:added_remote_fixture, ref)
+        return FHIR.from_contents(response.response[:body].to_s)
+      else
+        warning(:missed_remote_fixture, ref)
+      end
+    end
 
     if ref.start_with? '#'
       contained = script.contained.find { |r| r.id == ref[1..] }

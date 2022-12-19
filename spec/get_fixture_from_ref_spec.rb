@@ -5,7 +5,8 @@ describe TestScriptRunnable do
 	before(:all) do
 		@script = FHIR.from_contents(File.read('spec/examples/basic_testscript.json'))
 		@patient = FHIR.from_contents(File.read('spec/examples/example_patient.json'))
-		@runnable = described_class.new(@script.deep_dup, lambda { |k| {}[k] })
+		options = {"ext_validator" => nil, "ext_fhirpath" => nil}
+		@runnable = described_class.new(@script.deep_dup, lambda { |k| {}[k] }, options)
 	end
 
 	before(:each) { @reference = @script.fixture.first.resource.deep_dup }
@@ -23,16 +24,6 @@ describe TestScriptRunnable do
 			@reference.reference = nil
 
 			expect(@runnable).to receive(:warning).with(:no_reference)
-
-			result = @runnable.get_fixture_from_ref(@reference)
-
-			expect(result).to be(nil)
-		end
-
-		it 'given remote reference logs warning' do
-			@reference.reference = 'http'
-
-			expect(@runnable).to receive(:warning).with(:unsupported_ref, 'http')
 
 			result = @runnable.get_fixture_from_ref(@reference)
 
