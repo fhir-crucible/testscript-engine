@@ -283,10 +283,18 @@ class TestScriptRunnable
   def evaluate_expression(expression, resource)
     return unless expression and resource
 
-    return begin
-      FHIRPath.evaluate(expression, resource.to_hash)
-    rescue RuntimeError => e
-      return nil
+    if options["ext_fhirpath"]
+      validator = FHIR::Client.new(options["ext_fhirpath"])
+      path = "/evaluate?path=#{expression}"
+      reply = validator.send(:post, path, resource.to_json, { 'Content-Type' => 'json' })
+      return JSON.parse(reply.response[:body].body) if reply.response[:code].start_with?(2)
+      print_out "External validator failed: " + reply.response[:code]
+    else
+      return begin
+        FHIRPath.evaluate(expression, resource.to_hash)
+      rescue RuntimeError => e
+        return nil
+      end
     end
   end
 end
