@@ -282,11 +282,11 @@ module MessageHandler
       when :loaded_script
         "Successfully loaded."
       when :loaded_remote_profile
-        "Loaded remote profile [#{options[0]}] from #{options[1]}"
+        " -> Loaded remote profile [#{options[0]}] from #{options[1]}"
       when :loaded_local_profile
-        "Loaded local profile [#{options[0]}] from #{options[1]}"
+        " -> Loaded local profile [#{options[0]}] from #{options[1]}"
       when :loaded_static_fixture
-        "Loaded static fixture [#{options[0]}]."
+        " -> Loaded static fixture [#{options[0]}]."
       when :no_postprocess
         "Nothing to postprocess."
       when :no_preprocess

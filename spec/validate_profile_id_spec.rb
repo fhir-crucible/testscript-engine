@@ -28,7 +28,7 @@ describe TestScriptRunnable do
         @assert.sourceId = 'patient_uscore'
         
         expect(@runnable.validate_profile_id(@assert))
-          .to eq(" -> As expected, fixture '#{@assert.sourceId}' conforms to profile: '#{@assert.validateProfileId}'")
+          .to eq(" As expected, fixture '#{@assert.sourceId}' conforms to profile: '#{@assert.validateProfileId}'")
           
       end
     end

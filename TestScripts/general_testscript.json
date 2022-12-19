@@ -103,7 +103,7 @@
   "profile": [
     {
       "id": "patient-profile",
-      "reference": "http://hl7.org/fhir/R4B/patient.profile.json"
+      "reference": "http://hl7.org/fhir/StructureDefinition/Patient"
     }
   ],
   "variable": [

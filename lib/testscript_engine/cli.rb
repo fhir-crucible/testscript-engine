@@ -6,7 +6,7 @@ class TestScriptEngine
 
   module CLI 
     class MyCLI < Thor
-      desc "execute [OPTIONS]", "--config --ext_validator [URL] --ext_fhirpath [URL] --variable ['name = value'] --server_url [URL] --testscript_path [FILEPATH] --testreport_path [FILEPATH] --nonfhir_fixture --verbose"
+      desc "execute [OPTIONS]", "--config[PATH] --ext_validator [URL] --ext_fhirpath [URL] --variable ['name = value'] --server_url [URL] --testscript_path [FILEPATH] --testreport_path [FILEPATH] --nonfhir_fixture --verbose"
       option :config
       option :testscript_path
       option :testscript_name
@@ -50,11 +50,10 @@ class TestScriptEngine
 
           if config != nil
             begin
-              ymloptions = YAML.load(File.read(config))
-              puts "Successfully loaded custom config file: #{config}"
-              options = ymloptions.merge(options)
+              options = YAML.load(File.read(config)).merge(options)
+              puts " Successfully loaded custom config file: #{config}"
             rescue
-              puts "Failed to open file: #{config}"
+              puts " Failed to open file: #{config}"
               exit
             end
           end

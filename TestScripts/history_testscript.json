@@ -87,7 +87,7 @@
   "profile": [
     {
       "id": "bundle-profile",
-      "reference": "https://hl7.org/fhir/R4B/bundle.profile.json"
+      "reference": "http://hl7.org/fhir/StructureDefinition/Patient"
     }
   ],
   "variable": [
