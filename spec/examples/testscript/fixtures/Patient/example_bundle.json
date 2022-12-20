@@ -1,0 +1,47 @@
+{
+  "resourceType": "Bundle",
+  "id": "0e7365c3-276b-4bf6-80a5-b33e9a7fa85e",
+  "meta": {
+    "lastUpdated": "2022-12-20T15:41:48.562+00:00"
+  },
+  "type": "history",
+  "total": 393827,
+  "link": [ {
+    "relation": "self",
+    "url": "https://hapi.fhir.org/baseR4/Patient/_history?_count=1&_pretty=true"
+  }, {
+    "relation": "next",
+    "url": "https://hapi.fhir.org/baseR4/Patient/_history?_count=1&_offset=1&_pretty=true"
+  } ],
+  "entry": [ {
+    "fullUrl": "https://hapi.fhir.org/baseR4/Patient/7216907",
+    "resource": {
+      "resourceType": "Patient",
+      "id": "7216907",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-12-20T15:24:50.183+00:00",
+        "source": "#0Iq8V2GCfWbECpcY"
+      },
+      "text": {
+        "status": "generated"
+      },
+      "active": true,
+      "name": [ {
+        "use": "official",
+        "family": "Chalmers",
+        "given": [ "Peter", "James" ]
+      } ],
+      "gender": "male",
+      "birthDate": "1974-12-25"
+    },
+    "request": {
+      "method": "POST",
+      "url": "Patient/7216907/_history/1"
+    },
+    "response": {
+      "status": "201 Created",
+      "etag": "W/\"1\""
+    }
+  } ]
+}

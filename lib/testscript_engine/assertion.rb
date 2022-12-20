@@ -22,6 +22,7 @@ module Assertion
     "expression",
     "headerField",
     "minimumId",
+    "compareToSourceId",
     "navigationLinks",
     "path",
     "requestMethod",
@@ -52,9 +53,7 @@ module Assertion
     @options = options
     assert_elements = assert.to_hash.keys
     assert_type = determine_assert_type(assert_elements)
-
     outcome_message = send(assert_type.to_sym, assert)
-
     pass(:eval_assert_result, outcome_message)
   end
 
@@ -71,11 +70,9 @@ module Assertion
     if assert.value
       assert.value
     elsif assert.compareToSourceExpression
-      evaluate_expression(assert.compareToSourceExpression,
-        get_resource(assert.compareToSourceId))
+      evaluate_expression(assert.compareToSourceExpression, get_resource(assert.compareToSourceId))
     elsif assert.compareToSourcePath
-      evaluate_path(assert.compareToSourcePath,
-        get_resource(assert.compareToSourceId))
+      evaluate_path(assert.compareToSourcePath, get_resource(assert.compareToSourceId))
     end
   end
 
@@ -141,7 +138,18 @@ module Assertion
 
     received = evaluate_expression(assert.expression, resource)
     expected = determine_expected_value(assert)
-    compare("Expression", received, assert.operator, expected)
+    compare("Expression", received.to_s, assert.operator, expected.to_s)
+  end
+
+  def compare_to_source_id(assert)
+    resource = get_resource(assert.sourceId)
+    compare_to_source = get_resource(assert.compareToSourceId)
+    raise AssertionException.new('No resource given by sourceId.', :fail) unless resource
+    raise AssertionException.new('No resource given by compareToSourceId.', :fail) unless compare_to_source
+
+    received = evaluate_expression(assert.expression, resource)
+    expected = determine_expected_value(assert)
+    compare("CompareToSourceId", received.to_s, assert.operator, expected.to_s)
   end
 
   def header_field(assert)
