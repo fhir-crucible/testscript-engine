@@ -114,8 +114,39 @@
         {
           "assert": {
             "description": "Confirm that the returned Bundle total is greater than or equal to the number of returned entries.",
+            "expression": "Bundle.total",
+            "value": "[393827]",
+            "sourceId": "fixture-patient-bundle",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "description": "Confirm that the returned Bundle total is greater than or equal to the number of returned entries.",
             "compareToSourceExpression": "Patient.children().count()",
             "expression": "Bundle.entry[0].resource.children().count()",
+            "operator": "equals",
+            "compareToSourceId": "fixture-patient-bundle-entry",
+            "sourceId": "fixture-patient-bundle",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "description": "Confirm that the returned Bundle total is greater than or equal to the number of returned entries.",
+            "compareToSourceExpression": "Patient.children()",
+            "expression": "Bundle.entry[0].resource.children()",
+            "operator": "equals",
+            "compareToSourceId": "fixture-patient-bundle-entry",
+            "sourceId": "fixture-patient-bundle",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "description": "Confirm that the returned Bundle total is greater than or equal to the number of returned entries.",
+            "compareToSourceExpression": "Patient.name",
+            "expression": "Bundle.entry.resource.name",
             "operator": "equals",
             "compareToSourceId": "fixture-patient-bundle-entry",
             "sourceId": "fixture-patient-bundle",

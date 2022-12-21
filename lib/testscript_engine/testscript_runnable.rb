@@ -287,7 +287,13 @@ class TestScriptRunnable
       validator = FHIR::Client.new(options["ext_fhirpath"])
       path = "/evaluate?path=#{expression}"
       reply = validator.send(:post, path, resource, { 'Content-Type' => 'json' })
-      return JSON.parse(reply.response[:body].body) if reply.response[:code].to_s == "200"
+      
+      if reply.response[:code].to_s == "200"
+        result = JSON.parse(reply.response[:body].body) 
+        val = []
+        result.each { |r| val << r["element"] }
+        val
+      end
       print_out "External validator failed: " + reply.response[:code]
     else
       return begin

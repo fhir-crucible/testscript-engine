@@ -31,6 +31,11 @@
         "use": "official",
         "family": "Chalmers",
         "given": [ "Peter", "James" ]
+      },
+      {
+        "use": "official",
+        "family": "Lee",
+        "given": [ "Jaehoon", "Bob" ]
       } ],
       "gender": "male",
       "birthDate": "1974-12-25"
