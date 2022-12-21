@@ -1,10 +1,10 @@
 require_relative '../lib/testscript_engine/testscript_runnable'
-require_relative '../lib/testscript_engine/output/message_handler'
+require_relative '../lib/testscript_engine/message_handler'
 
 describe TestScriptRunnable do
 	before(:all) do
 		@script = FHIR.from_contents(File.read('spec/examples/basic_testscript.json'))
-		@patient = FHIR.from_contents(File.read('spec/examples/example_patient.json'))
+		@patient = FHIR.from_contents(File.read('spec/fixtures/patient_example.json'))
 		options = {"ext_validator" => nil, "ext_fhirpath" => nil}
 		@runnable = described_class.new(@script.deep_dup, lambda { |k| {}[k] }, options)
 	end

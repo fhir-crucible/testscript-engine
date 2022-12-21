@@ -3,8 +3,8 @@
 require 'pry-nav'
 require 'fhir_client'
 require_relative 'testscript_engine/testscript_runnable'
-require_relative 'testscript_engine/output/message_handler'
-require_relative 'testscript_engine/validation/validation'
+require_relative 'testscript_engine/message_handler'
+require_relative 'testscript_engine/validation'
 require_relative 'testscript_engine/cli'
 
 class TestScriptEngine
@@ -43,12 +43,10 @@ class TestScriptEngine
     self.input_path = testscript_path
     self.testreport_path = testreport_path
     self.nonfhir_fixture = options[:nonfhir_fixture]
-    self.variable = options["variable"]
+    self.variable = options[:variable]
     self.options = options
-    # self.debug_mode = true
   end
 
-  # TODO: Tie-in stronger validation. Possibly, Inferno validator.
   def valid_testscript? script
     return (script.is_a? FHIR::TestScript) && valid_resource?(script, options)
   end

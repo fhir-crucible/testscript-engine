@@ -111,6 +111,7 @@
           },
           "resource": "Patient",
           "description": "Test simple search to verify server support.",
+          "label": "TestSearch",
           "accept": "xml",
           "encodeRequestUrl": true,
           "params": "?family=DONTEXPECTAMATCH&given=DONTEXPECTAMATCH"
@@ -120,6 +121,7 @@
         "assert": {
           "description": "Confirm that the request url contains the family search parameter.",
           "direction": "request",
+          "label": "01-Parameter",
           "operator": "contains",
           "requestURL": "family",
           "warningOnly": false
@@ -129,6 +131,7 @@
         "assert": {
           "description": "Confirm that the returned HTTP status is 200(OK).",
           "direction": "response",
+          "label": "02-Response200",
           "responseCode": "200",
           "warningOnly": false
         }
@@ -137,12 +140,14 @@
         "assert": {
           "description": "Confirm that the returned resource type is Bundle.",
           "resource": "Bundle",
+          "label": "03-ResponseBundle",
           "warningOnly": false
         }
       },
       {
         "assert": {
           "description": "Confirm that the returned Bundle correctly defines the navigation links.",
+          "label": "04-ResponseNavigationLink",
           "navigationLinks": true,
           "warningOnly": false
         }
@@ -163,6 +168,7 @@
             },
             "resource": "Patient",
             "description": "Create a Patient resource and capture the returned HTTP Header Location.",
+            "label": "CreatePatient",
             "accept": "xml",
             "contentType": "xml",
             "encodeRequestUrl": true,
@@ -173,6 +179,7 @@
         {
           "assert": {
             "description": "Confirm that the returned HTTP status is 201(Created).",
+            "label": "01-Response201",
             "response": "created",
             "warningOnly": false
           }
@@ -180,6 +187,7 @@
         {
           "assert": {
             "description": "Confirm that the returned HTTP Header Location is present.",
+            "label": "02-ResponseHTTPHeader",
             "direction": "response",
             "headerField": "Location",
             "operator": "notEmpty",
@@ -193,6 +201,7 @@
               "code": "read"
             },
             "description": "Read the created Patient using the captured Location URL value.",
+            "label": "ReadPatientURL",
             "accept": "xml",
             "encodeRequestUrl": true,
             "url": "${PatientCreateLocation}"
@@ -201,6 +210,7 @@
         {
           "assert": {
             "description": "Confirm that the returned HTTP status is 200(OK).",
+            "label": "01-Response200",
             "response": "okay",
             "warningOnly": false
           }
@@ -208,6 +218,7 @@
         {
           "assert": {
             "description": "Confirm that the returned resource type is Patient.",
+            "label": "02-ResponseResourceType",
             "resource": "Patient",
             "warningOnly": false
           }
@@ -227,6 +238,7 @@
             },
             "resource": "Patient",
             "description": "Search for Patient resources on the destination test system.",
+            "label": "SearchPatient",
             "accept": "xml",
             "encodeRequestUrl": true,
             "params": "?family=${PatientSearchFamilyName}&given=${PatientSearchGivenName}"
@@ -235,6 +247,7 @@
         {
           "assert": {
             "description": "Confirm that the returned HTTP status is 200(OK).",
+            "label": "01-Response200",
             "response": "okay",
             "warningOnly": false
           }
@@ -242,6 +255,7 @@
         {
           "assert": {
             "description": "Confirm that the returned format is XML.",
+            "label": "02-ResponseFormat",
             "contentType": "application/fhir+xml",
             "warningOnly": false
           }
@@ -249,6 +263,7 @@
         {
           "assert": {
             "description": "Confirm that the returned resource type is Bundle.",
+            "label": "03-ResponseResourceType",
             "resource": "Bundle",
             "warningOnly": false
           }
@@ -256,6 +271,7 @@
         {
           "assert": {
             "description": "Confirm that the returned Bundle conforms to the base FHIR specification.",
+            "label": "04-ResponseBundle",
             "validateProfileId": "bundle-profile",
             "warningOnly": true
           }
@@ -263,6 +279,7 @@
         {
           "assert": {
             "description": "Confirm that the returned Bundle type equals 'searchset'.",
+            "label": "05-ResponseBundleType",
             "operator": "equals",
             "path": "fhir:Bundle/fhir:type/@value",
             "value": "searchset",
@@ -272,6 +289,7 @@
         {
           "assert": {
             "description": "Confirm that the returned Bundle total is greater than or equal to the number of returned entries.",
+            "label": "06-ResponseBundleTotal",
             "expression": "Bundle.total.toInteger() >= entry.count()",
             "value": "true",
             "warningOnly": false

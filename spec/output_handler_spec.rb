@@ -1,4 +1,4 @@
-require_relative '../../lib/testscript_engine/output/message_handler'
+require_relative '../lib/testscript_engine/message_handler'
 
 class OutputHandlerTestClass
   include MessageHandler
@@ -44,17 +44,7 @@ describe MessageHandler do
         expect(result).to eq({})
       end
     end
-
-    context 'with valid path to valid config file' do
-      before { allow(YAML).to receive(:safe_load).and_return(@config_with_dict) }
-
-      it 'returns hash' do
-        result = @output_handler.config
-
-        expect(result.class).to be(Hash)
-        expect(result).not_to be_empty
-      end
-    end
+    
   end
 
   describe '.message_dictionary' do

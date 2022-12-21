@@ -1,4 +1,4 @@
-require_relative '../../lib/testscript_engine/assertion'
+require_relative '../lib/testscript_engine/assertion'
 require 'fhir_models'
 
 class AssertionTestClass

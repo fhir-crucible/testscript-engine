@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require_relative 'operation'
 require_relative 'assertion'
-require_relative 'output/message_handler'
+require_relative 'message_handler'
 require_relative 'testreport_handler'
 
 class TestScriptRunnable
@@ -10,7 +10,7 @@ class TestScriptRunnable
   prepend MessageHandler
   include TestReportHandler
 
-  attr_accessor :script, :client, :reply, :get_fixture_block, :options
+  attr_accessor :script, :client, :client_util, :reply, :get_fixture_block, :options
 
   def id_map
     @id_map ||= {}
@@ -43,6 +43,7 @@ class TestScriptRunnable
   def initialize(script, block, options)
     self.get_fixture_block = block
     self.options = options
+    self.client_util = FHIR::Client.new('')
     @script = script
     load_fixtures
     load_profiles
@@ -177,16 +178,15 @@ class TestScriptRunnable
   end
 
   def load_profiles
-    puts ("      Loading profiles...")
+    print_out " Loading profiles..."
     script.profile.each do |profile|
       next warning(:no_static_profile_id) unless profile.id
       next warning(:no_static_profile_reference) unless profile.reference
 
       if profile.reference.start_with? 'http'
-        profile_server = FHIR::Client.new("")
-        response = profile_server.send(:get, profile.reference, { 'Content-Type' => 'json' })
-        if response.response[:code].to_s != "200"
-          puts ("      Failed to load profile '#{profile.id}' from '#{profile.reference}': Response code #{response.response[:code]}")
+        response = client_util.send(:get, profile.reference, { 'Content-Type' => 'json' })
+        if response.response[:code].to_s.starts_with?('2')
+          print_out " -> Failed to load profile '#{profile.id}' from '#{profile.reference}': Response code #{response.response[:code]}"
           next 
         end
         profiles[profile.id] = FHIR.from_contents(response.response[:body].to_s)
@@ -206,8 +206,7 @@ class TestScriptRunnable
     return warning(:no_reference) unless ref
 
     if ref.start_with? 'http'
-      fixture_server = FHIR::Client.new("")
-      response = fixture_server.send(:get, ref, { 'Content-Type' => 'json' })
+      response = client_util.send(:get, ref, { 'Content-Type' => 'json' })
 
       if response.response[:code].to_s.starts_with?('2')
         info(:added_remote_fixture, ref)

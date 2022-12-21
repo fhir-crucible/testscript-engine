@@ -172,47 +172,47 @@ module Assertion
     profile = profiles[validateProfileId]
 
     if ext_validator_url == nil #Run internal validator
-      puts "         validateProfileId: trying the Ruby Crucible validator"
+      print_out " validateProfileId: trying the Ruby Crucible validator"
       outcome = profile.validates_resource?(get_resource(sourceId))
 
       if outcome
-        return " -> As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
+        return " As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
       else
-        fail_message = " -> Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
+        fail_message = " Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
         raise AssertionException.new(fail_message, :fail)
       end
 
     else #Run external validator
-      puts "         validateProfileId: trying external validator '#{ext_validator_url}'"
-      validator = FHIR::Client.new(ext_validator_url)
-      reply = validator.send(:get, "/profiles", { 'Content-Type' => 'json' })
+      print_out " validateProfileId: trying external validator '#{ext_validator_url}'"
+      reply = client_util.send(:get, ext_validator_url+"/profiles", { 'Content-Type' => 'json' })
       profiles_received = JSON.parse(reply.to_hash["response"][:body])
 
+      # If external validator doesn't support profile, add one.
       if !profiles_received.include?(profile.url)
-        puts "         External validator doesn't support profile '#{profile.url}'"
-        puts "          -> Trying to add '#{validateProfileId}' to the external validator.."
-        reply = validator.send(:post, "/profiles", profile, { 'Content-Type' => 'json' })
+        print_out " External validator doesn't support profile '#{profile.url}'"
+        print_out " -> Trying to add '#{validateProfileId}' to external validator.."
+        reply = client_util.send(:post, ext_validator_url+"/profiles", profile, { 'Content-Type' => 'json' })
 
         if reply.response[:code].start_with?("2")
-          puts " -> Success! Added '#{validateProfileId}' to the External validator."
+          print_out  " -> Success! Added '#{validateProfileId}' to External validator."
         else
-          raise AssertionException.new(" -> Failed! Stop validation.", :fail)
+          raise AssertionException.new("Failed! Stop validation.", :fail)
         end
       end
 
-      puts "         External validator supports profile #{profile.url}"
-      path = "/validate?profile=#{profile.url}"
-      validator.send(:post, path, get_resource(sourceId), { 'Content-Type' => 'json' })
+      print_out " -> External validator supports profile #{profile.url}"
+      path = ext_validator_url+"/validate?profile=#{profile.url}"
+      reply = client_util.send(:post, path, get_resource(sourceId), { 'Content-Type' => 'json' })
 
-      if validator.reply.response[:code].start_with?("2")
-        if JSON.parse(validator.reply.response[:body].body)["issue"][0]["severity"] != "error"
-          return " -> As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
+      if reply.response[:code].start_with?("2")
+        if JSON.parse(reply.response[:body].body)["issue"][0]["severity"] != "error"
+          return "As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
         else
-          fail_message = " -> Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
+          fail_message = "Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
           raise AssertionException.new(fail_message, :fail)
         end        
       else
-        fail_message = " -> Failed, response code #{response.response[:code]}."
+        fail_message = "Failed, response code : #{reply.response[:code]}."
         raise AssertionException.new(fail_message, :fail)
       end
 
@@ -329,8 +329,6 @@ module Assertion
     received = get_request(assert.sourceId)[:url]
     compare("RequestURL", received, assert.operator, assert.requestURL)
   end
-
-  # <--- TO DO: MOVE TO UTILITIES MODULE --->
 
   def get_resource(id)
     if direction == 'request'

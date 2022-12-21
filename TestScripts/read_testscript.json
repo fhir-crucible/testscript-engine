@@ -93,6 +93,7 @@
             "resource": "Patient",
             "description": "Read the known Patient resource on the destination test system using the user defined dynamic variable ${KnownPatientResourceId}.",
             "accept": "xml",
+            "label": "ReadKnownPatient",
             "encodeRequestUrl": true,
             "params": "/${KnownPatientResourceId}"
           }
@@ -101,6 +102,7 @@
           "assert": {
             "description": "Confirm that the returned HTTP status is 200(OK).",
             "response": "okay",
+            "label": "01-Response200",
             "warningOnly": false
           }
         },
@@ -108,6 +110,7 @@
           "assert": {
             "description": "Confirm that the returned format is XML.",
             "contentType": "application/fhir+xml",
+            "label": "02-ResponseFormat",
             "warningOnly": false
           }
         },
@@ -115,6 +118,7 @@
           "assert": {
             "description": "Confirm that the returned HTTP Header Last-Modified is present. Warning only as the server might not support versioning.",
             "headerField": "Last-Modified",
+            "label": "03-ResponseHTTPheader",
             "operator": "notEmpty",
             "warningOnly": true
           }
@@ -123,12 +127,14 @@
           "assert": {
             "description": "Confirm that the returned resource type is Patient.",
             "resource": "Patient",
+            "label": "04-ResponseResourceType",
             "warningOnly": false
           }
         },
         {
           "assert": {
             "description": "Confirm that the returned Patient conforms to the base FHIR specification.",
+            "label": "05-ResponseProfile",
             "validateProfileId": "patient-profile",
             "warningOnly": true
           }
@@ -147,6 +153,7 @@
               "code": "read"
             },
             "resource": "Patient",
+            "label": "ReadPatientParam",
             "description": "Attempt to read the Parameters resource type. What we really want here is an illegal type but the build process won't allow that. Parameters is a valid resource which doesn't have an end-point so, this should fail.",
             "accept": "xml",
             "encodeRequestUrl": true,
@@ -157,6 +164,7 @@
           "assert": {
             "description": "Confirm that the returned HTTP status is 404(Not Found).",
             "response": "notFound",
+            "label": "01-Response404",
             "warningOnly": false
           }
         }
@@ -176,6 +184,7 @@
             "resource": "Patient",
             "description": "Attempt to read the non-existing Patient resource on the destination test system using the user defined dynamic variable ${NonExistsPatientResourceId}.",
             "accept": "xml",
+            "label": "ReadNonExistingPatient",
             "encodeRequestUrl": true,
             "params": "/${NonExistsPatientResourceId}"
           }
@@ -184,6 +193,7 @@
           "assert": {
             "description": "Confirm that the returned HTTP status is 404(Not Found).",
             "response": "notFound",
+            "label": "01-Response404",
             "warningOnly": false
           }
         }
@@ -203,6 +213,7 @@
             "resource": "Patient",
             "description": "Attempt to read a Patient resource on the destination test system using known bad formatted resource id.",
             "accept": "xml",
+            "label": "ReadPatientBadId",
             "encodeRequestUrl": true,
             "params": "/ID-may-not-contain-CAPITALS"
           }
@@ -211,6 +222,7 @@
           "assert": {
             "description": "Confirm that the returned HTTP status is 400(Bad Request).",
             "response": "bad",
+            "label": "01-Response400",
             "warningOnly": false
           }
         }
