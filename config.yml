@@ -23,8 +23,12 @@ variable:
 - name1=value1
 - name2=value2
 
-# Relative to the directory containing the TestReports output following their partner TestScript execution
-testreport_path: /TestReports
+# The relative to the directory containing the TestReports output following their partner TestScript execution
+testreport_path: "/TestReports"
+
+# If specified, a summary report csv file named execution_summary_[UTC timestamp].csv will be created within the folder
+# The file will include the id, name, and title of each TestScript executed and the overall pass/fail result
+summary_path: "/Summaries"
 
 # If specified, use the external validator with URL
 # If not, use the internal validator based on Ruby Crucible validator :https://github.com/fhir-crucible/fhir_models#validation

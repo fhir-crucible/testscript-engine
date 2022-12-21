@@ -2,6 +2,7 @@
 
 require 'pry-nav'
 require 'fhir_client'
+require "csv"
 require_relative 'testscript_engine/testscript_runnable'
 require_relative 'testscript_engine/message_handler'
 require_relative 'testscript_engine/validation'
@@ -170,12 +171,24 @@ class TestScriptEngine
     report_directory = path || testreport_path
     FileUtils.mkdir_p report_directory
 
-    reports.each do |_, report|
+    summary_rows = [["id", "name", "title", "result"]]
+
+    reports.each do |report_key, report|
       report_name = report.name.downcase.split(' ')[1...].join('_')
       report_name = report.name.downcase.split('_')[0...].join('_') if report_name == ''
       File.open("#{report_directory}/#{report_name}.json", 'w') do |f|
         f.write(report.to_json)
       end
+      test_script = runnables[report_key]
+      summary_rows << [test_script.script.id, test_script.script.name, """#{test_script.script.title}""", report.result]
     end
+
+    if options["summary_path"] != nil
+      summary_path = Dir.getwd + options["summary_path"]
+      FileUtils.mkdir_p summary_path
+      File.write("#{summary_path}/execution_summary_#{Time.now.utc.iso8601}.csv", summary_rows.map(&:to_csv).join)
+    end
+
+
   end
 end
