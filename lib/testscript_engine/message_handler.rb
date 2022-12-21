@@ -239,7 +239,7 @@ module MessageHandler
 
   def config
     @config ||= begin
-      path = Dir.pwd + '/lib/testscript_engine/output/output_config.yml'
+      path = Dir.pwd + '/lib/testscript_engine/output_config.yml'
       begin
         YAML.safe_load(File.read(path)) || {}
       rescue

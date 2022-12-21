@@ -43,7 +43,7 @@ class TestScriptEngine
     self.input_path = testscript_path
     self.testreport_path = testreport_path
     self.nonfhir_fixture = options[:nonfhir_fixture]
-    self.variable = options["variable"]
+    self.variable = options[:variable]
     self.options = options
   end
 

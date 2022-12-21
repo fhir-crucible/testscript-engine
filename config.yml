@@ -1,11 +1,14 @@
-# If true, allow intake non-FHIR fixture (local only)
+# If true, allow intake non-FHIR fixture (local only).
 nonfhir_fixture: true
 
-# Endpoint against which TestScripts will be executed
+# If true, use FHIR logger. Log file will be exported to STDOUT.
+verbose: false
+
+# Endpoint against which TestScripts will be executed.
 server_url: https://server.fire.ly
 
 # Relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine
-testscript_path: "/TestScripts"
+testscript_path: /TestScripts
  
 # Name of TestScript under TESTSCRIPT_PATH to be executed
 # Name should match Testscript.name
@@ -14,22 +17,19 @@ testscript_path: "/TestScripts"
 testscript_name: testscript-example-general
 
 # Dynamic variables replace defaultValue in variable in TestScript
-# Uniformly apply to all runnables. For example, one variable name is set and two TestScripts have the same variable name, it will apply to both.
+# This will uniformly apply to all runnables. For example, if two TestScripts have same variable name, this will apply to both.
 # Syntax: name=value (no space before and after =)
 variable:
 - name1=value1
 - name2=value2
 
 # Relative to the directory containing the TestReports output following their partner TestScript execution
-testreport_path: "./TestReports"
-
-# If true use FHIR logger
-verbose: false
+testreport_path: /TestReports
 
 # If specified, use the external validator with URL
-# If not specified, use the internal validator based on Ruby Crucible validator :https://github.com/fhir-crucible/fhir_models
+# If not, use the internal validator based on Ruby Crucible validator :https://github.com/fhir-crucible/fhir_models#validation
 ext_validator: https://inferno.healthit.gov/validatorapi
 
 # If specified, use the external FHIR Path evaluator with URL
-# If not specified, use the internal evaluator based on Ruby Crucible FHIR path :https://github.com/fhir-crucible/fhir_models
+# If not, use the internal evaluator based on Ruby Crucible FHIR path evaluator :https://github.com/fhir-crucible/fhir_models
 ext_fhirpath: https://inferno.healthit.gov/validatorapi

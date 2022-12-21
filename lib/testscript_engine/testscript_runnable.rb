@@ -185,7 +185,7 @@ class TestScriptRunnable
 
       if profile.reference.start_with? 'http'
         response = client_util.send(:get, profile.reference, { 'Content-Type' => 'json' })
-        if response.response[:code].to_s != "200"
+        if response.response[:code].to_s.starts_with?('2')
           print_out " -> Failed to load profile '#{profile.id}' from '#{profile.reference}': Response code #{response.response[:code]}"
           next 
         end
@@ -206,7 +206,6 @@ class TestScriptRunnable
     return warning(:no_reference) unless ref
 
     if ref.start_with? 'http'
-      # fixture_server = FHIR::Client.new("")
       response = client_util.send(:get, ref, { 'Content-Type' => 'json' })
 
       if response.response[:code].to_s.starts_with?('2')
