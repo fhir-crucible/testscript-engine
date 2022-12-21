@@ -19,9 +19,10 @@ class TestScriptEngine
         puts "  execute --server_url [URL]: when specified, replace the default FHIR server"
         puts "  execute --testscript_path [FILEPATH]: TestScript location (default: /TestScripts)"
         puts "  execute --testreport_path [FILEPATH]: TestReport location (default: /TestReports)"
+        puts "  execute --summary_path [FILEPATH]: CSV execution summary location (default: none)"
       end
 
-      desc "execute [OPTIONS]", "--nonfhir_fixture --verbose --ext_validator [URL] --ext_fhirpath [URL] --variable ['name = value'] --server_url [URL] --testscript_path [FILEPATH] --testreport_path [FILEPATH]"
+      desc "execute [OPTIONS]", "--nonfhir_fixture --verbose --ext_validator [URL] --ext_fhirpath [URL] --variable ['name = value'] --server_url [URL] --testscript_path [FILEPATH] --testreport_path [FILEPATH] --summary_path [FILEPATH]"
       option :config
       option :nonfhir_fixture
       option :ext_validator
@@ -33,6 +34,7 @@ class TestScriptEngine
       #We will change later to accommodate multiple testscript names
       #option :testscript_name, :type => :array
       option :testreport_path
+      option :summary_path
       option :verbose, :type => :boolean
       def execute()
         if options == {}
