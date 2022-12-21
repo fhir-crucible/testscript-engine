@@ -186,9 +186,9 @@ class TestScriptEngine
     end
 
     if options["summary_path"] != nil
-      summary_path = Dir.getwd + options["summary_path"]
+      summary_path = File.join(Dir.getwd, options["summary_path"])
       FileUtils.mkdir_p summary_path
-      File.write("#{summary_path}/execution_summary_#{Time.now.utc.iso8601}.csv", summary_rows.map(&:to_csv).join)
+      File.write(File.join(summary_path, "execution_summary_#{Time.now.utc.iso8601}.csv"), summary_rows.map(&:to_csv).join)
     end
 
 
