@@ -6,7 +6,7 @@ class TestScriptEngine
 
   module CLI 
     class MyCLI < Thor
-      desc "execute [OPTIONS]", "--config[PATH] --ext_validator [URL] --ext_fhirpath [URL] --variable ['name = value'] --server_url [URL] --testscript_path [FILEPATH] --testreport_path [FILEPATH] summary_path [FILEPATH] --nonfhir_fixture --verbose"
+      desc "execute [OPTIONS]", "--config[PATH] --ext_validator [URL] --ext_fhirpath [URL] --variable ['name = value'] --server_url [URL] --testscript_path [PATH] --testreport_path [PATH] summary_path [PATH] --nonfhir_fixture --verbose"
       option :config
       option :testscript_path
       option :testscript_name
@@ -36,9 +36,9 @@ class TestScriptEngine
     def self.start
   
       @test_server_url = "http://server.fire.ly"
-      @testscript_path = "/TestScripts"
+      @testscript_path = "TestScripts"
       @testscript_name = nil
-      @testreport_path = "/TestReports"
+      @testreport_path = "TestReports"
       @load_non_fhir_fixtures = true
       
       options = MyCLI.start(ARGV)
@@ -70,8 +70,8 @@ class TestScriptEngine
       @load_non_fhir_fixtures = options["nonfhir_fixture"] if options["nonfhir_fixture"]
       runnable = options["testscript_name"] if options["testscript_name"]
       
-      @testscript_path = Dir.getwd + @testscript_path
-      @testreport_path = Dir.getwd + @testreport_path
+      @testscript_path = File.join(Dir.getwd, @testscript_path)
+      @testreport_path = File.join(Dir.getwd, @testreport_path)
 
       if (@interactive)
         print "Hello from the TestScriptEngine! "
