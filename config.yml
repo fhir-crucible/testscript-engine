@@ -8,7 +8,7 @@ verbose: false
 server_url: https://server.fire.ly
 
 # Relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine
-testscript_path: /TestScripts
+testscript_path: ./TestScripts
  
 # Name of TestScript under TESTSCRIPT_PATH to be executed
 # Name should match Testscript.name
@@ -23,13 +23,17 @@ variable:
 - name1=value1
 - name2=value2
 
-# Relative to the directory containing the TestReports output following their partner TestScript execution
-testreport_path: /TestReports
+# The relative to the directory containing the TestReports output following their partner TestScript execution
+testreport_path: "./TestReports"
+
+# If specified, a summary report csv file named execution_summary_[UTC timestamp].csv will be created within the specified relative folder
+# The file will include the id, name, and title of each TestScript executed and the overall pass/fail result
+summary_path: "./Summaries"
 
 # If specified, use the external validator with URL
-# If not, use the internal validator based on Ruby Crucible validator :https://github.com/fhir-crucible/fhir_models#validation
+# If not, use the internal validator based on Ruby Crucible validator: https://github.com/fhir-crucible/fhir_models#validation
 ext_validator: https://inferno.healthit.gov/validatorapi
 
 # If specified, use the external FHIR Path evaluator with URL
-# If not, use the internal evaluator based on Ruby Crucible FHIR path evaluator :https://github.com/fhir-crucible/fhir_models
+# If not, use the internal evaluator based on Ruby Crucible FHIR path evaluator: https://github.com/fhir-crucible/fhir_models
 ext_fhirpath: https://inferno.healthit.gov/validatorapi
