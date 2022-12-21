@@ -6,43 +6,26 @@ class TestScriptEngine
 
   module CLI 
     class MyCLI < Thor
-      desc "help", "Show all options"
-      def help()
-        puts "bundle exec bin/testscript_engine [PARAMETERS]"
-        puts "  interactive: run on interactive mode. Rest of arguments will be ignored."
-        puts "  config [FILEPATH]: run on configuration file on the path. Rest of arguments will be ignored. If path is not specified, default will be used."
-        puts "  execute --verbose : when specified, use FHIR Logger"
-        puts "  execute --nonfhir_fixture [true/false]: allow to intake non-FHIR fixture"
-        puts "  execute --ext_validator [URL]: when specified, use external resource validator"
-        puts "  execute --ext_fhirpath [URL]: when specified, use external FHIR path evaluator"
-        puts "  execute --variable ['name1=value1' 'name2=value2'...]: when specified, replace defaultValue in variable"
-        puts "  execute --server_url [URL]: when specified, replace the default FHIR server"
-        puts "  execute --testscript_path [FILEPATH]: TestScript location (default: /TestScripts)"
-        puts "  execute --testreport_path [FILEPATH]: TestReport location (default: /TestReports)"
-      end
-
-      desc "execute [OPTIONS]", "--nonfhir_fixture --verbose --ext_validator [URL] --ext_fhirpath [URL] --variable ['name = value'] --server_url [URL] --testscript_path [FILEPATH] --testreport_path [FILEPATH]"
+      desc "execute [OPTIONS]", "--config[PATH] --ext_validator [URL] --ext_fhirpath [URL] --variable ['name = value'] --server_url [URL] --testscript_path [FILEPATH] --testreport_path [FILEPATH] --nonfhir_fixture --verbose"
       option :config
-      option :nonfhir_fixture
-      option :ext_validator
-      option :ext_fhirpath
-      option :server_url
-      option :variable, :type => :array
       option :testscript_path
       option :testscript_name
-      #We will change later to accommodate multiple testscript names
-      #option :testscript_name, :type => :array
       option :testreport_path
+      option :server_url
+      option :nonfhir_fixture, :type => :boolean
+      option :variable, :type => :array
       option :verbose, :type => :boolean
+      option :ext_validator
+      option :ext_fhirpath
       def execute()
         if options == {}
-          puts "No argument to run to engine. Run 'bundle exec bin/testscript_engine help' to see available arguments" 
+          puts "No argument to run the engine. See README.MD to find available options" 
           exit
         end
         return options
       end
 
-      desc "interactive", "Run the engine based on interactive mode. Rest of arguments will be ignored."
+      desc "interactive", "Run the engine based on interactive mode."
       def interactive()
         return {"interactive" => true} if options == {}
       end
@@ -67,11 +50,10 @@ class TestScriptEngine
 
           if config != nil
             begin
-              ymloptions = YAML.load(File.read(config))
-              puts "Successfully loaded custom config file: #{config}"
-              options = ymloptions.merge(options)
+              options = YAML.load(File.read(config)).merge(options)
+              puts " Successfully loaded custom config file: #{config}"
             rescue
-              puts "Failed to open file: #{config}"
+              puts " Failed to open file: #{config}"
               exit
             end
           end

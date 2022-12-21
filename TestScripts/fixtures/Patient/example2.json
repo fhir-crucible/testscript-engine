@@ -60,13 +60,13 @@
     },
     {
       "system": "phone",
-      "value": "(03) 1234 3233",
+      "value": "(031) 3234 3233",
       "use": "work",
       "rank": 1
     },
     {
       "system": "phone",
-      "value": "(03) 3403 1653",
+      "value": "(803) 3403 1653",
       "use": "mobile",
       "rank": 2
     },
@@ -80,12 +80,12 @@
     }
   ],
   "gender": "male",
-  "birthDate": "1978-2-15",
+  "birthDate": "1978-3-1",
   "_birthDate": {
     "extension": [
       {
         "url": "http://hl7.org/fhir/StructureDefinition/patient-birthTime",
-        "valueDateTime": "1978-2-15T14:35:45-05:00"
+        "valueDateTime": "1978-3-1T14:35:45-05:00"
       }
     ]
   },
@@ -103,7 +103,7 @@
       "state": "UT",
       "postalCode": "84012",
       "period": {
-        "start": "2011-12-25"
+        "start": "2018-12-25"
       }
     }
   ],
@@ -143,11 +143,11 @@
         "use": "home",
         "type": "both",
         "line": [
-          "534 Erewhon St"
+          "501 Smith St"
         ],
         "city": "PleasantVille",
         "district": "Rainbow",
-        "state": "Vic",
+        "state": "MA",
         "postalCode": "3999",
         "period": {
           "start": "2011-12-25"
