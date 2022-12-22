@@ -63,5 +63,7 @@ ext_validator: http://localhost/validatorapi
 # If specified, the url where the external fhirpath will be used. If not use the internal fhirpath.
 ext_fhirpath: 
 
-profiles:
+# List of locations holding profile StructureDefinitions to be used for profile validation.
+# May be a web url, a relative file, or a relative directory (profiles in sub-directories not included)
+profile:
   - Profiles/mCODE

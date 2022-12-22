@@ -40,6 +40,7 @@ Below are properties in the configuration files.
 - `testreport_path : [PATH]` The relative to the directory containing the TestReports output following their partner TestScript execution.
 - `summary_path : [PATH]` If specified, a summary report csv file named execution_summary_[UTC timestamp].csv will be created within the specified relative folder. The file will include the id, name, and title of each TestScript executed and the overall pass/fail result. For systems without robust TestReport capabilities, provides an easy way to view the results of a test run across multiple scripts.
 - `variable : [- name1=value1 - name2=value2 ..]`: Replace defaultValue in variable by user defined value. This will apply to all runnables uniformly as long as names match. No space before and after =. Multiple variables are distinguished by line.
+- `profile : [- location1 - location2 ..]`: List of locations holding profile StructureDefinitions to be used for profile validation. May be a web url, a relative file, or a relative directory (profiles in sub-directories not included).
 - `server_url : [URL]` Endpoint against which TestScripts will be executed.
 - `nonfhir_fixture : [TRUE/FALSE]` If yes, allow to intake non-FHIR fixture (local only).
 - `ext_validator : [URL]` If specified, use external resource validator instead of internal validator.
@@ -59,6 +60,7 @@ Command line arguments can be used when you want to run specific files and/or co
 - `--summary_path [PATH]` If specified, a summary report csv file named execution_summary_[UTC timestamp].csv will be created within the specified relative folder. The file will include the id, name, and title of each TestScript executed and the overall pass/fail result. For systems without robust TestReport capabilities, provides an easy way to view the results of a test run across multiple scripts.
 - `--server_url [URL]`: If specified, it will replace the default FHIR server in the configuration file.
 - `--variable [name1=value1 name2=value2 ..]`: Replace defaultValue in variable by user defined value. This will apply to all runnables uniformly as long as names match. No space before and after =. Use quotations if value has space.
+- `--profile [location1 location2 ..]`: List of locations holding profile StructureDefinitions to be used for profile validation. May be a web url, a relative file, or a relative directory (profiles in sub-directories not included).
 - `--nonfhir_fixture [TRUE/FALSE]`: If yes, allow to intake non-FHIR fixture (local only).
 - `--ext_validator [URL]`: If specified, use external resource validator.
 - `--ext_fhirpath [URL]`: If specified, use external FHIR path evaluator.

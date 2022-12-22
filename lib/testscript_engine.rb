@@ -94,9 +94,9 @@ class TestScriptEngine
 
   def load_profiles
     print_out " Loading profiles..."
-    if options.key?("profiles")
-      options["profiles"].each do |profile_location|
-        print_out "  Loading from profile from '#{profile_location}'"
+    if options.key?("profile")
+      options["profile"].each do |profile_location|
+        print_out "  Loading profile from '#{profile_location}'"
         if profile_location.start_with? 'http'
           response = client_util.send(:get, profile_location, { 'Content-Type' => 'json' })
           if !response.response[:code].to_s.starts_with?('2')

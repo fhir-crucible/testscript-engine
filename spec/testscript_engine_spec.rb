@@ -159,7 +159,7 @@ describe TestScriptEngine do
           context "and has a valid StructureDefinition" do
             before { 
               profile_list = ['spec/profiles/structuredefinition-us-core-patient.json']
-              @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+              @engine.instance_variable_set(:@options, {"profile" => profile_list})
             }
             
             it "then the profile is available" do
@@ -172,7 +172,7 @@ describe TestScriptEngine do
           context "and is a directory" do
             before { 
               profile_list = ['spec/profiles']
-              @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+              @engine.instance_variable_set(:@options, {"profile" => profile_list})
             }
             
             it "then the profile is available" do
@@ -185,7 +185,7 @@ describe TestScriptEngine do
           context "and has a different FHIR resource type (e.g., patient)" do
             before { 
               profile_list = ['spec/fixtures/example_patient.json']
-              @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+              @engine.instance_variable_set(:@options, {"profile" => profile_list})
             }
             
             it "then the load fails" do
@@ -196,7 +196,7 @@ describe TestScriptEngine do
           context "has non-FHIR content" do
             before { 
               profile_list = ['config.yml']
-              @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+              @engine.instance_variable_set(:@options, {"profile" => profile_list})
             }
             
             it "then the load fails" do
@@ -208,7 +208,7 @@ describe TestScriptEngine do
         context "that does not exist" do
           before { 
             profile_list = ['notafilename']
-            @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+            @engine.instance_variable_set(:@options, {"profile" => profile_list})
           }
           
           it "then the load fails" do
@@ -222,7 +222,7 @@ describe TestScriptEngine do
           context "and has a valid StructureDefinition" do
             before { 
               profile_list = ['http://hl7.org/fhir/us/core/STU5.0.1/StructureDefinition-us-core-patient.json']
-              @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+              @engine.instance_variable_set(:@options, {"profile" => profile_list})
               structure_definition = File.read('spec/profiles/structuredefinition-us-core-patient.json')
               stub_request(:get, "http://hl7.org/fhir/us/core/STU5.0.1/StructureDefinition-us-core-patient.json").
               with(
@@ -246,7 +246,7 @@ describe TestScriptEngine do
           context "and has a different FHIR resource type (e.g., patient)" do
             before { 
               profile_list = ['http://hl7.org/fhir/us/core/STU5.0.1/Patient-example.json']
-              @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+              @engine.instance_variable_set(:@options, {"profile" => profile_list})
               not_structure_definition = File.read('spec/fixtures/example_patient.json')
               stub_request(:get, "http://hl7.org/fhir/us/core/STU5.0.1/Patient-example.json").
               with(
@@ -269,7 +269,7 @@ describe TestScriptEngine do
           context "has non-FHIR content" do
             before { 
               profile_list = ['http://hl7.org/fhir/us/core/STU5.0.1/StructureDefinition-us-core-patient.html']
-              @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+              @engine.instance_variable_set(:@options, {"profile" => profile_list})
               not_fhir = File.read('config.yml')
               stub_request(:get, "http://hl7.org/fhir/us/core/STU5.0.1/Patient-example.json").
               with(
@@ -293,7 +293,7 @@ describe TestScriptEngine do
         context "that does not exist" do
           before { 
             profile_list = ['http://hl7.org/fhir/us/core/STU5.0.1/notapage.zzz']
-            @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+            @engine.instance_variable_set(:@options, {"profile" => profile_list})
             stub_request(:get, "http://hl7.org/fhir/us/core/STU5.0.1/notapage.zzz").
               with(
                 headers: {
@@ -343,7 +343,7 @@ describe TestScriptEngine do
         context "and the load succeeds" do
           before { 
             profile_list = ['spec/profiles/structuredefinition-us-core-patient.json']
-            @engine.instance_variable_set(:@options, {"profiles" => profile_list, "ext_validator" => "http://localhost/validatorapi"})
+            @engine.instance_variable_set(:@options, {"profile" => profile_list, "ext_validator" => "http://localhost/validatorapi"})
             stub_request(:get, "http://localhost/validatorapi/profiles").
               with(
                 headers: {
@@ -377,7 +377,7 @@ describe TestScriptEngine do
         context "and the load fails" do
           before { 
             profile_list = ['spec/profiles/structuredefinition-us-core-patient.json']
-            @engine.instance_variable_set(:@options, {"profiles" => profile_list, "ext_validator" => "http://localhost/validatorapi"})
+            @engine.instance_variable_set(:@options, {"profile" => profile_list, "ext_validator" => "http://localhost/validatorapi"})
             stub_request(:get, "http://localhost/validatorapi/profiles").
               with(
                 headers: {

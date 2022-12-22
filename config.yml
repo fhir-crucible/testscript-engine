@@ -37,3 +37,8 @@ ext_validator: https://inferno.healthit.gov/validatorapi
 # If specified, use the external FHIR Path evaluator with URL
 # If not, use the internal evaluator based on Ruby Crucible FHIR path evaluator: https://github.com/fhir-crucible/fhir_models
 ext_fhirpath: https://inferno.healthit.gov/validatorapi
+
+# List of locations holding profile StructureDefinitions to be used for profile validation
+# May be a web url, a relative file, or a relative directory (profiles in sub-directories not included)
+profile: 
+- Profiles
