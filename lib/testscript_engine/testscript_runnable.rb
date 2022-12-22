@@ -185,7 +185,14 @@ class TestScriptRunnable
       next warning(:no_static_profile_reference) unless profile.reference
 
       if available_profiles[profile.reference] == nil
-        print_out "  profile #{profile.id} with url #{profile.reference} not available"
+        # try to get the structure definition from the url
+        response = client_util.send(:get, profile.reference, { 'Content-Type' => 'json' })
+        if !response.response[:code].to_s.starts_with?('2')
+          print_out "  -> Failed to load profile StructureDefinition from '#{profile.reference}': Response code #{response.response[:code]}"
+          raise "profile load failed"
+        end
+        profiles[profile.id] = FHIR.from_contents(response.response[:body].to_s)
+        info(:loaded_remote_profile, profile.reference, profile.reference)
       else
         profiles[profile.id] = available_profiles[profile.reference]
       end

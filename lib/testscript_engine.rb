@@ -121,10 +121,6 @@ class TestScriptEngine
             info(:loaded_local_profile, profile_def.url, profile_filepath)
           end
         end
-
-        if options["ext_validator"] != nil 
-          
-        end
       end
     end
       
