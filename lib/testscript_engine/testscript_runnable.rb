@@ -287,7 +287,7 @@ class TestScriptRunnable
       path = "/evaluate?path=#{expression}"
       reply = validator.send(:post, path, resource, { 'Content-Type' => 'json' })
       
-      if reply.response[:code].to_s == "200"
+      if reply.response[:code].to_s.start_with? "2"
         result = JSON.parse(reply.response[:body].body) 
         val = []
         result.each { |r| val << r["element"] }
