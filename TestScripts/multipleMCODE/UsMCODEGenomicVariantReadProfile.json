@@ -1,0 +1,70 @@
+{
+  "id": "b3329a02e8913d96807f2cc8ca87767e7ddd097315cec492b39e878e997cf7f6",
+  "url": "https://github.com/fhir-crucible/testscript-generator/b3329a02e8913d96807f2cc8ca87767e7ddd097315cec492b39e878e997cf7f6",
+  "version": "0.0",
+  "name": "UsMCODEGenomicVariantReadProfile",
+  "title": "IG: us-mCODE, Profile: GenomicVariant, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileGenomicVariant",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-genomic-variant"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdGenomicVariant",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile GenomicVariant.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the GenomicVariant profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "label": "Read_Observation_Instance",
+            "description": "Read Observation Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdGenomicVariant}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Observation_Returned",
+            "description": "Assert Observation Returned",
+            "resource": "Observation",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_GenomicVariant_Profile",
+            "description": "Assert returned instance conforms to the GenomicVariant Profile",
+            "validateProfileId": "targetProfileGenomicVariant",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

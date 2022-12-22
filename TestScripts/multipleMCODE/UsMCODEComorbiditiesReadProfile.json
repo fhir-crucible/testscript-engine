@@ -1,0 +1,70 @@
+{
+  "id": "f6c48cf25874347faba6bd1fa831d1eb2b5c2ca658fa4c5ef5f2f2afbc1c2fbe",
+  "url": "https://github.com/fhir-crucible/testscript-generator/f6c48cf25874347faba6bd1fa831d1eb2b5c2ca658fa4c5ef5f2f2afbc1c2fbe",
+  "version": "0.0",
+  "name": "UsMCODEComorbiditiesReadProfile",
+  "title": "IG: us-mCODE, Profile: Comorbidities, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileComorbidities",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-comorbidities"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdComorbidities",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile Comorbidities.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the Comorbidities profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "label": "Read_Observation_Instance",
+            "description": "Read Observation Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdComorbidities}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Observation_Returned",
+            "description": "Assert Observation Returned",
+            "resource": "Observation",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_Comorbidities_Profile",
+            "description": "Assert returned instance conforms to the Comorbidities Profile",
+            "validateProfileId": "targetProfileComorbidities",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

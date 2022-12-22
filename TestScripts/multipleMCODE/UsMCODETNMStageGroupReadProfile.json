@@ -1,0 +1,70 @@
+{
+  "id": "2efe16257b1c301237261ecc1755220102c0cdc56cc8f78efc5157ae24b011f9",
+  "url": "https://github.com/fhir-crucible/testscript-generator/2efe16257b1c301237261ecc1755220102c0cdc56cc8f78efc5157ae24b011f9",
+  "version": "0.0",
+  "name": "UsMCODETNMStageGroupReadProfile",
+  "title": "IG: us-mCODE, Profile: TNMStageGroup, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileTNMStageGroup",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-tnm-stage-group"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdTNMStageGroup",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile TNMStageGroup.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the TNMStageGroup profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "label": "Read_Observation_Instance",
+            "description": "Read Observation Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdTNMStageGroup}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Observation_Returned",
+            "description": "Assert Observation Returned",
+            "resource": "Observation",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_TNMStageGroup_Profile",
+            "description": "Assert returned instance conforms to the TNMStageGroup Profile",
+            "validateProfileId": "targetProfileTNMStageGroup",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

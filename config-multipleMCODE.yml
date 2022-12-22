@@ -1,0 +1,106 @@
+# Whether to ignore non-FHIR fixtures
+nonfhir_fixture: true
+
+# Endpoint against which TestScripts will be executed
+server_url: https://hapi.fhir.org/baseR4
+
+# The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine
+testscript_path: "./TestScripts/multipleMCODE"
+ 
+# Name of TestScript under TESTSCRIPT_PATH to be executed
+# If empty, all files under TESTSCRIPT_PATH will be executed
+testscript_name: 
+# testscript_name: TestScript Example General
+# Handling multiple TestScript names will be added
+
+# Dynamic variables will replace defaultValue in variable in TestScript
+# Dynamic variables uniformly apply to all runnables. For example, if two TestScripts have same variable names, dynamic variable will apply to both of them.
+# Example: PatientResourceId1=var1changed
+variable: 
+  - targetResourceIdCancerDiseaseStatus=cancer-disease-status-jenny-m
+  - targetResourceIdCancerPatient=cancer-patient-jenny-m
+  - targetResourceIdCancerRelatedMedicationAdministration=TODO
+  - targetResourceIdCancerRelatedMedicationRequest=cancer-related-medication-request-paclitaxel-jenny-m
+  - targetResourceIdCancerRelatedSurgicalProcedure=cancer-related-surgical-procedure-jenny-m
+  - targetResourceIdCancerStageGroup=TODO
+  - targetResourceIdComorbidities=cancer-related-comorbidities-jenny-m
+  - targetResourceIdECOGPerformanceStatus=ecog-performance-status-jenny-m
+  - targetResourceIdGenomicRegionStudied=genomic-region-studied-jenny-m
+  - targetResourceIdGenomicsReport=genomics-report-jenny-m
+  - targetResourceIdGenomicVariant=genomic-variant-jenny-m
+  - targetResourceIdHumanSpecimen=tumor-specimen-left-breast-jenny-m
+  - targetResourceIdKarnofskyPerformanceStatus=TODO
+  - targetResourceIdMCODEPatientBundle=TODO
+  - targetResourceIdMCODEPatientGroup=TODO
+  - targetResourceIdPrimaryCancerCondition=primary-cancer-condition-jenny-m
+  - targetResourceIdRadiotherapyCourseSummary=radiotherapy-treatment-summary-chest-wall-jenny-m
+  - targetResourceIdRadiotherapyVolume=TODO
+  - targetResourceIdSecondaryCancerCondition=TODO
+  - targetResourceIdTNMDistantMetastasesCategory=tnm-clinical-distant-metastases-category-jenny-m
+  - targetResourceIdTNMPrimaryTumorCategory=tnm-clinical-primary-tumor-category-jenny-m
+  - targetResourceIdTNMRegionalNodesCategory=tnm-pathologic-regional-nodes-category-jenny-m
+  - targetResourceIdTNMStageGroup=tnm-clinical-stage-group-jenny-m
+  - targetResourceIdTumorMarkerTest=tumor-marker-test-er-jenny-m
+  - targetResourceIdTumor=TODO
+  - targetResourceIdTumorSize=tumor-size-jenny-m
+
+# The relative to the directory containing the TestReports output following their partner TestScript execution
+testreport_path: "./TestReports"
+
+summary_path: "./Summaries"
+
+# Whether use FHIR logger
+verbose: false
+
+# If specified, the url where the external validator can be reached. If not use the internal validator
+# Resource validator options:
+# - "internal" uses the ruby validator from the fhir_models gem
+#   https://github.com/fhir-crucible/fhir_models
+# - "external" uses the a web interface for the L7 FHIR validator.
+#   https://github.com/inferno-community/fhir-validator-wrapper
+ext_validator: http://localhost/validatorapi
+
+# If specified, the url where the external fhirpath will be used. If not use the internal fhirpath.
+ext_fhirpath: 
+
+profiles:
+  - Profiles/mCODE/StructureDefinition-mcode-body-location-qualifier.json
+  - Profiles/mCODE/StructureDefinition-mcode-primary-cancer-condition.json
+  - Profiles/mCODE/StructureDefinition-mcode-body-structure-identifier.json
+  - Profiles/mCODE/StructureDefinition-mcode-procedure-intent.json
+  - Profiles/mCODE/StructureDefinition-mcode-cancer-disease-status-evidence-type.json
+  - Profiles/mCODE/StructureDefinition-mcode-radiotherapy-course-summary.json
+  - Profiles/mCODE/StructureDefinition-mcode-cancer-disease-status.json
+  - Profiles/mCODE/StructureDefinition-mcode-radiotherapy-dose-delivered-to-volume.json
+  - Profiles/mCODE/StructureDefinition-mcode-cancer-patient.json
+  - Profiles/mCODE/StructureDefinition-mcode-radiotherapy-modality-and-technique.json
+  - Profiles/mCODE/StructureDefinition-mcode-cancer-related-medication-administration.json
+  - Profiles/mCODE/StructureDefinition-mcode-radiotherapy-modality.json
+  - Profiles/mCODE/StructureDefinition-mcode-cancer-related-medication-request.json
+  - Profiles/mCODE/StructureDefinition-mcode-radiotherapy-sessions.json
+  - Profiles/mCODE/StructureDefinition-mcode-cancer-related-surgical-procedure.json
+  - Profiles/mCODE/StructureDefinition-mcode-radiotherapy-technique.json
+  - Profiles/mCODE/StructureDefinition-mcode-cancer-stage-group.json
+  - Profiles/mCODE/StructureDefinition-mcode-radiotherapy-volume.json
+  - Profiles/mCODE/StructureDefinition-mcode-comorbidities.json
+  - Profiles/mCODE/StructureDefinition-mcode-related-condition-absent.json
+  - Profiles/mCODE/StructureDefinition-mcode-ecog-performance-status.json
+  - Profiles/mCODE/StructureDefinition-mcode-related-condition.json
+  - Profiles/mCODE/StructureDefinition-mcode-genomic-region-studied.json
+  - Profiles/mCODE/StructureDefinition-mcode-secondary-cancer-condition.json
+  - Profiles/mCODE/StructureDefinition-mcode-genomic-variant.json
+  - Profiles/mCODE/StructureDefinition-mcode-tnm-distant-metastases-category.json
+  - Profiles/mCODE/StructureDefinition-mcode-genomics-report.json
+  - Profiles/mCODE/StructureDefinition-mcode-tnm-primary-tumor-category.json
+  - Profiles/mCODE/StructureDefinition-mcode-histology-morphology-behavior.json
+  - Profiles/mCODE/StructureDefinition-mcode-tnm-regional-nodes-category.json
+  - Profiles/mCODE/StructureDefinition-mcode-human-specimen.json
+  - Profiles/mCODE/StructureDefinition-mcode-tnm-stage-group.json
+  - Profiles/mCODE/StructureDefinition-mcode-karnofsky-performance-status.json
+  - Profiles/mCODE/StructureDefinition-mcode-treatment-termination-reason.json
+  - Profiles/mCODE/StructureDefinition-mcode-laterality-qualifier.json
+  - Profiles/mCODE/StructureDefinition-mcode-tumor-marker-test.json
+  - Profiles/mCODE/StructureDefinition-mcode-patient-bundle.json
+  - Profiles/mCODE/StructureDefinition-mcode-tumor-size.json
+  - Profiles/mCODE/StructureDefinition-mcode-patient-group.json
+  - Profiles/mCODE/StructureDefinition-mcode-tumor.json

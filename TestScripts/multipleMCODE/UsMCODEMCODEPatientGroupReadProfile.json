@@ -1,0 +1,70 @@
+{
+  "id": "7868791dcc0366b7f67a9a4bd4928e1877e4397840dc33112dce70bdb30dc532",
+  "url": "https://github.com/fhir-crucible/testscript-generator/7868791dcc0366b7f67a9a4bd4928e1877e4397840dc33112dce70bdb30dc532",
+  "version": "0.0",
+  "name": "UsMCODEMCODEPatientGroupReadProfile",
+  "title": "IG: us-mCODE, Profile: MCODEPatientGroup, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileMCODEPatientGroup",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-patient-group"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdMCODEPatientGroup",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile MCODEPatientGroup.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the MCODEPatientGroup profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Group",
+            "label": "Read_Group_Instance",
+            "description": "Read Group Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdMCODEPatientGroup}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Group_Returned",
+            "description": "Assert Group Returned",
+            "resource": "Group",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_MCODEPatientGroup_Profile",
+            "description": "Assert returned instance conforms to the MCODEPatientGroup Profile",
+            "validateProfileId": "targetProfileMCODEPatientGroup",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}
