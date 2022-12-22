@@ -10,7 +10,7 @@ class TestScriptRunnable
   prepend MessageHandler
   include TestReportHandler
 
-  attr_accessor :script, :client, :client_util, :reply, :get_fixture_block, :options
+  attr_accessor :script, :client, :client_util, :reply, :get_fixture_block, :options, :available_profiles
 
   def id_map
     @id_map ||= {}
@@ -40,10 +40,11 @@ class TestScriptRunnable
     @autodelete_ids ||= []
   end
 
-  def initialize(script, block, options)
+  def initialize(script, block, options, available_profiles = nil)
     self.get_fixture_block = block
     self.options = options
     self.client_util = FHIR::Client.new('')
+    self.available_profiles = available_profiles
     @script = script
     load_fixtures
     load_profiles
@@ -178,24 +179,16 @@ class TestScriptRunnable
   end
 
   def load_profiles
-    print_out " Loading profiles..."
+    print_out " Loading script profiles..."
     script.profile.each do |profile|
       next warning(:no_static_profile_id) unless profile.id
       next warning(:no_static_profile_reference) unless profile.reference
 
-      if profile.reference.start_with? 'http'
-        response = client_util.send(:get, profile.reference, { 'Content-Type' => 'json' })
-        if response.response[:code].to_s.starts_with?('2')
-          print_out " -> Failed to load profile '#{profile.id}' from '#{profile.reference}': Response code #{response.response[:code]}"
-          next 
-        end
-        profiles[profile.id] = FHIR.from_contents(response.response[:body].to_s)
-        info(:loaded_remote_profile, profile.id, profile.reference)
+      if available_profiles[profile.reference] == nil
+        print_out "  profile #{profile.id} with url #{profile.reference} not available"
       else
-        profiles[profile.id] = FHIR.from_contents(File.read(profile.reference))
-        info(:loaded_local_profile, profile.id, profile.reference)
+        profiles[profile.id] = available_profiles[profile.reference]
       end
-
     end
   end
 

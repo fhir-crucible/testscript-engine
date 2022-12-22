@@ -12,7 +12,7 @@ class TestScriptEngine
   prepend MessageHandler
   include Validation
 
-  attr_accessor :endpoint, :input_path, :testreport_path, :nonfhir_fixture, :options, :variable
+  attr_accessor :endpoint, :input_path, :testreport_path, :nonfhir_fixture, :options, :variable, :client_util
 
   def fixtures
     @fixtures ||= {}
@@ -30,6 +30,10 @@ class TestScriptEngine
     @reports ||= {}
   end
 
+  def profiles
+    @profiles ||= {}
+  end
+
   def client
     @client ||= begin
       info(:begin_initialize_client)
@@ -43,9 +47,11 @@ class TestScriptEngine
     self.endpoint = test_server_url
     self.input_path = testscript_path
     self.testreport_path = testreport_path
-    self.nonfhir_fixture = options[:nonfhir_fixture]
-    self.variable = options[:variable]
+    self.nonfhir_fixture = options["nonfhir_fixture"]
+    self.variable = options["variable"]
     self.options = options
+    self.client_util = FHIR::Client.new('')
+    load_profiles unless options["profiles"] == nil
   end
 
   def valid_testscript? script
@@ -86,6 +92,40 @@ class TestScriptEngine
     end
   end
 
+  def load_profiles
+    print_out " Loading profiles..."
+    options["profiles"].each do |profile_location|
+      print_out "  Loading from profile from '#{profile_location}'"
+      if profile_location.start_with? 'http'
+        response = client_util.send(:get, profile_location, { 'Content-Type' => 'json' })
+        if !response.response[:code].to_s.starts_with?('2')
+          print_out "  -> Failed to load profile StructureDefinition from '#{profile_location}': Response code #{response.response[:code]}"
+          next 
+        end
+        profile_def = FHIR.from_contents(response.response[:body].to_s)
+        profiles[profile_def.url] = profile_def
+        info(:loaded_remote_profile, profile_def.url, profile_location)
+      else
+        profile_def = FHIR.from_contents(File.read(File.join(Dir.getwd, profile_location)))
+        profiles[profile_def.url] = profile_def
+        info(:loaded_local_profile, profile_def.url, profile_location)
+      end
+
+      # load profile into external validator
+      if options["ext_validator"] != nil 
+        print_out  "  Adding '#{profile_def.url}' to external validator"
+        reply = client_util.send(:post, options["ext_validator"]+"/profiles", profile_def, { 'Content-Type' => 'json' })
+
+        if reply.response[:code].start_with?("2")
+          print_out  "  -> Success! Added '#{profile_def.url}' to External validator."
+        else
+          print_out  "  -> Failed! Could not add '#{profile_def.url}' to External validator."
+        end
+      end
+
+    end
+  end
+
   # @script [FHIR::TestScript] Optional, a singular TestScript resource to be
   #                            transformed into a runnable. If no resource is
   #                            given, all stored TestScript are by default
@@ -96,12 +136,12 @@ class TestScriptEngine
     if valid_testscript? script
       info(:creating_runnable, script.name)
       script = dynamic_variable(script) if script.variable && variable
-      runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options)
+      runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options, profiles)
     else
       scripts.each do |_name, script|
         info(:creating_runnable, script.name)
         script = dynamic_variable(script) if script.variable && variable
-        runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options)
+        runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options, profiles)
       end
     end
   rescue StandardError
