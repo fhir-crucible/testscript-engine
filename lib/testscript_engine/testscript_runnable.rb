@@ -291,7 +291,7 @@ class TestScriptRunnable
         result = JSON.parse(reply.response[:body].body) 
         val = []
         result.each { |r| val << r["element"] }
-        val
+        return val
       end
       print_out "External validator failed: " + reply.response[:code]
     else

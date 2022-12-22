@@ -61,7 +61,7 @@ class TestScriptEngine
 
         end
       else
-        options = {"ext_validator" => "inferno", "ext_fhirpath" => nil, "verbose" => false}
+        options = {"ext_validator" => nil, "ext_fhirpath" => nil, "verbose" => false}
       end
       
       @test_server_url = options["server_url"] if options["server_url"]

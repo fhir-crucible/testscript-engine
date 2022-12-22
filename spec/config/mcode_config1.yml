@@ -23,7 +23,7 @@ testscript_name: UsMcodeProfileSearchComorbidities
 variable:
 
 # The relative to the directory containing the TestReports output following their partner TestScript execution
-testreport_path: "TestReports"
+testreport_path: "./TestReports"
 
 # If specified, a summary report csv file named execution_summary_[UTC timestamp].csv will be created within the specified relative folder
 # The file will include the id, name, and title of each TestScript executed and the overall pass/fail result
