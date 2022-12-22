@@ -94,7 +94,7 @@ class TestScriptEngine
 
   def load_profiles
     print_out " Loading profiles..."
-    if options.key?("profile")
+    if options.key?("profile") && options["profile"] != nil
       options["profile"].each do |profile_location|
         print_out "  Loading profile from '#{profile_location}'"
         if profile_location.start_with? 'http'
@@ -167,8 +167,12 @@ class TestScriptEngine
     else
       scripts.each do |_name, script|
         info(:creating_runnable, script.name)
-        script = dynamic_variable(script) if script.variable && variable
-        runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options, profiles)
+        begin
+          script = dynamic_variable(script) if script.variable && variable
+          runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options, profiles)
+        rescue StandardError
+          error(:unable_to_create_runnable, script.name)
+        end
       end
     end
   rescue StandardError

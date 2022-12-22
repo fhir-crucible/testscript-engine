@@ -191,7 +191,18 @@ class TestScriptRunnable
           print_out "  -> Failed to load profile StructureDefinition from '#{profile.reference}': Response code #{response.response[:code]}"
           raise "profile load failed"
         end
-        profiles[profile.id] = FHIR.from_contents(response.response[:body].to_s)
+        profile_def = FHIR.from_contents(response.response[:body].to_s)
+        profiles[profile.id] = profile_def
+        if options["ext_validator"] != nil 
+          print_out  "  Adding '#{profile_def.url}' to external validator"
+          reply = client_util.send(:post, options["ext_validator"]+"/profiles", profile_def, { 'Content-Type' => 'json' })
+  
+          if reply.response[:code].start_with?("2")
+            print_out  "  -> Success! Added '#{profile_def.url}' to External validator."
+          else
+            raise "validator profile load failed"
+          end
+        end
         info(:loaded_remote_profile, profile.reference, profile.reference)
       else
         profiles[profile.id] = available_profiles[profile.reference]
