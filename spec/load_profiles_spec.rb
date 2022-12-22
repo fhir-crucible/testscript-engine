@@ -4,7 +4,7 @@ require_relative '../lib/testscript_engine/message_handler'
 
 describe TestScriptRunnable do
   before(:all) do
-    @structure_definition = FHIR.from_contents(File.read('spec/fixtures/structuredefinition-us-core-patient.json'))
+    @structure_definition = FHIR.from_contents(File.read('spec/profiles/structuredefinition-us-core-patient.json'))
     @script = FHIR.from_contents(File.read('spec/examples/basic_testscript_profile.json'))
     available_profiles = { "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient" => @structure_definition}
     options = {"ext_validator" => nil, "ext_fhirpath" => nil}

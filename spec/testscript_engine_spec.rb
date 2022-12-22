@@ -158,13 +158,26 @@ describe TestScriptEngine do
         context "that exists" do
           context "and has a valid StructureDefinition" do
             before { 
-              profile_list = ['spec/fixtures/structuredefinition-us-core-patient.json']
+              profile_list = ['spec/profiles/structuredefinition-us-core-patient.json']
               @engine.instance_variable_set(:@options, {"profiles" => profile_list})
             }
             
             it "then the profile is available" do
               @engine.load_profiles
               expect(@engine.profiles.length).to eq(1)
+              expect(@engine.profiles.key?("http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient")).to eq(true)
+            end
+          end
+
+          context "and is a directory" do
+            before { 
+              profile_list = ['spec/profiles']
+              @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+            }
+            
+            it "then the profile is available" do
+              @engine.load_profiles
+              # may add more profiles, so just checking the one I know
               expect(@engine.profiles.key?("http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient")).to eq(true)
             end
           end
@@ -210,7 +223,7 @@ describe TestScriptEngine do
             before { 
               profile_list = ['http://hl7.org/fhir/us/core/STU5.0.1/StructureDefinition-us-core-patient.json']
               @engine.instance_variable_set(:@options, {"profiles" => profile_list})
-              structure_definition = File.read('spec/fixtures/structuredefinition-us-core-patient.json')
+              structure_definition = File.read('spec/profiles/structuredefinition-us-core-patient.json')
               stub_request(:get, "http://hl7.org/fhir/us/core/STU5.0.1/StructureDefinition-us-core-patient.json").
               with(
                 headers: {
@@ -329,7 +342,7 @@ describe TestScriptEngine do
       context "when a profile load is needed" do
         context "and the load succeeds" do
           before { 
-            profile_list = ['spec/fixtures/structuredefinition-us-core-patient.json']
+            profile_list = ['spec/profiles/structuredefinition-us-core-patient.json']
             @engine.instance_variable_set(:@options, {"profiles" => profile_list, "ext_validator" => "http://localhost/validatorapi"})
             stub_request(:get, "http://localhost/validatorapi/profiles").
               with(
@@ -363,7 +376,7 @@ describe TestScriptEngine do
         end
         context "and the load fails" do
           before { 
-            profile_list = ['spec/fixtures/structuredefinition-us-core-patient.json']
+            profile_list = ['spec/profiles/structuredefinition-us-core-patient.json']
             @engine.instance_variable_set(:@options, {"profiles" => profile_list, "ext_validator" => "http://localhost/validatorapi"})
             stub_request(:get, "http://localhost/validatorapi/profiles").
               with(

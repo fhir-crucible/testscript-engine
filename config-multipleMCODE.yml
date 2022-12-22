@@ -64,43 +64,4 @@ ext_validator: http://localhost/validatorapi
 ext_fhirpath: 
 
 profiles:
-  - Profiles/mCODE/StructureDefinition-mcode-body-location-qualifier.json
-  - Profiles/mCODE/StructureDefinition-mcode-primary-cancer-condition.json
-  - Profiles/mCODE/StructureDefinition-mcode-body-structure-identifier.json
-  - Profiles/mCODE/StructureDefinition-mcode-procedure-intent.json
-  - Profiles/mCODE/StructureDefinition-mcode-cancer-disease-status-evidence-type.json
-  - Profiles/mCODE/StructureDefinition-mcode-radiotherapy-course-summary.json
-  - Profiles/mCODE/StructureDefinition-mcode-cancer-disease-status.json
-  - Profiles/mCODE/StructureDefinition-mcode-radiotherapy-dose-delivered-to-volume.json
-  - Profiles/mCODE/StructureDefinition-mcode-cancer-patient.json
-  - Profiles/mCODE/StructureDefinition-mcode-radiotherapy-modality-and-technique.json
-  - Profiles/mCODE/StructureDefinition-mcode-cancer-related-medication-administration.json
-  - Profiles/mCODE/StructureDefinition-mcode-radiotherapy-modality.json
-  - Profiles/mCODE/StructureDefinition-mcode-cancer-related-medication-request.json
-  - Profiles/mCODE/StructureDefinition-mcode-radiotherapy-sessions.json
-  - Profiles/mCODE/StructureDefinition-mcode-cancer-related-surgical-procedure.json
-  - Profiles/mCODE/StructureDefinition-mcode-radiotherapy-technique.json
-  - Profiles/mCODE/StructureDefinition-mcode-cancer-stage-group.json
-  - Profiles/mCODE/StructureDefinition-mcode-radiotherapy-volume.json
-  - Profiles/mCODE/StructureDefinition-mcode-comorbidities.json
-  - Profiles/mCODE/StructureDefinition-mcode-related-condition-absent.json
-  - Profiles/mCODE/StructureDefinition-mcode-ecog-performance-status.json
-  - Profiles/mCODE/StructureDefinition-mcode-related-condition.json
-  - Profiles/mCODE/StructureDefinition-mcode-genomic-region-studied.json
-  - Profiles/mCODE/StructureDefinition-mcode-secondary-cancer-condition.json
-  - Profiles/mCODE/StructureDefinition-mcode-genomic-variant.json
-  - Profiles/mCODE/StructureDefinition-mcode-tnm-distant-metastases-category.json
-  - Profiles/mCODE/StructureDefinition-mcode-genomics-report.json
-  - Profiles/mCODE/StructureDefinition-mcode-tnm-primary-tumor-category.json
-  - Profiles/mCODE/StructureDefinition-mcode-histology-morphology-behavior.json
-  - Profiles/mCODE/StructureDefinition-mcode-tnm-regional-nodes-category.json
-  - Profiles/mCODE/StructureDefinition-mcode-human-specimen.json
-  - Profiles/mCODE/StructureDefinition-mcode-tnm-stage-group.json
-  - Profiles/mCODE/StructureDefinition-mcode-karnofsky-performance-status.json
-  - Profiles/mCODE/StructureDefinition-mcode-treatment-termination-reason.json
-  - Profiles/mCODE/StructureDefinition-mcode-laterality-qualifier.json
-  - Profiles/mCODE/StructureDefinition-mcode-tumor-marker-test.json
-  - Profiles/mCODE/StructureDefinition-mcode-patient-bundle.json
-  - Profiles/mCODE/StructureDefinition-mcode-tumor-size.json
-  - Profiles/mCODE/StructureDefinition-mcode-patient-group.json
-  - Profiles/mCODE/StructureDefinition-mcode-tumor.json
+  - Profiles/mCODE

@@ -107,26 +107,41 @@ class TestScriptEngine
           profiles[profile_def.url] = profile_def
           info(:loaded_remote_profile, profile_def.url, profile_location)
         else
-          profile_def = FHIR.from_contents(File.read(File.join(Dir.getwd, profile_location)))
-          profiles[profile_def.url] = profile_def
-          info(:loaded_local_profile, profile_def.url, profile_location)
+          profile_filepath = File.join(Dir.getwd, profile_location)
+          if (File.directory?(profile_filepath))
+            profiles_file_list = Dir["#{profile_filepath}/*"].select { |f| File.file? f }
+            profiles_file_list.each do |filename|
+              profile_def = FHIR.from_contents(File.read(filename))
+              profiles[profile_def.url] = profile_def
+              info(:loaded_local_profile, profile_def.url, filename)
+            end
+          else
+            profile_def = FHIR.from_contents(File.read(profile_filepath))
+            profiles[profile_def.url] = profile_def
+            info(:loaded_local_profile, profile_def.url, profile_filepath)
+          end
         end
 
         if options["ext_validator"] != nil 
-          # load profile into external validator
-          print_out  "  Adding '#{profile_def.url}' to external validator"
-          reply = client_util.send(:post, options["ext_validator"]+"/profiles", profile_def, { 'Content-Type' => 'json' })
-    
-          if reply.response[:code].start_with?("2")
-            print_out  "  -> Success! Added '#{profile_def.url}' to External validator."
-          else
-            raise "validator profile load failed"
-          end
+          
         end
       end
     end
       
     if options["ext_validator"] != nil 
+      # add any profiles loaded to the external validator
+      profiles.each do |profile_url, profile_def|
+        # load profile into external validator
+        print_out  "  Adding '#{profile_url}' to external validator"
+        reply = client_util.send(:post, options["ext_validator"]+"/profiles", profile_def, { 'Content-Type' => 'json' })
+
+        if reply.response[:code].start_with?("2")
+          print_out  "  -> Success! Added '#{profile_url}' to External validator."
+        else
+          raise "validator profile load failed"
+        end
+      end
+      
       # add any profiles already available on this validator to the list
       reply = client_util.send(:get, options["ext_validator"]+"/profiles", { 'Content-Type' => 'json' })
       profiles_received = JSON.parse(reply.to_hash["response"][:body])
