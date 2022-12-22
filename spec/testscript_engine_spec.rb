@@ -10,6 +10,7 @@ describe TestScriptEngine do
   before(:each) do
     @engine.instance_variable_set(:@scripts, {})
     @engine.instance_variable_set(:@fixtures, {})
+    @engine.instance_variable_set(:@profiles, {})
   end
 
   describe '.load_input' do
@@ -148,5 +149,252 @@ describe TestScriptEngine do
         end
       end
     end
+  end
+
+  describe '.load_profiles' do
+
+    context "Load profile StructureDefinition" do
+      context "from file" do
+        context "that exists" do
+          context "and has a valid StructureDefinition" do
+            before { 
+              profile_list = ['spec/fixtures/structuredefinition-us-core-patient.json']
+              @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+            }
+            
+            it "then the profile is available" do
+              @engine.load_profiles
+              expect(@engine.profiles.length).to eq(1)
+              expect(@engine.profiles.key?("http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient")).to eq(true)
+            end
+          end
+
+          context "and has a different FHIR resource type (e.g., patient)" do
+            before { 
+              profile_list = ['spec/fixtures/example_patient.json']
+              @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+            }
+            
+            it "then the load fails" do
+              expect{@engine.load_profiles}.to raise_error
+            end
+          end
+
+          context "has non-FHIR content" do
+            before { 
+              profile_list = ['config.yml']
+              @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+            }
+            
+            it "then the load fails" do
+              expect{@engine.load_profiles}.to raise_error
+            end
+          end
+        end
+
+        context "that does not exist" do
+          before { 
+            profile_list = ['notafilename']
+            @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+          }
+          
+          it "then the load fails" do
+            expect{@engine.load_profiles}.to raise_error
+          end
+        end
+      end
+
+      context "from a web url" do
+        context "that exists" do
+          context "and has a valid StructureDefinition" do
+            before { 
+              profile_list = ['http://hl7.org/fhir/us/core/STU5.0.1/StructureDefinition-us-core-patient.json']
+              @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+              structure_definition = File.read('spec/fixtures/structuredefinition-us-core-patient.json')
+              stub_request(:get, "http://hl7.org/fhir/us/core/STU5.0.1/StructureDefinition-us-core-patient.json").
+              with(
+                headers: {
+                   'Accept'=>'*/*',
+                   'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                   'Content-Type'=>'application/json',
+                   'Host'=>'hl7.org'
+                   # 'User-Agent'=>'rest-client/2.1.0 (linux x86_64) ruby/2.7.3p183'
+                  }).
+              to_return(status: 200, body: structure_definition, headers: {})
+            }
+            
+            it "then the profile is available" do
+              @engine.load_profiles
+              expect(@engine.profiles.length).to eq(1)
+              expect(@engine.profiles.key?("http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient")).to eq(true)
+            end
+          end
+
+          context "and has a different FHIR resource type (e.g., patient)" do
+            before { 
+              profile_list = ['http://hl7.org/fhir/us/core/STU5.0.1/Patient-example.json']
+              @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+              not_structure_definition = File.read('spec/fixtures/example_patient.json')
+              stub_request(:get, "http://hl7.org/fhir/us/core/STU5.0.1/Patient-example.json").
+              with(
+                headers: {
+                   'Accept'=>'*/*',
+                   'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                   'Content-Type'=>'application/json',
+                   'Host'=>'hl7.org'
+                   # 'User-Agent'=>'rest-client/2.1.0 (linux x86_64) ruby/2.7.3p183'
+                  }).
+              to_return(status: 200, body: not_structure_definition, headers: {})
+
+            }
+            
+            it "then the load fails" do
+              expect{@engine.load_profiles}.to raise_error
+            end
+          end
+
+          context "has non-FHIR content" do
+            before { 
+              profile_list = ['http://hl7.org/fhir/us/core/STU5.0.1/StructureDefinition-us-core-patient.html']
+              @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+              not_fhir = File.read('config.yml')
+              stub_request(:get, "http://hl7.org/fhir/us/core/STU5.0.1/Patient-example.json").
+              with(
+                headers: {
+                   'Accept'=>'*/*',
+                   'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                   'Content-Type'=>'application/json',
+                   'Host'=>'hl7.org'
+                   # 'User-Agent'=>'rest-client/2.1.0 (linux x86_64) ruby/2.7.3p183'
+                  }).
+              to_return(status: 200, body: not_fhir, headers: {})
+
+            }
+            
+            it "then the load fails" do
+              expect{@engine.load_profiles}.to raise_error
+            end
+          end
+        end
+
+        context "that does not exist" do
+          before { 
+            profile_list = ['http://hl7.org/fhir/us/core/STU5.0.1/notapage.zzz']
+            @engine.instance_variable_set(:@options, {"profiles" => profile_list})
+            stub_request(:get, "http://hl7.org/fhir/us/core/STU5.0.1/notapage.zzz").
+              with(
+                headers: {
+                   'Accept'=>'*/*',
+                   'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                   'Content-Type'=>'application/json',
+                   'Host'=>'hl7.org'
+                   # 'User-Agent'=>'rest-client/2.1.0 (linux x86_64) ruby/2.7.3p183'
+                  }).
+              to_return(status: 404, headers: {})
+
+          }
+          
+          it "then the load fails" do
+            expect{@engine.load_profiles}.to raise_error
+          end
+        end
+      end
+    end
+
+    context "When using an external validator" do
+      context "with existing profiles loaded" do
+        before { 
+          @engine.instance_variable_set(:@options, {"ext_validator" => "http://localhost/validatorapi"})
+          stub_request(:get, "http://localhost/validatorapi/profiles").
+            with(
+              headers: {
+                 'Accept'=>'*/*',
+                 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                 'Content-Type'=>'application/json',
+                 'Host'=>'localhost',
+                 # 'User-Agent'=>'rest-client/2.1.0 (linux x86_64) ruby/2.7.3p183'
+                }).
+            to_return(status: 200, body: '["http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"]', headers: {})
+
+        }
+        
+        it "then the profile is available" do
+          @engine.load_profiles
+          expect(@engine.profiles.length).to eq(1)
+          expect(@engine.profiles.key?("http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient")).to eq(true)
+
+        end
+      end
+
+      context "when a profile load is needed" do
+        context "and the load succeeds" do
+          before { 
+            profile_list = ['spec/fixtures/structuredefinition-us-core-patient.json']
+            @engine.instance_variable_set(:@options, {"profiles" => profile_list, "ext_validator" => "http://localhost/validatorapi"})
+            stub_request(:get, "http://localhost/validatorapi/profiles").
+              with(
+                headers: {
+                   'Accept'=>'*/*',
+                   'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                   'Content-Type'=>'application/json',
+                   'Host'=>'localhost',
+                   # 'User-Agent'=>'rest-client/2.1.0 (linux x86_64) ruby/2.7.3p183'
+                  }).
+              to_return(status: 200, body: '[]', headers: {})
+            stub_request(:post, "http://localhost/validatorapi/profiles").
+              with(
+                headers: {
+                   'Accept'=>'*/*',
+                   'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                   'Content-Type'=>'application/json',
+                   'Host'=>'localhost',
+                   # 'User-Agent'=>'rest-client/2.1.0 (linux x86_64) ruby/2.7.3p183'
+                  }).
+              to_return(status: 200, headers: {})
+  
+          }
+          
+          it "then the profile is available" do
+            @engine.load_profiles
+            expect(@engine.profiles.length).to eq(1)
+            expect(@engine.profiles.key?("http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient")).to eq(true)
+  
+          end
+        end
+        context "and the load fails" do
+          before { 
+            profile_list = ['spec/fixtures/structuredefinition-us-core-patient.json']
+            @engine.instance_variable_set(:@options, {"profiles" => profile_list, "ext_validator" => "http://localhost/validatorapi"})
+            stub_request(:get, "http://localhost/validatorapi/profiles").
+              with(
+                headers: {
+                   'Accept'=>'*/*',
+                   'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                   'Content-Type'=>'application/json',
+                   'Host'=>'localhost',
+                   # 'User-Agent'=>'rest-client/2.1.0 (linux x86_64) ruby/2.7.3p183'
+                  }).
+              to_return(status: 200, body: '[]', headers: {})
+            stub_request(:post, "http://localhost/validatorapi/profiles").
+              with(
+                headers: {
+                   'Accept'=>'*/*',
+                   'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                   'Content-Type'=>'application/json',
+                   'Host'=>'localhost',
+                   # 'User-Agent'=>'rest-client/2.1.0 (linux x86_64) ruby/2.7.3p183'
+                  }).
+              to_return(status: 400, headers: {})
+  
+          }
+          
+          it "then the load fails" do
+            expect{@engine.load_profiles}.to raise_error
+          end
+        end
+      end
+
+    end
+
   end
 end

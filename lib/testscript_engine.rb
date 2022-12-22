@@ -51,7 +51,7 @@ class TestScriptEngine
     self.variable = options["variable"]
     self.options = options
     self.client_util = FHIR::Client.new('')
-    load_profiles unless options["profiles"] == nil
+    load_profiles
   end
 
   def valid_testscript? script
@@ -94,36 +94,52 @@ class TestScriptEngine
 
   def load_profiles
     print_out " Loading profiles..."
-    options["profiles"].each do |profile_location|
-      print_out "  Loading from profile from '#{profile_location}'"
-      if profile_location.start_with? 'http'
-        response = client_util.send(:get, profile_location, { 'Content-Type' => 'json' })
-        if !response.response[:code].to_s.starts_with?('2')
-          print_out "  -> Failed to load profile StructureDefinition from '#{profile_location}': Response code #{response.response[:code]}"
-          next 
-        end
-        profile_def = FHIR.from_contents(response.response[:body].to_s)
-        profiles[profile_def.url] = profile_def
-        info(:loaded_remote_profile, profile_def.url, profile_location)
-      else
-        profile_def = FHIR.from_contents(File.read(File.join(Dir.getwd, profile_location)))
-        profiles[profile_def.url] = profile_def
-        info(:loaded_local_profile, profile_def.url, profile_location)
-      end
-
-      # load profile into external validator
-      if options["ext_validator"] != nil 
-        print_out  "  Adding '#{profile_def.url}' to external validator"
-        reply = client_util.send(:post, options["ext_validator"]+"/profiles", profile_def, { 'Content-Type' => 'json' })
-
-        if reply.response[:code].start_with?("2")
-          print_out  "  -> Success! Added '#{profile_def.url}' to External validator."
+    if options.key?("profiles")
+      options["profiles"].each do |profile_location|
+        print_out "  Loading from profile from '#{profile_location}'"
+        if profile_location.start_with? 'http'
+          response = client_util.send(:get, profile_location, { 'Content-Type' => 'json' })
+          if !response.response[:code].to_s.starts_with?('2')
+            print_out "  -> Failed to load profile StructureDefinition from '#{profile_location}': Response code #{response.response[:code]}"
+            raise "profile load failed"
+          end
+          profile_def = FHIR.from_contents(response.response[:body].to_s)
+          profiles[profile_def.url] = profile_def
+          info(:loaded_remote_profile, profile_def.url, profile_location)
         else
-          print_out  "  -> Failed! Could not add '#{profile_def.url}' to External validator."
+          profile_def = FHIR.from_contents(File.read(File.join(Dir.getwd, profile_location)))
+          profiles[profile_def.url] = profile_def
+          info(:loaded_local_profile, profile_def.url, profile_location)
+        end
+
+        if options["ext_validator"] != nil 
+          # load profile into external validator
+          print_out  "  Adding '#{profile_def.url}' to external validator"
+          reply = client_util.send(:post, options["ext_validator"]+"/profiles", profile_def, { 'Content-Type' => 'json' })
+    
+          if reply.response[:code].start_with?("2")
+            print_out  "  -> Success! Added '#{profile_def.url}' to External validator."
+          else
+            raise "validator profile load failed"
+          end
         end
       end
-
     end
+      
+    if options["ext_validator"] != nil 
+      # add any profiles already available on this validator to the list
+      reply = client_util.send(:get, options["ext_validator"]+"/profiles", { 'Content-Type' => 'json' })
+      profiles_received = JSON.parse(reply.to_hash["response"][:body])
+      profiles_received.each do |a_profile_url|
+        if !profiles.key?(a_profile_url)
+          # stub structure def
+          stub_structure_def = FHIR::StructureDefinition.new()
+          stub_structure_def.url = a_profile_url
+          profiles[a_profile_url] = stub_structure_def
+        end
+      end
+    end
+
   end
 
   # @script [FHIR::TestScript] Optional, a singular TestScript resource to be
