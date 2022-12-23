@@ -65,11 +65,11 @@
   "profile": [
     {
       "id": "patient-uscore-profile-remote",
-      "reference": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
+      "reference": "http://hl7.org/fhir/us/core/STU5.0.1/StructureDefinition-us-core-patient.json"
     },
     {
       "id": "patient-uscore-profile-local",
-      "reference": "spec/fixtures/structuredefinition-us-core-patient.json"
+      "reference": "spec/profiles/structuredefinition-us-core-patient.json"
     }
   ],
   "test": [

@@ -1,0 +1,70 @@
+{
+  "id": "ee2b9e21dfd01d2c4d555e6d177e6a8f6f82d8bbc67c81ee0c3d007cf02a516a",
+  "url": "https://github.com/fhir-crucible/testscript-generator/ee2b9e21dfd01d2c4d555e6d177e6a8f6f82d8bbc67c81ee0c3d007cf02a516a",
+  "version": "0.0",
+  "name": "UsMCODECancerPatientReadProfile",
+  "title": "IG: us-mCODE, Profile: CancerPatient, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileCancerPatient",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-cancer-patient"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdCancerPatient",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile CancerPatient.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the CancerPatient profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Patient",
+            "label": "Read_Patient_Instance",
+            "description": "Read Patient Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdCancerPatient}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Patient_Returned",
+            "description": "Assert Patient Returned",
+            "resource": "Patient",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_CancerPatient_Profile",
+            "description": "Assert returned instance conforms to the CancerPatient Profile",
+            "validateProfileId": "targetProfileCancerPatient",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

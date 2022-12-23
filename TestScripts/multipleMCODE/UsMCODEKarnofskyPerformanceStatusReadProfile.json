@@ -1,0 +1,70 @@
+{
+  "id": "5d4519d65bd20976bcecb38b315abbc4d7b36191250cd567269942fad2b18d42",
+  "url": "https://github.com/fhir-crucible/testscript-generator/5d4519d65bd20976bcecb38b315abbc4d7b36191250cd567269942fad2b18d42",
+  "version": "0.0",
+  "name": "UsMCODEKarnofskyPerformanceStatusReadProfile",
+  "title": "IG: us-mCODE, Profile: KarnofskyPerformanceStatus, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileKarnofskyPerformanceStatus",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-karnofsky-performance-status"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdKarnofskyPerformanceStatus",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile KarnofskyPerformanceStatus.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the KarnofskyPerformanceStatus profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "label": "Read_Observation_Instance",
+            "description": "Read Observation Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdKarnofskyPerformanceStatus}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Observation_Returned",
+            "description": "Assert Observation Returned",
+            "resource": "Observation",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_KarnofskyPerformanceStatus_Profile",
+            "description": "Assert returned instance conforms to the KarnofskyPerformanceStatus Profile",
+            "validateProfileId": "targetProfileKarnofskyPerformanceStatus",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

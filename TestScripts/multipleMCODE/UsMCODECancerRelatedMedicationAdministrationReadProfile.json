@@ -1,0 +1,70 @@
+{
+  "id": "32eba64e676043f4e47b77557dc2b84f44557b5e52927ea7cf8d2a381f67a9d5",
+  "url": "https://github.com/fhir-crucible/testscript-generator/32eba64e676043f4e47b77557dc2b84f44557b5e52927ea7cf8d2a381f67a9d5",
+  "version": "0.0",
+  "name": "UsMCODECancerRelatedMedicationAdministrationReadProfile",
+  "title": "IG: us-mCODE, Profile: CancerRelatedMedicationAdministration, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileCancerRelatedMedicationAdministration",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-cancer-related-medication-administration"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdCancerRelatedMedicationAdministration",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile CancerRelatedMedicationAdministration.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the CancerRelatedMedicationAdministration profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "MedicationAdministration",
+            "label": "Read_MedicationAdministration_Instance",
+            "description": "Read MedicationAdministration Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdCancerRelatedMedicationAdministration}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_MedicationAdministration_Returned",
+            "description": "Assert MedicationAdministration Returned",
+            "resource": "MedicationAdministration",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_CancerRelatedMedicationAdministration_Profile",
+            "description": "Assert returned instance conforms to the CancerRelatedMedicationAdministration Profile",
+            "validateProfileId": "targetProfileCancerRelatedMedicationAdministration",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

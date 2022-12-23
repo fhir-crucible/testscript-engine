@@ -1,0 +1,70 @@
+{
+  "id": "9a4878a1c642d3319975d42a44306d7c647f293e4ceb9791609c24f10bebc598",
+  "url": "https://github.com/fhir-crucible/testscript-generator/9a4878a1c642d3319975d42a44306d7c647f293e4ceb9791609c24f10bebc598",
+  "version": "0.0",
+  "name": "UsMCODEGenomicRegionStudiedReadProfile",
+  "title": "IG: us-mCODE, Profile: GenomicRegionStudied, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileGenomicRegionStudied",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-genomic-region-studied"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdGenomicRegionStudied",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile GenomicRegionStudied.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the GenomicRegionStudied profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "label": "Read_Observation_Instance",
+            "description": "Read Observation Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdGenomicRegionStudied}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Observation_Returned",
+            "description": "Assert Observation Returned",
+            "resource": "Observation",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_GenomicRegionStudied_Profile",
+            "description": "Assert returned instance conforms to the GenomicRegionStudied Profile",
+            "validateProfileId": "targetProfileGenomicRegionStudied",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

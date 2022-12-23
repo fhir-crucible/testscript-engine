@@ -1,0 +1,70 @@
+{
+  "id": "f1f7d8238c8ab6db99e0405b7655aba63f4408942afa520b942ea8e407473d62",
+  "url": "https://github.com/fhir-crucible/testscript-generator/f1f7d8238c8ab6db99e0405b7655aba63f4408942afa520b942ea8e407473d62",
+  "version": "0.0",
+  "name": "UsMCODECancerDiseaseStatusReadProfile",
+  "title": "IG: us-mCODE, Profile: CancerDiseaseStatus, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileCancerDiseaseStatus",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-cancer-disease-status"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdCancerDiseaseStatus",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile CancerDiseaseStatus.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the CancerDiseaseStatus profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "label": "Read_Observation_Instance",
+            "description": "Read Observation Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdCancerDiseaseStatus}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Observation_Returned",
+            "description": "Assert Observation Returned",
+            "resource": "Observation",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_CancerDiseaseStatus_Profile",
+            "description": "Assert returned instance conforms to the CancerDiseaseStatus Profile",
+            "validateProfileId": "targetProfileCancerDiseaseStatus",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

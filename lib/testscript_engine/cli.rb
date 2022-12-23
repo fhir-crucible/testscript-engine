@@ -6,7 +6,7 @@ class TestScriptEngine
 
   module CLI 
     class MyCLI < Thor
-      desc "execute [OPTIONS]", "--config[PATH] --ext_validator [URL] --ext_fhirpath [URL] --variable ['name = value'] --server_url [URL] --testscript_path [PATH] --testreport_path [PATH] summary_path [PATH] --nonfhir_fixture --verbose"
+      desc "execute [OPTIONS]", "--config[PATH] --ext_validator [URL] --ext_fhirpath [URL] --variable ['name = value'] --profile [LOCATION] --server_url [URL] --testscript_path [PATH] --testreport_path [PATH] summary_path [PATH] --nonfhir_fixture --verbose"
       option :config
       option :testscript_path
       option :testscript_name
@@ -15,6 +15,7 @@ class TestScriptEngine
       option :server_url
       option :nonfhir_fixture, :type => :boolean
       option :variable, :type => :array
+      option :profile, :type => :array
       option :verbose, :type => :boolean
       option :ext_validator
       option :ext_fhirpath
@@ -61,7 +62,7 @@ class TestScriptEngine
 
         end
       else
-        options = {"ext_validator" => "inferno", "ext_fhirpath" => nil, "verbose" => false}
+        options = {"ext_validator" => nil, "ext_fhirpath" => nil, "verbose" => false}
       end
       
       @test_server_url = options["server_url"] if options["server_url"]

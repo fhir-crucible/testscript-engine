@@ -1,0 +1,70 @@
+{
+  "id": "2d59343b6491d60ac1830f2cf9869adde1ba3ae85c2e88d137acc228d2579c0e",
+  "url": "https://github.com/fhir-crucible/testscript-generator/2d59343b6491d60ac1830f2cf9869adde1ba3ae85c2e88d137acc228d2579c0e",
+  "version": "0.0",
+  "name": "UsMCODECancerStageGroupReadProfile",
+  "title": "IG: us-mCODE, Profile: CancerStageGroup, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileCancerStageGroup",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-cancer-stage-group"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdCancerStageGroup",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile CancerStageGroup.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the CancerStageGroup profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "label": "Read_Observation_Instance",
+            "description": "Read Observation Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdCancerStageGroup}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Observation_Returned",
+            "description": "Assert Observation Returned",
+            "resource": "Observation",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_CancerStageGroup_Profile",
+            "description": "Assert returned instance conforms to the CancerStageGroup Profile",
+            "validateProfileId": "targetProfileCancerStageGroup",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}
