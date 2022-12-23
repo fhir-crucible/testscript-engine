@@ -1,0 +1,70 @@
+{
+  "id": "b61aa2a70a87935c29fa86a8bcd095fbdbbeb45f3597a825389aacd7ae1337bf",
+  "url": "https://github.com/fhir-crucible/testscript-generator/b61aa2a70a87935c29fa86a8bcd095fbdbbeb45f3597a825389aacd7ae1337bf",
+  "version": "0.0",
+  "name": "UsMCODETumorMarkerTestReadProfile",
+  "title": "IG: us-mCODE, Profile: TumorMarkerTest, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileTumorMarkerTest",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-tumor-marker-test"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdTumorMarkerTest",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile TumorMarkerTest.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the TumorMarkerTest profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "label": "Read_Observation_Instance",
+            "description": "Read Observation Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdTumorMarkerTest}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Observation_Returned",
+            "description": "Assert Observation Returned",
+            "resource": "Observation",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_TumorMarkerTest_Profile",
+            "description": "Assert returned instance conforms to the TumorMarkerTest Profile",
+            "validateProfileId": "targetProfileTumorMarkerTest",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

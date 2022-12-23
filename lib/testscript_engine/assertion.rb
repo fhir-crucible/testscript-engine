@@ -166,6 +166,8 @@ module Assertion
   end
 
   def validate_profile_id(assert)
+    raise AssertionException.new('No given sourceId.', :fail) unless assert.sourceId
+
     ext_validator_url = @options["ext_validator"]
     sourceId = assert.sourceId
     validateProfileId = assert.validateProfileId
@@ -184,23 +186,10 @@ module Assertion
 
     else #Run external validator
       print_out " validateProfileId: trying external validator '#{ext_validator_url}'"
-      reply = client_util.send(:get, ext_validator_url+"/profiles", { 'Content-Type' => 'json' })
-      profiles_received = JSON.parse(reply.to_hash["response"][:body])
+      
+      # Assumes profile is available on the external validator
+      # this step is handled by TestScriptEngine.load_profiles
 
-      # If external validator doesn't support profile, add one.
-      if !profiles_received.include?(profile.url)
-        print_out " External validator doesn't support profile '#{profile.url}'"
-        print_out " -> Trying to add '#{validateProfileId}' to external validator.."
-        reply = client_util.send(:post, ext_validator_url+"/profiles", profile, { 'Content-Type' => 'json' })
-
-        if reply.response[:code].start_with?("2")
-          print_out  " -> Success! Added '#{validateProfileId}' to External validator."
-        else
-          raise AssertionException.new("Failed! Stop validation.", :fail)
-        end
-      end
-
-      print_out " -> External validator supports profile #{profile.url}"
       path = ext_validator_url+"/validate?profile=#{profile.url}"
       reply = client_util.send(:post, path, get_resource(sourceId), { 'Content-Type' => 'json' })
 
@@ -220,6 +209,8 @@ module Assertion
   end
 
   def minimum_id(assert)
+    raise AssertionException.new('No given sourceId.', :fail) unless assert.sourceId
+
     specErrorPaths = []
     path = ""
     outcome = check_minimum_id(get_resource(assert.minimumId).to_hash, get_resource(assert.sourceId).to_hash, path, specErrorPaths)

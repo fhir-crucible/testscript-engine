@@ -1,0 +1,70 @@
+{
+  "id": "57b2b6d071520d8f6b9956a01b32f0566760b6a4a0acfe8ce45fc59d54238665",
+  "url": "https://github.com/fhir-crucible/testscript-generator/57b2b6d071520d8f6b9956a01b32f0566760b6a4a0acfe8ce45fc59d54238665",
+  "version": "0.0",
+  "name": "UsMCODETNMDistantMetastasesCategoryReadProfile",
+  "title": "IG: us-mCODE, Profile: TNMDistantMetastasesCategory, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileTNMDistantMetastasesCategory",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-tnm-distant-metastases-category"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdTNMDistantMetastasesCategory",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile TNMDistantMetastasesCategory.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the TNMDistantMetastasesCategory profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "label": "Read_Observation_Instance",
+            "description": "Read Observation Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdTNMDistantMetastasesCategory}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Observation_Returned",
+            "description": "Assert Observation Returned",
+            "resource": "Observation",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_TNMDistantMetastasesCategory_Profile",
+            "description": "Assert returned instance conforms to the TNMDistantMetastasesCategory Profile",
+            "validateProfileId": "targetProfileTNMDistantMetastasesCategory",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

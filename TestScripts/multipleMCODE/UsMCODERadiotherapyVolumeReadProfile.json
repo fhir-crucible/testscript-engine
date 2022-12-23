@@ -1,0 +1,70 @@
+{
+  "id": "89be7b02576624d6bf29be0d4a96a1250ecf0441b06ade084821cbbe7c1a8f7a",
+  "url": "https://github.com/fhir-crucible/testscript-generator/89be7b02576624d6bf29be0d4a96a1250ecf0441b06ade084821cbbe7c1a8f7a",
+  "version": "0.0",
+  "name": "UsMCODERadiotherapyVolumeReadProfile",
+  "title": "IG: us-mCODE, Profile: RadiotherapyVolume, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileRadiotherapyVolume",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-radiotherapy-volume"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdRadiotherapyVolume",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile RadiotherapyVolume.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the RadiotherapyVolume profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "BodyStructure",
+            "label": "Read_BodyStructure_Instance",
+            "description": "Read BodyStructure Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdRadiotherapyVolume}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_BodyStructure_Returned",
+            "description": "Assert BodyStructure Returned",
+            "resource": "BodyStructure",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_RadiotherapyVolume_Profile",
+            "description": "Assert returned instance conforms to the RadiotherapyVolume Profile",
+            "validateProfileId": "targetProfileRadiotherapyVolume",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

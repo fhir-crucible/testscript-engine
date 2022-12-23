@@ -1,0 +1,70 @@
+{
+  "id": "1fe55a904ac570cffbb71ead77224b7f8f1b3c613440887b3b100604e714bce8",
+  "url": "https://github.com/fhir-crucible/testscript-generator/1fe55a904ac570cffbb71ead77224b7f8f1b3c613440887b3b100604e714bce8",
+  "version": "0.0",
+  "name": "UsMCODEHumanSpecimenReadProfile",
+  "title": "IG: us-mCODE, Profile: HumanSpecimen, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileHumanSpecimen",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-human-specimen"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdHumanSpecimen",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile HumanSpecimen.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the HumanSpecimen profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Specimen",
+            "label": "Read_Specimen_Instance",
+            "description": "Read Specimen Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdHumanSpecimen}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Specimen_Returned",
+            "description": "Assert Specimen Returned",
+            "resource": "Specimen",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_HumanSpecimen_Profile",
+            "description": "Assert returned instance conforms to the HumanSpecimen Profile",
+            "validateProfileId": "targetProfileHumanSpecimen",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

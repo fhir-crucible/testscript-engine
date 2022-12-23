@@ -1,0 +1,70 @@
+{
+  "id": "36cdf69a63c5451a567c7921e3c8eb74cd1d54aa83dd8aae21f88970764ae8dd",
+  "url": "https://github.com/fhir-crucible/testscript-generator/36cdf69a63c5451a567c7921e3c8eb74cd1d54aa83dd8aae21f88970764ae8dd",
+  "version": "0.0",
+  "name": "UsMCODEPrimaryCancerConditionReadProfile",
+  "title": "IG: us-mCODE, Profile: PrimaryCancerCondition, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfilePrimaryCancerCondition",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-primary-cancer-condition"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdPrimaryCancerCondition",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile PrimaryCancerCondition.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the PrimaryCancerCondition profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Condition",
+            "label": "Read_Condition_Instance",
+            "description": "Read Condition Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdPrimaryCancerCondition}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Condition_Returned",
+            "description": "Assert Condition Returned",
+            "resource": "Condition",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_PrimaryCancerCondition_Profile",
+            "description": "Assert returned instance conforms to the PrimaryCancerCondition Profile",
+            "validateProfileId": "targetProfilePrimaryCancerCondition",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

@@ -1,0 +1,70 @@
+{
+  "id": "8569e0f2c9bd91e1689861565378efe972a20004b04c66886c50745baa2b5545",
+  "url": "https://github.com/fhir-crucible/testscript-generator/8569e0f2c9bd91e1689861565378efe972a20004b04c66886c50745baa2b5545",
+  "version": "0.0",
+  "name": "UsMCODEMCODEPatientBundleReadProfile",
+  "title": "IG: us-mCODE, Profile: MCODEPatientBundle, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileMCODEPatientBundle",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-patient-bundle"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdMCODEPatientBundle",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile MCODEPatientBundle.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the MCODEPatientBundle profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Bundle",
+            "label": "Read_Bundle_Instance",
+            "description": "Read Bundle Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdMCODEPatientBundle}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_MCODEPatientBundle_Profile",
+            "description": "Assert returned instance conforms to the MCODEPatientBundle Profile",
+            "validateProfileId": "targetProfileMCODEPatientBundle",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

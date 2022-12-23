@@ -7,7 +7,7 @@ describe TestScriptRunnable do
     @script = FHIR.from_contents(File.read('spec/examples/basic_testscript.json'))
     @patient_nonuscore = FHIR.from_contents(File.read('spec/fixtures/patient_example_non_uscore.json'))
     @patient_uscore = FHIR.from_contents(File.read('spec/fixtures/patient_example_uscore.json'))
-    @sd_uscore = FHIR.from_contents(File.read('spec/fixtures/structuredefinition-us-core-patient.json'))
+    @sd_uscore = FHIR.from_contents(File.read('spec/profiles/structuredefinition-us-core-patient.json'))
 
     options = {"ext_validator" => nil, "ext_fhirpath" => nil}
     @runnable = TestScriptRunnable.new(@script, lambda { |k| {}[k] }, options)

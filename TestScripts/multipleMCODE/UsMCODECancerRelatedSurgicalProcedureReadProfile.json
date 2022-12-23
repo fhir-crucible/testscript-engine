@@ -1,0 +1,70 @@
+{
+  "id": "dab8c13af44472cbb668d091967a88b7b28a65de3e2ccdd62082f282040f1190",
+  "url": "https://github.com/fhir-crucible/testscript-generator/dab8c13af44472cbb668d091967a88b7b28a65de3e2ccdd62082f282040f1190",
+  "version": "0.0",
+  "name": "UsMCODECancerRelatedSurgicalProcedureReadProfile",
+  "title": "IG: us-mCODE, Profile: CancerRelatedSurgicalProcedure, Case: Read Profile",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-20T23:45:30-05:00",
+  "publisher": "The MITRE Corporation",
+  "profile": [
+    {
+      "id": "targetProfileCancerRelatedSurgicalProcedure",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-cancer-related-surgical-procedure"
+    }
+  ],
+  "variable": [
+    {
+      "name": "targetResourceIdCancerRelatedSurgicalProcedure",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile CancerRelatedSurgicalProcedure.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the identified resource conforms to the CancerRelatedSurgicalProcedure profile",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Procedure",
+            "label": "Read_Procedure_Instance",
+            "description": "Read Procedure Instance",
+            "encodeRequestUrl": false,
+            "params": "/${targetResourceIdCancerRelatedSurgicalProcedure}",
+            "responseId": "targetInstance"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "response": "okay",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Procedure_Returned",
+            "description": "Assert Procedure Returned",
+            "resource": "Procedure",
+            "warningOnly": false
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Instance_Conforms_to_CancerRelatedSurgicalProcedure_Profile",
+            "description": "Assert returned instance conforms to the CancerRelatedSurgicalProcedure Profile",
+            "validateProfileId": "targetProfileCancerRelatedSurgicalProcedure",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}
