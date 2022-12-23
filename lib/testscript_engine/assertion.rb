@@ -166,12 +166,15 @@ module Assertion
 
     if ext_validator_url == nil #Run internal validator
       print_out " validateProfileId: trying the Ruby Crucible validator"
-      outcome = profile.validates_resource?(get_resource(sourceId))
+      validation_issues = profile.validate_resource(get_resource(sourceId))
+      passed = validation_issues.empty?
+      
 
-      if outcome
-        return " As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
+      if validation_issues.empty?
+        return "#{sourceId ? "Fixture '#{sourceId}'" : "The last response"} conforms to profile '#{validateProfileId}'."
       else
-        fail_message = " Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
+        message = validation_issues.reduce("") { |ag_text, one_issue| "#{ag_text}#{";" unless ag_text == ""} #{one_issue}" }
+        fail_message = "#{sourceId ? "Fixture '#{sourceId}'" : "The last response"} does not conform to profile '#{validateProfileId}'.#{message ? " Details -#{message}" : ""}"
         raise AssertionException.new(fail_message, :fail)
       end
 
