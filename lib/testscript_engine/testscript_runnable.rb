@@ -299,12 +299,18 @@ class TestScriptRunnable
       reply = validator.send(:post, path, resource, { 'Content-Type' => 'json' })
       
       if reply.response[:code].to_s.start_with? "2"
-        result = JSON.parse(reply.response[:body].body) 
+        result = JSON.parse(reply.response[:body].body)
+        if result.count > 1
+          print_out "   -> Failure: Returned Array with #{result.count} children and can't compare to value (String)"
+          return 
+        end 
+
         val = []
         result.each { |r| val << r["element"] }
         return val
       end
       print_out "External validator failed: " + reply.response[:code]
+
     else
       return begin
         FHIRPath.evaluate(expression, resource.to_hash)

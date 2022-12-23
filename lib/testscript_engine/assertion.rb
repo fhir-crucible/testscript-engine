@@ -134,7 +134,8 @@ module Assertion
 
   def expression(assert)
     resource = get_resource(assert.sourceId)
-    raise AssertionException.new('No resource given by sourceId.', :fail) unless resource
+    raise AssertionException.new('Expression: No resource given by sourceId.', :fail) unless resource
+    raise AssertionException.new("Expression: #{assert.operator} not supported. Only support equals currently", :fail) if assert.operator != nil && assert.operator != "equals"
 
     received = evaluate_expression(assert.expression, resource)
     expected = determine_expected_value(assert)
@@ -166,8 +167,6 @@ module Assertion
   end
 
   def validate_profile_id(assert)
-    raise AssertionException.new('No given sourceId.', :fail) unless assert.sourceId
-
     ext_validator_url = @options["ext_validator"]
     sourceId = assert.sourceId
     validateProfileId = assert.validateProfileId

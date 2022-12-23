@@ -98,6 +98,7 @@
             "description": "Confirm that the returned Bundle total is greater than or equal to the number of returned entries.",
             "expression": "Bundle.total.toInteger() >= entry.count()",
             "value": "true",
+            "operator": "greaterThan",
             "sourceId": "fixture-patient-bundle",
             "warningOnly": false
           }
