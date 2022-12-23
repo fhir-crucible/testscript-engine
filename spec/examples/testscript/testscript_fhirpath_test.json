@@ -95,7 +95,7 @@
       "action": [
         {
           "assert": {
-            "description": "Confirm that the returned Bundle total is greater than or equal to the number of returned entries.",
+            "description": "Confirm Bundle.total.toInteger() >= entry.count()",
             "expression": "Bundle.total.toInteger() >= entry.count()",
             "value": "true",
             "operator": "greaterThan",
@@ -105,7 +105,7 @@
         },
         {
           "assert": {
-            "description": "Confirm that the returned Bundle total is greater than or equal to the number of returned entries.",
+            "description": "Confirm total is 393827 as integer in value",
             "expression": "Bundle.total",
             "value": "393827",
             "sourceId": "fixture-patient-bundle",
@@ -114,16 +114,7 @@
         },
         {
           "assert": {
-            "description": "Confirm that the returned Bundle total is greater than or equal to the number of returned entries.",
-            "expression": "Bundle.total",
-            "value": "[393827]",
-            "sourceId": "fixture-patient-bundle",
-            "warningOnly": false
-          }
-        },
-        {
-          "assert": {
-            "description": "Confirm that the returned Bundle total is greater than or equal to the number of returned entries.",
+            "description": "Confirm Bundle.entry[0].resource.children().count() = Patient.children().count()",
             "compareToSourceExpression": "Patient.children().count()",
             "expression": "Bundle.entry[0].resource.children().count()",
             "operator": "equals",
@@ -134,7 +125,7 @@
         },
         {
           "assert": {
-            "description": "Confirm that the returned Bundle total is greater than or equal to the number of returned entries.",
+            "description": "Confirm Bundle.entry[0].resource.children() = Patient.children()",
             "compareToSourceExpression": "Patient.children()",
             "expression": "Bundle.entry[0].resource.children()",
             "operator": "equals",
@@ -145,7 +136,7 @@
         },
         {
           "assert": {
-            "description": "Confirm that the returned Bundle total is greater than or equal to the number of returned entries.",
+            "description": "Confirm Bundle.entry.resource.name = Patient.name",
             "compareToSourceExpression": "Patient.name",
             "expression": "Bundle.entry.resource.name",
             "operator": "equals",

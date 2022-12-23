@@ -135,7 +135,7 @@ module Assertion
   def expression(assert)
     resource = get_resource(assert.sourceId)
     raise AssertionException.new('Expression: No resource given by sourceId.', :fail) unless resource
-    raise AssertionException.new("Expression: #{assert.operator} not supported. Only support equals currently", :fail) if assert.operator != nil && assert.operator != "equals"
+    raise AssertionException.new("Expression: Operator '#{assert.operator}' not supported in expression. Support only 'equals'", :fail) if assert.operator != nil && assert.operator != "equals"
 
     received = evaluate_expression(assert.expression, resource)
     expected = determine_expected_value(assert)

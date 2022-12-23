@@ -294,20 +294,17 @@ class TestScriptRunnable
     return unless expression and resource
 
     if options["ext_fhirpath"]
-      validator = FHIR::Client.new(options["ext_fhirpath"])
-      path = "/evaluate?path=#{expression}"
-      reply = validator.send(:post, path, resource, { 'Content-Type' => 'json' })
+      path = options["ext_fhirpath"] + "/evaluate?path=#{expression}"
+      reply = client_util.send(:post, path, resource, { 'Content-Type' => 'json' })
       
       if reply.response[:code].to_s.start_with? "2"
         result = JSON.parse(reply.response[:body].body)
-        if result.count > 1
-          print_out "   -> Failure: Returned Array with #{result.count} children and can't compare to value (String)"
-          return 
+        if result.count != 1
+          msg = "Failed: FHIR Path returned (Array, #{result.count} children) and can't compare to value (String)"
+          raise AssertionException.new(msg, :fail)
         end 
 
-        val = []
-        result.each { |r| val << r["element"] }
-        return val
+        return result[0]["element"]
       end
       print_out "External validator failed: " + reply.response[:code]
 
