@@ -9,9 +9,7 @@ testscript_path: "TestScripts/multipleMCODE"
  
 # Name of TestScript under TESTSCRIPT_PATH to be executed
 # If empty, all files under TESTSCRIPT_PATH will be executed
-testscript_name: "UsMCODETumorSizeReadProfile"
-# testscript_name: TestScript Example General
-# Handling multiple TestScript names will be added
+testscript_name:
 
 # Dynamic variables will replace defaultValue in variable in TestScript
 # Dynamic variables uniformly apply to all runnables. For example, if two TestScripts have same variable names, dynamic variable will apply to both of them.
