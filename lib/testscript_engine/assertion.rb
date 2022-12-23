@@ -158,7 +158,6 @@ module Assertion
   end
 
   def validate_profile_id(assert)
-    raise AssertionException.new('No given sourceId.', :fail) unless assert.sourceId
 
     ext_validator_url = @options["ext_validator"]
     sourceId = assert.sourceId
@@ -186,10 +185,13 @@ module Assertion
       reply = client_util.send(:post, path, get_resource(sourceId), { 'Content-Type' => 'json' })
 
       if reply.response[:code].start_with?("2")
-        if JSON.parse(reply.response[:body].body)["issue"][0]["severity"] != "error"
-          return "As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
+        result = FHIR.from_contents(reply.response[:body].body)
+        passed = result.issue.reduce(true) { |pass_ag, one_issue| pass_ag && (one_issue.severity != "error")}
+        message = external_result_to_string(result)
+        if passed
+          return "#{sourceId ? "Fixture '#{sourceId}'" : "The last response"} conforms to profile '#{validateProfileId}'.#{message ? " Details -#{message}" : ""}"
         else
-          fail_message = "Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
+          fail_message = "#{sourceId ? "Fixture '#{sourceId}'" : "The last response"} does not conform to profile '#{validateProfileId}'.#{message ? " Details -#{message}" : ""}"
           raise AssertionException.new(fail_message, :fail)
         end        
       else
@@ -197,6 +199,33 @@ module Assertion
         raise AssertionException.new(fail_message, :fail)
       end
 
+    end
+  end
+
+  def external_result_to_string(result)
+    result.issue.reduce("") { |ag_text, one_issue| "#{ag_text}#{";" unless ag_text == ""} #{issue_to_string(one_issue)}" }
+  end
+
+  def issue_to_string(issue)
+    location = get_issue_location(issue)
+    
+    "#{issue.severity}#{location}: #{issue.details.text}"
+  end
+
+  def get_issue_location(issue)
+    line_extension = issue.extension.find { |ext| ext.url == "http://hl7.org/fhir/StructureDefinition/operationoutcome-issue-line"}
+    column_extension = issue.extension.find { |ext| ext.url == "http://hl7.org/fhir/StructureDefinition/operationoutcome-issue-col"}
+    
+    prefix = "at"
+    expression = issue.expression.length > 0 ? " #{issue.expression[0]}" : ""
+    line = line_extension ? " Line #{line_extension.valueInteger.to_s}" : ""
+    column = column_extension ? " Col #{column_extension.valueInteger.to_s}" : ""
+    suffix = expression + line + column
+    
+    if suffix
+      return " at" + suffix
+    else
+      return ""
     end
   end
 
