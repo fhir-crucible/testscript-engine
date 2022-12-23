@@ -77,16 +77,16 @@ class TestScriptRunnable
 
   def setup
     return info(:no_setup) unless script.setup
-    handle_actions(script.setup.action, true)
+    handle_actions(script.setup.action, :setup)
   end
 
   def test
-    script.test.each { |test| handle_actions(test.action, false) }
+    script.test.each { |test| handle_actions(test.action, :test) }
   end
 
   def teardown
     return info(:no_teardown) unless script.teardown
-    handle_actions(script.teardown.action, false)
+    handle_actions(script.teardown.action, :teardown)
   end
 
   def postprocessing
@@ -106,51 +106,68 @@ class TestScriptRunnable
     end
   end
 
-  def handle_actions(actions, end_on_fail)
+  def handle_actions(actions, section)
     @modify_report = true
-    if @ended
+    if @ended && section == :test
       abort_test(actions)
       @modify_report = false
       return
     end
     current_action = 0
 
-    begin
-      actions.each do |action|
-        current_action += 1
-        if action.operation
+    actions.each do |action|
+      current_action += 1
+      if action.operation
+        begin
           execute(action.operation)
-        elsif action.respond_to?(:assert)
-          begin
-            evaluate(action.assert, options)
-          rescue AssertionException => ae
-            if ae.outcome == :skip
-              skip(:eval_assert_result, ae.details)
-            elsif ae.outcome == :fail
-              next warning(:eval_assert_result, ae.details) if action.assert.warningOnly
-              if end_on_fail
-                @ended = true
-                fail(:eval_assert_result, ae.details)
-                cascade_skips_with_message(actions, current_action) unless current_action == actions.length
-                @modify_report = false
-                return
-              else
-                fail(:eval_assert_result, ae.details)
-              end
+        rescue OperationException => oe
+          error(oe.details)
+          if section != :teardown
+            @ended = true if section == :setup
+            cascade_skips_with_message(actions, current_action) unless current_action == actions.length
+          end
+        rescue => e
+          error(:uncaught_error, e.message)
+          if section != :teardown
+            @ended = true if section == :setup
+            cascade_skips_with_message(actions, current_action) unless current_action == actions.length
+          end
+        end
+      elsif action.respond_to?(:assert)
+        begin
+          evaluate(action.assert, options)
+        rescue AssertionException => ae
+          if ae.outcome == :skip
+            skip(:eval_assert_result, ae.details)
+          elsif ae.outcome == :fail
+            next warning(:eval_assert_result, ae.details) if action.assert.warningOnly
+            fail(:eval_assert_result, ae.details)
+            if section == :setup
+              # stop execution and go right to teardown (no remaining setup, no tests)
+              @ended = true
+              cascade_skips_with_message(actions, current_action) unless current_action == actions.length
+              @modify_report = false
+              return
+            elsif section == :test
+              # stop execution of this test and go to the next test
+              cascade_skips_with_message(actions, current_action) unless current_action == actions.length
+              @modify_report = false
+              return
+            else
+              fail(:eval_assert_result, ae.details)
             end
+          end
+        rescue => e
+          error(:uncaught_error, e.message)
+          if section != :teardown
+            @ended = true if section == :setup
+            cascade_skips_with_message(actions, current_action) unless current_action == actions.length
+            return
           end
         end
       end
-    rescue OperationException => oe
-      error(oe.details)
-      if end_on_fail
-        @ended = true
-        cascade_skips_with_message(actions, current_action) unless current_action == actions.length
-      end
-    rescue => e
-      error(:uncaught_error, e.message)
-      cascade_skips_with_message(actions, current_action) unless current_action == actions.length
     end
+
 
     @modify_report = false
   end
