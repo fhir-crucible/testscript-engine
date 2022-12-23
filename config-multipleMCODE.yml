@@ -43,9 +43,12 @@ variable:
   - targetResourceIdTumorSize=tumor-size-jenny-m
 
 # The relative to the directory containing the TestReports output following their partner TestScript execution
-testreport_path: "./TestReports"
+# Files containing TestReport instances will be placed in a subfolder corresponding to the execution completion time
+testreport_path: "TestReports"
 
-summary_path: "./Summaries"
+# If specified, a summary report csv file named execution_summary_[timestamp].csv will be created within the specified relative folder
+# The file will include the id, name, and title of each TestScript executed along with the overall pass/fail result and the file containing the TestReport with details
+summary_path: "TestReports"
 
 # Whether use FHIR logger
 verbose: false
@@ -54,9 +57,9 @@ verbose: false
 # Resource validator options:
 # - "internal" uses the ruby validator from the fhir_models gem
 #   https://github.com/fhir-crucible/fhir_models
-# - "external" uses the a web interface for the L7 FHIR validator.
+# - "external" uses the a web interface for the HL7 FHIR validator.
 #   https://github.com/inferno-community/fhir-validator-wrapper
-ext_validator: https://inferno.healthit.gov/validatorapi
+ext_validator: http://inferno.healthit.gov/validatorapi
 
 # If specified, the url where the external fhirpath will be used. If not use the internal fhirpath.
 ext_fhirpath: 

@@ -239,25 +239,26 @@ class TestScriptEngine
   # @path [String] Optional, specifies the path to the folder which the
   #                TestReport resources should be written to.
   def write_reports(path = nil)
+    report_time = DateTime.now.to_s
     report_directory = path || testreport_path
-    FileUtils.mkdir_p report_directory
+    execution_directory = File.join(report_directory, report_time)
+    FileUtils.mkdir_p execution_directory
 
-    summary_rows = [["id", "name", "title", "result"]]
+    summary_rows = [["id", "name", "title", "result", "TestReport file"]]
 
     reports.each do |report_key, report|
-      report_name = report.name.downcase.split(' ')[1...].join('_')
-      report_name = report.name.downcase.split('_')[0...].join('_') if report_name == ''
-      File.open("#{report_directory}/#{report_name}.json", 'w') do |f|
+      report_filename = "#{execution_directory}/#{report.id}.json"
+      File.open(report_filename, 'w') do |f|
         f.write(report.to_json)
       end
       test_script = runnables[report_key]
-      summary_rows << [test_script.script.id, test_script.script.name, """#{test_script.script.title}""", report.result]
+      summary_rows << [test_script.script.id, test_script.script.name, """#{test_script.script.title}""", report.result, report_filename]
     end
 
     if options["summary_path"] != nil
       summary_path = File.join(Dir.getwd, options["summary_path"])
       FileUtils.mkdir_p summary_path
-      File.write(File.join(summary_path, "execution_summary_#{Time.now.utc.iso8601}.csv"), summary_rows.map(&:to_csv).join)
+      File.write(File.join(summary_path, "execution_summary_#{report_time}.csv"), summary_rows.map(&:to_csv).join)
     end
 
 
