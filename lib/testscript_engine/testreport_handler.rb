@@ -95,6 +95,7 @@ module TestReportHandler
 
     def initialize(testscript_blueprint = nil)
       add_boilerplate(testscript_blueprint)
+      add_input_extensions(testscript_blueprint)
       build_setup(testscript_blueprint.setup)
       build_test(testscript_blueprint.test)
       build_teardown(testscript_blueprint.teardown)
@@ -108,6 +109,36 @@ module TestReportHandler
 
       actions = setup_blueprint.action.map { |action| build_action(action) }
       report.setup = FHIR::TestReport::Setup.new(action: actions)
+    end
+
+    def add_input_extensions(setup_blueprint)
+      return unless setup_blueprint
+
+      # if any variables have a defaultValue defined
+      # and an extension indicating the defaultValue was overriden
+      # then add an extension with the input value
+
+      setup_blueprint.variable.each { |script_variable|
+        if (script_variable.defaultValue != nil)
+          has_default_value_overriden_ext = script_variable.extension.reduce(false) { |agg_has_override, one_ext| agg_has_override || one_ext.url == "urn:mitre:fhirfoundry:overridenDefaultValue" }
+          
+          if (has_default_value_overriden_ext)
+            input_ext = FHIR::Extension.new()
+            input_ext.url = "urn:mitre:fhirfoundry:dynamicInput"
+            input_ext_variable = FHIR::Extension.new()
+            input_ext_variable.url = "urn:mitre:fhirfoundry:dynamicInput:variableName"
+            input_ext_variable.valueString = script_variable.name
+            input_ext.extension << input_ext_variable
+            input_ext_value = FHIR::Extension.new()
+            input_ext_value.url = "urn:mitre:fhirfoundry:dynamicInput:value"
+            input_ext_value.valueString = script_variable.defaultValue
+            input_ext.extension << input_ext_value
+            report.extension << input_ext
+          end
+        
+        end
+
+      }
     end
 
     def build_test(test_blueprint)
@@ -244,5 +275,39 @@ module TestReportHandler
         clone.store_action(action.operation || action.assert)
       end
     end
+
+    def self.get_testreport_inputs_string(test_report)
+      inputs_string = ""
+      
+      report.extension.each { |one_ext| 
+        if (one_ext.url == "urn:mitre:fhirfoundry:dynamicInput")
+          variable_name_ext = one_ext.extension.find { |one_sub_ext| one_sub_ext.url == "urn:mitre:fhirfoundry:dynamicInput:variableName" }
+          variable_value_ext = one_ext.extension.find { |one_sub_ext| one_sub_ext.url == "urn:mitre:fhirfoundry:dynamicInput:value" }
+          if (variable_name_ext && variable_value_ext)
+            inputs_string = "#{inputs_string}#{"; " unless inputs_string == ""}#{variable_name_ext.valueString}=#{variable_value_ext.valueString}"
+          end
+        end
+      }
+
+      return inputs_string
+    end
+
+
+  end
+
+  def self.get_testreport_inputs_string(test_report)
+    inputs_string = ""
+    
+    test_report.extension.each { |one_ext| 
+      if (one_ext.url == "urn:mitre:fhirfoundry:dynamicInput")
+        variable_name_ext = one_ext.extension.find { |one_sub_ext| one_sub_ext.url == "urn:mitre:fhirfoundry:dynamicInput:variableName" }
+        variable_value_ext = one_ext.extension.find { |one_sub_ext| one_sub_ext.url == "urn:mitre:fhirfoundry:dynamicInput:value" }
+        if (variable_name_ext && variable_value_ext)
+          inputs_string = "#{inputs_string}#{"; " unless inputs_string == ""}#{variable_name_ext.valueString}=#{variable_value_ext.valueString}"
+        end
+      end
+    }
+
+    return inputs_string
   end
 end
