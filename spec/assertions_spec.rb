@@ -489,7 +489,7 @@ describe Assertion do
         @assert.sourceId = 'bad_source_id'
 
         expect { @tester.expression(@assert) }
-          .to raise_exception(Assertion::AssertionException, "No resource given by sourceId.")
+          .to raise_exception(Assertion::AssertionException, "Expression: No resource given by sourceId.")
       end
     end
 
@@ -513,7 +513,7 @@ describe Assertion do
         @tester.reply.response = nil
 
         expect { @tester.expression(@assert) }
-          .to raise_exception(Assertion::AssertionException, "No resource given by sourceId.")
+          .to raise_exception(Assertion::AssertionException, "Expression: No resource given by sourceId.")
       end
     end
   end

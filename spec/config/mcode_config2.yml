@@ -14,8 +14,8 @@ testscript_path: /spec/examples
 # Name should match Testscript.name
 # If empty, all files under TESTSCRIPT_PATH will be executed
 # Handling multiple TestScript names is to be added
-# testscript_name: UsMcodeIdentifyCancerPatientsByGroup
-testscript_name: UsMcodeProfileSearchComorbidities
+testscript_name: UsMcodeIdentifyCancerPatientsByGroup
+# testscript_name: UsMcodeProfileSearchComorbidities
 
 # Dynamic variables replace defaultValue in variable in TestScript
 # This will uniformly apply to all runnables. For example, if two TestScripts have same variable name, this will apply to both.
@@ -23,7 +23,7 @@ testscript_name: UsMcodeProfileSearchComorbidities
 variable:
 
 # The relative to the directory containing the TestReports output following their partner TestScript execution
-testreport_path: "TestReports"
+testreport_path: "./TestReports"
 
 # If specified, a summary report csv file named execution_summary_[UTC timestamp].csv will be created within the specified relative folder
 # The file will include the id, name, and title of each TestScript executed and the overall pass/fail result
@@ -36,12 +36,5 @@ ext_validator:
 
 # If specified, use the external FHIR Path evaluator with URL
 # If not, use the internal evaluator based on Ruby Crucible FHIR path evaluator: https://github.com/fhir-crucible/fhir_models
-ext_fhirpath: https://inferno.healthit.gov/validatorapi
-
-# List of locations holding profile StructureDefinitions to be used for profile validation
-# May be a web url, a relative file, or a relative directory (profiles in sub-directories not included)
-# StructureDefinitions loaded from this configuration setting take precedence over StructureDefinitions 
-# accessed from canonical URLs in TestScripts that resolve to StructureDefinitions. 
-# This allows for validation against unpublished versions of profiles.
-profile: 
-- Profiles
+ext_fhirpath:
+# https://inferno.healthit.gov/validatorapi

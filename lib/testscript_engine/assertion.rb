@@ -22,6 +22,7 @@ module Assertion
     "expression",
     "headerField",
     "minimumId",
+    "compareToSourceId",
     "navigationLinks",
     "path",
     "requestMethod",
@@ -52,9 +53,7 @@ module Assertion
     @options = options
     assert_elements = assert.to_hash.keys
     assert_type = determine_assert_type(assert_elements)
-
     outcome_message = send(assert_type.to_sym, assert)
-
     pass(:eval_assert_result, outcome_message)
   end
 
@@ -71,11 +70,9 @@ module Assertion
     if assert.value
       assert.value
     elsif assert.compareToSourceExpression
-      evaluate_expression(assert.compareToSourceExpression,
-        get_resource(assert.compareToSourceId))
+      evaluate_expression(assert.compareToSourceExpression, get_resource(assert.compareToSourceId))
     elsif assert.compareToSourcePath
-      evaluate_path(assert.compareToSourcePath,
-        get_resource(assert.compareToSourceId))
+      evaluate_path(assert.compareToSourcePath, get_resource(assert.compareToSourceId))
     end
   end
 
@@ -137,11 +134,50 @@ module Assertion
 
   def expression(assert)
     resource = get_resource(assert.sourceId)
-    raise AssertionException.new('No resource given by sourceId.', :fail) unless resource
+    raise AssertionException.new('Expression: No resource given by sourceId.', :fail) unless resource
+    raise AssertionException.new("Expression: Operator '#{assert.operator}' not supported in expression. Support only 'equals'", :fail) if assert.operator != nil && assert.operator != "equals"
 
     received = evaluate_expression(assert.expression, resource)
+    if !received.is_a?(Array)
+      received_value = received
+    elsif received.length == 0
+      raise AssertionException.new('Expression: no value returned.', :fail)
+    elsif received.length > 1
+      raise AssertionException.new('Expression: multiple values returned.', :fail)
+    else
+      received_value = received[0]
+    end
     expected = determine_expected_value(assert)
-    compare("Expression", received, assert.operator, expected)
+    compare("Expression", received_value.to_s, assert.operator, expected.to_s)
+  end
+
+  def compare_to_source_id(assert)
+    resource = get_resource(assert.sourceId)
+    compare_to_resource = get_resource(assert.compareToSourceId)
+    raise AssertionException.new('CompareToSourceId: No resource given by sourceId.', :fail) unless resource
+    raise AssertionException.new('CompareToSourceId: No resource given by compareToSourceId.', :fail) unless compare_to_resource
+    
+    received = evaluate_expression(assert.expression, resource)
+    if !received.is_a?(Array)
+      received_value = received
+    elsif received.length == 0
+      raise AssertionException.new('CompareToSourceId: no value returned.', :fail)
+    elsif received.length > 1
+      raise AssertionException.new('CompareToSourceId: multiple values returned.', :fail)
+    else
+      received_value = received[0]
+    end
+    expected = evaluate_expression(assert.compareToSourceExpression, compare_to_resource)
+    if !expected.is_a?(Array)
+      expected_value = received
+    elsif expected.length == 0
+      raise AssertionException.new('CompareToSourceId: no expected value returned.', :fail)
+    elsif expected.length > 1
+      raise AssertionException.new('CompareToSourceId: multiple expected values returned.', :fail)
+    else
+      expected_value = expected[0]
+    end
+    compare("CompareToSourceId", received_value.to_s, assert.operator, expected_value.to_s)
   end
 
   def header_field(assert)
@@ -158,8 +194,6 @@ module Assertion
   end
 
   def validate_profile_id(assert)
-    raise AssertionException.new('No given sourceId.', :fail) unless assert.sourceId
-
     ext_validator_url = @options["ext_validator"]
     sourceId = assert.sourceId
     validateProfileId = assert.validateProfileId
