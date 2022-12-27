@@ -35,7 +35,7 @@ module TestReportHandler
   end
 
   def builder_template
-    @builder_template ||= TestReportBuilder.new(script)
+    @builder_template ||= TestReportBuilder.new(script, bound_variables)
   end
 
   # TODO: Remove!
@@ -82,6 +82,17 @@ module TestReportHandler
     end
   end
 
+  # A 'bound_variables' method ought to be defined in the klass
+  # that includes the handler - if 'bound_variables' is undefined,
+  # this feeds an empty hash to the builder
+  def bound_variables
+    begin
+      super
+    rescue NoMethodError
+      {}
+    end
+  end
+
   class TestReportBuilder
     attr_accessor :pass_count, :total_test_count, :actions
 
@@ -93,9 +104,9 @@ module TestReportHandler
       @report ||= FHIR::TestReport.new
     end
 
-    def initialize(testscript_blueprint = nil)
+    def initialize(testscript_blueprint = nil, bound_variables = {})
       add_boilerplate(testscript_blueprint)
-      add_input_extensions(testscript_blueprint)
+      add_input_extensions(testscript_blueprint, bound_variables)
       build_setup(testscript_blueprint.setup)
       build_test(testscript_blueprint.test)
       build_teardown(testscript_blueprint.teardown)
@@ -111,18 +122,17 @@ module TestReportHandler
       report.setup = FHIR::TestReport::Setup.new(action: actions)
     end
 
-    def add_input_extensions(setup_blueprint)
+    def add_input_extensions(setup_blueprint, bound_variables)
       return unless setup_blueprint
 
       # if any variables have a defaultValue defined
-      # and an extension indicating the defaultValue was overriden
+      # and have been bound
       # then add an extension with the input value
 
       setup_blueprint.variable.each { |script_variable|
         if (script_variable.defaultValue != nil)
-          has_default_value_overriden_ext = script_variable.extension.reduce(false) { |agg_has_override, one_ext| agg_has_override || one_ext.url == "urn:mitre:fhirfoundry:overridenDefaultValue" }
           
-          if (has_default_value_overriden_ext)
+          if (bound_variables[script_variable.name] != nil)
             input_ext = FHIR::Extension.new()
             input_ext.url = "urn:mitre:fhirfoundry:dynamicInput"
             input_ext_variable = FHIR::Extension.new()
@@ -131,7 +141,7 @@ module TestReportHandler
             input_ext.extension << input_ext_variable
             input_ext_value = FHIR::Extension.new()
             input_ext_value.url = "urn:mitre:fhirfoundry:dynamicInput:value"
-            input_ext_value.valueString = script_variable.defaultValue
+            input_ext_value.valueString = bound_variables[script_variable.name]
             input_ext.extension << input_ext_value
             report.extension << input_ext
           end

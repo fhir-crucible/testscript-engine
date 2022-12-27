@@ -183,11 +183,8 @@ class TestScriptEngine
       script.variable.each do |script_variable|
         available_variables.each do |substitution|
           if substitution.split("=").first == script_variable.name && script_variable.defaultValue != nil
-            original_value_extension = FHIR::Extension.new()
-            original_value_extension.url = "urn:mitre:fhirfoundry:overridenDefaultValue"
-            original_value_extension.valueString = script_variable.defaultValue
-            script_variable.extension << original_value_extension
-            script_bound_variables[script_variable.name] = substitution.split("=").last
+            input_value = substitution.split("=").last
+            script_bound_variables[script_variable.name] = input_value
           end
         end
       end
@@ -241,33 +238,38 @@ class TestScriptEngine
 
     summary_rows = [["id", "name", "title", "result", "inputs", "TestReport file"]]
 
-    reports.each do |report_key, report|
+    reports.each do |report|
+      next unless report
       report_filename = "#{execution_directory}/#{report.id}.json"
       File.open(report_filename, 'w') do |f|
         f.write(report.to_json)
       end
       runnable = runnables[report.testScript.display]
       report_inputs = TestReportHandler.get_testreport_inputs_string(report)
-      summary_rows << [runnable.script.id, runnable.script.name, """#{runnable.script.title}""", report.result]
+      summary_rows << [runnable.script.id, runnable.script.name, """#{runnable.script.title}""", report.result, """#{report_inputs}""", report_filename]
       if report.result == 'pass'
         pass_results << runnable.script.name
       else
-        fail_results << [runnable.script.name, report.score, report.result, """#{report_inputs}""", report_filename]
+        fail_results << [runnable.script.name, report.score]
       end
     
     end
 
     if options["summary_path"] != nil
       summary_path = File.join(Dir.getwd, options["summary_path"])
+      summary_filepath = File.join(summary_path, "execution_summary_#{report_time}.csv")
       FileUtils.mkdir_p summary_path
-      File.write(File.join(summary_path, "execution_summary_#{report_time}.csv"), summary_rows.map(&:to_csv).join)
+      File.write(summary_filepath, summary_rows.map(&:to_csv).join)
     end
 
     execution_results
     pass_execution_results(pass_results) unless pass_results.empty?
     fail_execution_results(fail_results) unless fail_results.empty?
     # todo: add sub folder and summary file pointers
-    see_reports(testreport_path)
+    see_reports(execution_directory)
+    if options["summary_path"] != nil
+      see_summary(summary_filepath)
+    end
 
   end
 end
