@@ -1,6 +1,6 @@
 {
-  "id": "basic_testreport",
-  "name": "basic_testreport",
+  "id": "[UUID]",
+  "name": "TestReport for basic_testscript",
   "status": "in-progress",
   "testScript": {
     "reference": "spec/examples/basic_testscript",
