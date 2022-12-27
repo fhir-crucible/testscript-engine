@@ -138,19 +138,46 @@ module Assertion
     raise AssertionException.new("Expression: Operator '#{assert.operator}' not supported in expression. Support only 'equals'", :fail) if assert.operator != nil && assert.operator != "equals"
 
     received = evaluate_expression(assert.expression, resource)
+    if !received.is_a?(Array)
+      received_value = received
+    elsif received.length == 0
+      raise AssertionException.new('Expression: no value returned.', :fail)
+    elsif received.length > 1
+      raise AssertionException.new('Expression: multiple values returned.', :fail)
+    else
+      received_value = received[0]
+    end
     expected = determine_expected_value(assert)
-    compare("Expression", received.to_s, assert.operator, expected.to_s)
+    compare("Expression", received_value.to_s, assert.operator, expected.to_s)
   end
 
   def compare_to_source_id(assert)
     resource = get_resource(assert.sourceId)
-    compare_to_source = get_resource(assert.compareToSourceId)
-    raise AssertionException.new('No resource given by sourceId.', :fail) unless resource
-    raise AssertionException.new('No resource given by compareToSourceId.', :fail) unless compare_to_source
-
+    compare_to_resource = get_resource(assert.compareToSourceId)
+    raise AssertionException.new('CompareToSourceId: No resource given by sourceId.', :fail) unless resource
+    raise AssertionException.new('CompareToSourceId: No resource given by compareToSourceId.', :fail) unless compare_to_resource
+    
     received = evaluate_expression(assert.expression, resource)
-    expected = determine_expected_value(assert)
-    compare("CompareToSourceId", received.to_s, assert.operator, expected.to_s)
+    if !received.is_a?(Array)
+      received_value = received
+    elsif received.length == 0
+      raise AssertionException.new('CompareToSourceId: no value returned.', :fail)
+    elsif received.length > 1
+      raise AssertionException.new('CompareToSourceId: multiple values returned.', :fail)
+    else
+      received_value = received[0]
+    end
+    expected = evaluate_expression(assert.compareToSourceExpression, compare_to_resource)
+    if !expected.is_a?(Array)
+      expected_value = received
+    elsif expected.length == 0
+      raise AssertionException.new('CompareToSourceId: no expected value returned.', :fail)
+    elsif expected.length > 1
+      raise AssertionException.new('CompareToSourceId: multiple expected values returned.', :fail)
+    else
+      expected_value = expected[0]
+    end
+    compare("CompareToSourceId", received_value.to_s, assert.operator, expected_value.to_s)
   end
 
   def header_field(assert)

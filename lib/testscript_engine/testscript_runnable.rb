@@ -299,12 +299,7 @@ class TestScriptRunnable
       
       if reply.response[:code].to_s.start_with? "2"
         result = JSON.parse(reply.response[:body].body)
-        if result.count != 1
-          msg = "Failed: FHIR Path returned (Array, #{result.count} children) and can't compare to value (String)"
-          raise AssertionException.new(msg, :fail)
-        end 
-
-        return result[0]["element"]
+        return result.map {|entry| entry["element"]}
       end
       print_out "External validator failed: " + reply.response[:code]
 

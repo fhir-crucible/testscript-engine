@@ -96,8 +96,8 @@
         {
           "assert": {
             "description": "Confirm Bundle.total.toInteger() >= entry.count()",
-            "expression": "Bundle.total.toInteger() >= entry.count()",
-            "value": "true",
+            "expression": "entry.count()",
+            "value": "5",
             "operator": "greaterThan",
             "sourceId": "fixture-patient-bundle",
             "warningOnly": false
