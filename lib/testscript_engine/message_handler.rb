@@ -65,6 +65,10 @@ module MessageHandler
     print_out messages(:see_reports, testreport_path)
   end
 
+  def see_summary(summary_filepath)
+    print_out messages(:see_summary, summary_filepath)
+  end
+
   def fail_execution_results(results)
     increase_space
     results.each do |result|
@@ -103,7 +107,7 @@ module MessageHandler
   end
 
   def run(*args)
-    print_out messages(:begin_runnable_execution, script.id)
+    print_out messages(:begin_runnable_execution, script.name)
     result = super
     puts
     print_out messages(:finish_runnable_execution)
@@ -381,6 +385,8 @@ module MessageHandler
         "Unable to load reference #{"[#{options[0]}] " unless options[0].nil?}from path [#{options[1]}] or fixtures folder. Encountered: [#{options[2]}]."
       when :see_reports
         "See more execution details in the TestReports at: [#{options[0]}]."
+      when :see_summary
+        "See execution summary in CSV at: [#{options[0]}]."
       when :uncaught_error
         "Uncaught error: [#{options[0]}]."
       when :validation_msg

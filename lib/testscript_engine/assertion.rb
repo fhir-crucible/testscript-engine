@@ -457,6 +457,8 @@ module Assertion
       runnable_copy.bound_variables[target_variable_name] = source_value
     }
 
+    runnable_copy.increase_space
+    runnable_copy.increase_space
     report = runnable_copy.run(client)
     engine.reports << report
     if report.result == 'fail'
