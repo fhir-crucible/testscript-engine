@@ -27,7 +27,7 @@ class TestScriptEngine
   end
 
   def reports
-    @reports ||= {}
+    @reports ||= []
   end
 
   def profiles
@@ -192,41 +192,26 @@ class TestScriptEngine
     return script
   end
 
-  # TODO: Clean-up, possibly modularize into a pretty_print type method
   # @runnable_name [String] Optional, specifies the id of the runnable to be
   #                       tested against the endpoint.
   def execute_runnables(runnable_name = nil)
-    pass_results = []
-    fail_results = []
-
+    
     if runnable_name
-      if runnables[runnable_name]
-        report = runnables[runnable_name].run(client)
-        if report.result == 'pass'
-          pass_results << runnable_name
-        else
-          fail_results << [runnable_name, report.score, report.result]
-        end
-        reports[runnable_name] = report
-      else
-        error(:unable_to_locate_runnable, runnable_name)
-      end
+      execute_one_runnable(runnable_name)
     else
-      runnables.each do |name, runnable|
-        report = runnable.run(client)
-        if report.result == 'pass'
-          pass_results << name
-        else
-          fail_results << [name, report.score, report.result]
-        end
-        reports[name] = report
+      runnables.each do |one_runnable_name, _|
+        execute_one_runnable(one_runnable_name)
       end
     end
 
-    execution_results
-    pass_execution_results(pass_results) unless pass_results.empty?
-    fail_execution_results(fail_results) unless fail_results.empty?
-    see_reports(testreport_path)
+  end
+
+  def execute_one_runnable(runnable_name)
+    if runnables[runnable_name]
+      reports << runnables[runnable_name].run(client)
+    else
+      error(:unable_to_locate_runnable, runnable_name)
+    end
   end
 
   def verify_runnable(runnable_name)
@@ -243,6 +228,9 @@ class TestScriptEngine
   # @path [String] Optional, specifies the path to the folder which the
   #                TestReport resources should be written to.
   def write_reports(path = nil)
+    pass_results = []
+    fail_results = []
+    
     report_time = DateTime.now.to_s
     report_directory = path || testreport_path
     execution_directory = File.join(report_directory, report_time)
@@ -255,9 +243,15 @@ class TestScriptEngine
       File.open(report_filename, 'w') do |f|
         f.write(report.to_json)
       end
-      test_script = runnables[report_key]
+      runnable = runnables[report.testScript.display]
       report_inputs = TestReportHandler.get_testreport_inputs_string(report)
-      summary_rows << [test_script.script.id, test_script.script.name, """#{test_script.script.title}""", report.result, """#{report_inputs}""", report_filename]
+      summary_rows << [runnable.script.id, runnable.script.name, """#{runnable.script.title}""", report.result]
+      if report.result == 'pass'
+        pass_results << runnable.script.name
+      else
+        fail_results << [runnable.script.name, report.score, report.result, """#{report_inputs}""", report_filename]
+      end
+    
     end
 
     if options["summary_path"] != nil
@@ -266,6 +260,11 @@ class TestScriptEngine
       File.write(File.join(summary_path, "execution_summary_#{report_time}.csv"), summary_rows.map(&:to_csv).join)
     end
 
+    execution_results
+    pass_execution_results(pass_results) unless pass_results.empty?
+    fail_execution_results(fail_results) unless fail_results.empty?
+    # todo: add sub folder and summary file pointers
+    see_reports(testreport_path)
 
   end
 end
