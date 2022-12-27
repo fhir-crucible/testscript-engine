@@ -10,7 +10,7 @@ class TestScriptRunnable
   prepend MessageHandler
   include TestReportHandler
 
-  attr_accessor :script, :client, :client_util, :reply, :get_fixture_block, :options, :available_profiles
+  attr_accessor :script, :client, :client_util, :reply, :get_fixture_block, :options, :available_profiles, :engine
 
   def id_map
     @id_map ||= {}
@@ -40,11 +40,12 @@ class TestScriptRunnable
     @autodelete_ids ||= []
   end
 
-  def initialize(script, block, options, available_profiles = nil)
+  def initialize(script, block, options, engine = nil, available_profiles = nil)
     self.get_fixture_block = block
     self.options = options
     self.client_util = FHIR::Client.new('')
     self.available_profiles = available_profiles
+    self.engine = engine
     @script = script
     load_fixtures
     load_profiles
