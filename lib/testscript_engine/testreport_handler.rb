@@ -203,7 +203,8 @@ module TestReportHandler
       report.name = "TestReport for " + testscript_blueprint.name
       report.testScript = FHIR::Reference.new({
         reference: testscript_blueprint.url,
-        type: "http://hl7.org/fhir/R4B/testscript.html"
+        type: "http://hl7.org/fhir/R4B/testscript.html",
+        display: testscript_blueprint.name
       })
     end
 
