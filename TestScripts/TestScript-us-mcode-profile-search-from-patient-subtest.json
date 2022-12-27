@@ -101,8 +101,8 @@
           "assert": {
             "description": "Assert Self Link URL Includes Search Parameters",
             "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
-            "warningOnly": false,
-            "expression": "link.where(relation = 'self').url.contains('code=http%3A%2F%2Fsnomed.info%2Fsct%7C398192003') and link.where(relation = 'self').url.contains('patient=Patient%2F${cancerPatientId}')",
+            "warningOnly": true,
+            "expression": "link.where(relation = 'self').url.contains('code=http%3A%2F%2Fsnomed.info%2Fsct%7C398192003') and link.where(relation = 'self').url.contains('patient=Patient%2F')",
             "value": "true"
           }
         },
@@ -111,7 +111,8 @@
             "description": "Assert At Least One Entry Returned",
             "label": "Assert_At_Least_One_Entry_Returned",
             "warningOnly": false,
-            "expression": "entry.count() > 0"
+            "expression": "entry.count() > 0",
+            "value": "true"
           }
         },
         {
@@ -137,7 +138,7 @@
                 ]
               }
             ],
-            "expression": "entry.where(resource is FHIR.Observation).resource.id",
+            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
             "warningOnly": false
           }
         }

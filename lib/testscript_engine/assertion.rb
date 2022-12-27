@@ -506,6 +506,16 @@ module Assertion
     raise AssertionException.new('No resource given by sourceId.', :fail) unless resource
 
     each_values = evaluate_expression(assert.expression, resource)
+    if (!each_values.is_a?(Array))
+      if (each_values == nil)
+        each_values = []
+      else
+        each_values = [each_values]
+      end
+    end
+    if (each_values.length == 0)
+      raise AssertionException.new('SubtestEach: expression returned no results.', :fail)
+    end
     results = []
     each_values.each { |one_value|
       next if one_value == nil
