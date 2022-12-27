@@ -120,6 +120,7 @@ The engine uses various algorithms to evaluate the results of previous operation
 * validateProfileId: Details rely on the validator used. Currently, the engine uses the [FHIR Crucible](https://github.com/fhir-crucible/fhir_models) FHIR validator logic by default. The engine can also be configured to use an external validator based on the [Inferno FHIR validator wrapper](https://github.com/inferno-community/fhir-validator-wrapper). 
 * expression: Details rely on the FHIRPath evaluator used. Currently, the engine uses the [Crucible FHIRPath evaluator](https://github.com/fhir-crucible/fhir_models) logic by default. The engine can also be configured to use an external validator based on the [Inferno FHIRPath evaluator](https://github.com/inferno-framework/fhir-validator-wrapper).
 
+* validateProfileId: Details rely on the validator used. Currently, the engine uses the [FHIR Crucible](https://github.com/fhir-crucible/fhir_models) FHIR validator logic by default. The engine can also be configured to use an external validator based on the [Inferno FHIR validator wrapper](https://github.com/inferno-community/fhir-validator-wrapper). 
 
 ## Limitations
 The TestScript Engine is still in the infancy of its development; it is neither fully complete nor bug-free and we encourage contributions, feedback, and issue-opening from the community. There are known gaps in the TestScript Engine:
