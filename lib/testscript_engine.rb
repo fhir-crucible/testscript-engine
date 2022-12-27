@@ -170,26 +170,29 @@ class TestScriptEngine
   def make_one_runnable(script, available_fixtures, available_variables)
     info(:creating_runnable, script.name)
     get_fixtures_closure = ->(fixture_name) { available_fixtures[fixture_name] }
-    script = dynamic_variable(script, available_variables) if script.variable && available_variables
-    return TestScriptRunnable.new(script, get_fixtures_closure, options, self, profiles)
-  rescue StandardError
+    script_bound_variables = get_bound_variables(script, available_variables)
+    return TestScriptRunnable.new(script, get_fixtures_closure, options, self, profiles, script_bound_variables)
+  rescue StandardError => e
     error(:unable_to_create_runnable, script.name)
     return nil
   end
 
-  def dynamic_variable(script, available_variables)
-    script.variable.each do |script_variable|
-      available_variables.each do |substitution|
-        if substitution.split("=").first == script_variable.name && script_variable.defaultValue != nil
-          original_value_extension = FHIR::Extension.new()
-          original_value_extension.url = "urn:mitre:fhirfoundry:overridenDefaultValue"
-          original_value_extension.valueString = script_variable.defaultValue
-          script_variable.extension << original_value_extension
-          script_variable.defaultValue = substitution.split("=").last
+  def get_bound_variables(script, available_variables)
+    script_bound_variables = {}
+    if script.variable && available_variables
+      script.variable.each do |script_variable|
+        available_variables.each do |substitution|
+          if substitution.split("=").first == script_variable.name && script_variable.defaultValue != nil
+            original_value_extension = FHIR::Extension.new()
+            original_value_extension.url = "urn:mitre:fhirfoundry:overridenDefaultValue"
+            original_value_extension.valueString = script_variable.defaultValue
+            script_variable.extension << original_value_extension
+            script_bound_variables[script_variable.name] = substitution.split("=").last
+          end
         end
       end
     end
-    return script
+    return script_bound_variables
   end
 
   # @runnable_name [String] Optional, specifies the id of the runnable to be

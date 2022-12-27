@@ -1,0 +1,69 @@
+{
+  "resourceType": "TestScript",
+  "id": "us-mcode-profile-search-from-patient-subtest",
+  "url": "https://github.com/fhir-crucible/testscript-generator/UsMcodeProfileSearchFromPatient",
+  "version": "0.1",
+  "name": "UsMcodeProfileSearchFromPatientSubTest",
+  "title": "Us Mcode Profile Search From Patient using Subtest",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-09-21T13:00:51-04:00",
+  "publisher": "The MITRE Corporation",
+  "contact": [
+    {
+      "name": "Karl Naden"
+    }
+  ],
+  "variable": [
+    {
+      "name": "cancerPatientId",
+      "defaultValue": "example",
+      "hint": "[resource.id]",
+      "description": "Enter a known cancer patient id on the destination system."
+    }
+  ],
+  "profile": [
+    {
+      "id": "mCodeCancerPatient",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-cancer-patient"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the Patient is a mCode CancerPatient",
+      "action": [
+        {
+          "assert": {
+            "label": "Execute_mCODE_patient_subtest",
+            "description": "Assert Patient Returned",
+            "extension": [
+              {
+                "url": "urn:mitre:fhirfoundry:subtest",
+                "extension": [
+                  {
+                    "url": "urn:mitre:fhirfoundry:subtest:name",
+                    "valueString": "UsMCODECancerPatientReadProfile"
+                  },
+                  {
+                    "url": "urn:mitre:fhirfoundry:subtest:bindVariable",
+                    "extension": [
+                      {
+                        "url": "urn:mitre:fhirfoundry:subtest:bindVariable:sourceVariable",
+                        "valueString": "cancerPatientId"
+                      },
+                      {
+                        "url": "urn:mitre:fhirfoundry:subtest:bindVariable:targetVariable",
+                        "valueString": "targetResourceIdCancerPatient"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ]
+}

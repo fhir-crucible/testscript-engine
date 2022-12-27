@@ -51,15 +51,23 @@ module Assertion
   def evaluate(assert, options)
     @direction = assert.direction
     @options = options
-    assert_elements = assert.to_hash.keys
-    assert_type = determine_assert_type(assert_elements)
+    assert_type = determine_assert_type(assert)
+
     outcome_message = send(assert_type.to_sym, assert)
     pass(:eval_assert_result, outcome_message)
   end
 
-  def determine_assert_type(all_elements)
-    assert_type = all_elements.detect { |elem| ASSERT_TYPES.include? elem }
+  def determine_assert_type(assert)
+    assert_type = check_assert_extensions(assert)
+    assert_type = assert.to_hash.keys.detect { |elem| ASSERT_TYPES.include? elem } if assert_type == nil
     return assert_type.split(ASSERT_TYPES_MATCHER).map(&:downcase).join('_')
+  end
+
+  def check_assert_extensions(assert)
+    if (assert.extension.length > 0 && assert.extension[0].url == "urn:mitre:fhirfoundry:subtest")
+      return "subtest"
+    end
+    return nil
   end
 
   def direction
@@ -450,5 +458,50 @@ module Assertion
     # This doesn't work on warningOnly; consider putting back in place
     # raise AssertionException.new("[#{resource_xpath}] resolved to multiple values instead of a single value", resource_element.to_s) if resource_element.length>1
     resource_element.first.value
+  end
+
+  def subtest(assert)
+    subtest_ext = assert.extension.find { |one_ext| one_ext.url == "urn:mitre:fhirfoundry:subtest"}
+    raise AssertionException.new("Missing subtest extension", :fail ) unless subtest_ext
+    testname_ext = subtest_ext.extension.find {|one_sub_ext| one_sub_ext.url == "urn:mitre:fhirfoundry:subtest:name"}
+    raise AssertionException.new("Missing subtest name extension", :fail ) unless testname_ext
+    binding_ext_list = subtest_ext.extension.select {|one_sub_ext| one_sub_ext.url == "urn:mitre:fhirfoundry:subtest:bindVariable"}
+    test_name = testname_ext.valueString
+
+    runnable = engine.runnables[test_name]
+    raise AssertionException.new("Runnable with name '#{test_name}' not loaded", :fail ) unless runnable
+    runnable_copy = runnable.clone
+    runnable_copy.bound_variables = runnable_copy.bound_variables.clone
+
+    # bind variables
+    binding_ext_list.each { |binding_ext|
+      
+      # get source value
+      source_ext = binding_ext.extension.find {|one_sub_ext| one_sub_ext.url == "urn:mitre:fhirfoundry:subtest:bindVariable:sourceVariable"}
+      raise AssertionException.new("Missing source variable extension for binding", :fail ) unless source_ext
+      source_variable_name = source_ext.valueString
+      source_variable = script.variable.find { |one_source_var| one_source_var.name == source_variable_name}
+      raise AssertionException.new("Missing source variable with name '#{source_variable_name}' in script '#{script.name}'", :fail ) unless source_variable
+      source_value = evaluate_variable(source_variable)
+      raise AssertionException.new("Missing value for variable with name '#{source_variable_id}' in script '#{script.name}'", :fail ) unless source_value
+    
+      # add to target binding
+      target_ext = binding_ext.extension.find {|one_sub_ext| one_sub_ext.url == "urn:mitre:fhirfoundry:subtest:bindVariable:targetVariable"}
+      raise AssertionException.new("Missing target variable extension for binding", :fail ) unless target_ext
+      target_variable_name = target_ext.valueString
+      target_variable = runnable_copy.script.variable.find { |one_target_var| one_target_var.name == target_variable_name }
+      raise AssertionException.new("Missing target variable with name '#{target_variable_name}' in script '#{test_name}'", :fail ) unless target_variable
+      runnable_copy.bound_variables[target_variable_name] = source_value
+    }
+
+    report = runnable_copy.run(client)
+    engine.reports << report
+    if report.result == 'fail'
+      raise AssertionException.new("subtest '#{testname_ext.valueString}' execution failed", :fail)
+    end
+
+
+    return "subtest '#{testname_ext.valueString}' execution succeeded"
+
   end
 end
