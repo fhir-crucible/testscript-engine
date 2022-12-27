@@ -180,9 +180,15 @@ class TestScriptEngine
   end
 
   def dynamic_variable(script)
-    script.variable.each do |v|
-      variable.each do |v2|
-        v.defaultValue = v2.split("=").last if v2.split("=").first == v.name && v.defaultValue != nil
+    script.variable.each do |script_variable|
+      variable.each do |substitution|
+        if substitution.split("=").first == script_variable.name && script_variable.defaultValue != nil
+          original_value_extension = FHIR::Extension.new()
+          original_value_extension.url = "urn:mitre:fhirfoundry:overridenDefaultValue"
+          original_value_extension.valueString = script_variable.defaultValue
+          script_variable.extension << original_value_extension
+          script_variable.defaultValue = substitution.split("=").last
+        end
       end
     end
     return script
@@ -244,7 +250,7 @@ class TestScriptEngine
     execution_directory = File.join(report_directory, report_time)
     FileUtils.mkdir_p execution_directory
 
-    summary_rows = [["id", "name", "title", "result", "TestReport file"]]
+    summary_rows = [["id", "name", "title", "result", "inputs", "TestReport file"]]
 
     reports.each do |report_key, report|
       report_filename = "#{execution_directory}/#{report.id}.json"
@@ -252,7 +258,8 @@ class TestScriptEngine
         f.write(report.to_json)
       end
       test_script = runnables[report_key]
-      summary_rows << [test_script.script.id, test_script.script.name, """#{test_script.script.title}""", report.result, report_filename]
+      report_inputs = TestReportHandler.get_testreport_inputs_string(report)
+      summary_rows << [test_script.script.id, test_script.script.name, """#{test_script.script.title}""", report.result, """#{report_inputs}""", report_filename]
     end
 
     if options["summary_path"] != nil
