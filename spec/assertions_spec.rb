@@ -19,6 +19,10 @@ class AssertionTestClass
   def evaluate_expression(input, resource)
     FHIRPath.evaluate(input, resource.to_hash)
   end
+
+  def replace_variables(value)
+    return value
+  end
 end
 
 describe Assertion do

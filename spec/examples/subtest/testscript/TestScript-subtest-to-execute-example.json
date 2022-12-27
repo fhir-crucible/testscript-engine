@@ -1,0 +1,51 @@
+{
+  "resourceType": "TestScript",
+  "id": "subtest-to-execute-example",
+  "url": "https://github.com/fhir-crucible/testscript-generator/SubtestToExecuteExample",
+  "version": "0.1",
+  "name": "SubtestToExecuteExample",
+  "title": "Subtest to execute example",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-27T13:00:51-04:00",
+  "publisher": "The MITRE Corporation",
+  "contact": [
+    {
+      "name": "Karl Naden"
+    }
+  ],
+  "variable": [
+    {
+      "name": "checkValue",
+      "defaultValue": "example",
+      "description": "value that will be compared"
+    }
+  ],
+  "fixture": [
+    {
+      "id": "notUsed",
+      "autocreate": false,
+      "autodelete": false,
+      "resource": {
+        "reference": "fixtures/example_patient.json"
+      }
+    }
+  ],
+  "test": [
+    {
+      "name": "string compare",
+      "action": [
+        {
+          "assert": {
+            "description": "compare received value",
+            "label": "compare_receiver_value",
+            "warningOnly": false,
+            "expression": "'Chalmers'",
+            "value": "${checkValue}",
+            "sourceId": "notUsed"
+          }
+        }
+      ]
+    }
+  ]
+}
