@@ -1,0 +1,138 @@
+{
+  "resourceType": "TestScript",
+  "id": "subtest-execution-example",
+  "url": "https://github.com/fhir-crucible/testscript-generator/SubtestExecutionExample",
+  "version": "0.1",
+  "name": "SubtestExecutionExample",
+  "title": "Subtest execution example",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-27T13:00:51-04:00",
+  "publisher": "The MITRE Corporation",
+  "contact": [
+    {
+      "name": "Karl Naden"
+    }
+  ],
+  "variable": [
+    {
+      "name": "directExecuteInput",
+      "defaultValue": "wrong",
+      "description": "value that will be compared on direct execution"
+    }
+  ],
+  "fixture": [
+    {
+      "id": "testPatient",
+      "autocreate": false,
+      "autodelete": false,
+      "resource": {
+        "reference": "fixtures/example_patient.json"
+      }
+    }
+  ],
+  "test": [
+    {
+      "name": "Direct subtest execution",
+      "action": [
+        {
+          "assert": {
+            "label": "Directly_execute",
+            "description": "Execute subtest directly",
+            "extension": [
+              {
+                "url": "urn:mitre:fhirfoundry:subtest",
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "SubtestToExecuteExample"
+                  },
+                  {
+                    "url": "bindVariable",
+                    "extension": [
+                      {
+                        "url": "bindSource",
+                        "valueString": "directExecuteInput"
+                      },
+                      {
+                        "url": "bindTarget",
+                        "valueString": "checkValue"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Each value subtest execution all required",
+      "action": [
+        {
+          "assert": {
+            "label": "Execute_subtest_on_list_of_values",
+            "description": "Execute_subtest_on_list_of_values",
+            "extension": [
+              {
+                "url": "urn:mitre:fhirfoundry:subtestEach",
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "SubtestToExecuteExample"
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "checkValue"
+                  },
+                  {
+                    "url": "passCriteria",
+                    "valueCode": "all"
+                  }
+                ]
+              }
+            ],
+            "expression": "name.family",
+            "sourceId": "testPatient",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Each value subtest execution one required",
+      "action": [
+        {
+          "assert": {
+            "label": "Execute_subtest_on_list_of_values",
+            "description": "Execute_subtest_on_list_of_values",
+            "extension": [
+              {
+                "url": "urn:mitre:fhirfoundry:subtestEach",
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "SubtestToExecuteExample"
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "checkValue"
+                  },
+                  {
+                    "url": "passCriteria",
+                    "valueCode": "one"
+                  }
+                ]
+              }
+            ],
+            "expression": "name.family",
+            "sourceId": "testPatient",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ]
+}

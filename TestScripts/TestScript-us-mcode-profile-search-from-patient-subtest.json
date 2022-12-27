@@ -35,24 +35,24 @@
         {
           "assert": {
             "label": "Execute_mCODE_patient_subtest",
-            "description": "Assert Patient Returned",
+            "description": "Subtest to check patient conformance",
             "extension": [
               {
                 "url": "urn:mitre:fhirfoundry:subtest",
                 "extension": [
                   {
-                    "url": "urn:mitre:fhirfoundry:subtest:name",
+                    "url": "testName",
                     "valueString": "UsMCODECancerPatientReadProfile"
                   },
                   {
-                    "url": "urn:mitre:fhirfoundry:subtest:bindVariable",
+                    "url": "bindVariable",
                     "extension": [
                       {
-                        "url": "urn:mitre:fhirfoundry:subtest:bindVariable:sourceVariable",
+                        "url": "bindSource",
                         "valueString": "cancerPatientId"
                       },
                       {
-                        "url": "urn:mitre:fhirfoundry:subtest:bindVariable:targetVariable",
+                        "url": "bindTarget",
                         "valueString": "targetResourceIdCancerPatient"
                       }
                     ]
@@ -60,6 +60,84 @@
                 ]
               }
             ],
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Check for Conformant Co-morbidities",
+      "action": [
+        {
+          "operation": {
+            "description": "Comorbidity Search",
+            "label": "Comorbidity_Search",
+            "type": {
+              "code": "search",
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes"
+            },
+            "resource": "Observation",
+            "encodeRequestUrl": false,
+            "params": "?patient=Patient%2F${cancerPatientId}&code=http%3A%2F%2Fsnomed.info%2Fsct%7C398192003",
+            "responseId": "comorbiditySearchBundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "warningOnly": false,
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Bundle Returned",
+            "label": "Assert_Bundle_Returned",
+            "warningOnly": false,
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "warningOnly": false,
+            "expression": "link.where(relation = 'self').url.contains('code=http%3A%2F%2Fsnomed.info%2Fsct%7C398192003') and link.where(relation = 'self').url.contains('patient=Patient%2F${cancerPatientId}')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert At Least One Entry Returned",
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "warningOnly": false,
+            "expression": "entry.count() > 0"
+          }
+        },
+        {
+          "assert": {
+            "label": "Execute_comborbitities_read_subtest",
+            "description": "Check comorbidity read and conformance",
+            "extension": [
+              {
+                "url": "urn:mitre:fhirfoundry:subtestEach",
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODEComorbiditiesReadProfile"
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdComorbidities"
+                  },
+                  {
+                    "url": "passCriteria",
+                    "valueCode": "all"
+                  }
+                ]
+              }
+            ],
+            "expression": "entry.where(resource is FHIR.Observation).resource.id",
             "warningOnly": false
           }
         }

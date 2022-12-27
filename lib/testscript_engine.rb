@@ -197,21 +197,26 @@ class TestScriptEngine
   def execute_runnables(runnable_name = nil)
     
     if runnable_name
-      execute_one_runnable(runnable_name)
+      execute_one_runnable_name(runnable_name)
     else
-      runnables.each do |one_runnable_name, _|
-        execute_one_runnable(one_runnable_name)
+      runnables.each do |_, one_runnable|
+        execute_one_runnable(one_runnable)
       end
     end
-
   end
 
-  def execute_one_runnable(runnable_name)
+  def execute_one_runnable_name(runnable_name)
     if runnables[runnable_name]
-      reports << runnables[runnable_name].run(client)
+      execute_one_runnable(runnables[runnable_name])
     else
       error(:unable_to_locate_runnable, runnable_name)
     end
+  end
+
+  def execute_one_runnable(runnable)
+    report = runnable.run(client)
+    reports << report
+    return report
   end
 
   def verify_runnable(runnable_name)
@@ -248,9 +253,9 @@ class TestScriptEngine
       report_inputs = TestReportHandler.get_testreport_inputs_string(report)
       summary_rows << [runnable.script.id, runnable.script.name, """#{runnable.script.title}""", report.result, """#{report_inputs}""", report_filename]
       if report.result == 'pass'
-        pass_results << runnable.script.name
+        pass_results << [runnable.script.name, report_inputs]
       else
-        fail_results << [runnable.script.name, report.score]
+        fail_results << [runnable.script.name, report_inputs, report.score]
       end
     
     end
