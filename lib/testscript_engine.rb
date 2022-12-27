@@ -158,30 +158,28 @@ class TestScriptEngine
   #                            given, all stored TestScript are by default
   #                            transformed into and stored as runnables.
   def make_runnables(script = nil)
-    get_fixtures = ->(fixture_name) { fixtures[fixture_name] }
-    
     if valid_testscript? script
-      info(:creating_runnable, script.name)
-      script = dynamic_variable(script) if script.variable && variable
-      runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options, profiles)
+      runnables[script.name] = make_one_runnable(script, fixtures, variable)
     else
-      scripts.each do |_name, script|
-        info(:creating_runnable, script.name)
-        begin
-          script = dynamic_variable(script) if script.variable && variable
-          runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options, profiles)
-        rescue StandardError
-          error(:unable_to_create_runnable, script.name)
-        end
+      scripts.each do |_, one_script|
+        runnables[one_script.name] = make_one_runnable(one_script, fixtures, variable)
       end
     end
-  rescue StandardError
-    error(:unable_to_create_runnable, script.name)
   end
 
-  def dynamic_variable(script)
+  def make_one_runnable(script, available_fixtures, available_variables)
+    info(:creating_runnable, script.name)
+    get_fixtures_closure = ->(fixture_name) { available_fixtures[fixture_name] }
+    script = dynamic_variable(script, available_variables) if script.variable && available_variables
+    return TestScriptRunnable.new(script, get_fixtures_closure, options, self, profiles)
+  rescue StandardError
+    error(:unable_to_create_runnable, script.name)
+    return nil
+  end
+
+  def dynamic_variable(script, available_variables)
     script.variable.each do |script_variable|
-      variable.each do |substitution|
+      available_variables.each do |substitution|
         if substitution.split("=").first == script_variable.name && script_variable.defaultValue != nil
           original_value_extension = FHIR::Extension.new()
           original_value_extension.url = "urn:mitre:fhirfoundry:overridenDefaultValue"
