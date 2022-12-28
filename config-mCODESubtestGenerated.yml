@@ -1,0 +1,52 @@
+# Whether to ignore non-FHIR fixtures
+nonfhir_fixture: true
+
+# Endpoint against which TestScripts will be executed
+server_url: https://hapi.fhir.org/baseR4
+
+# The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine
+testscript_path: TestScripts/multipleMCODE
+ 
+# Name of TestScript under TESTSCRIPT_PATH to be executed
+# If empty, all files under TESTSCRIPT_PATH will be executed
+testscript_name: UsMCODESearchAndReadProfilesFromRootPatient
+
+# Dynamic variables will replace defaultValue in variable in TestScript
+# Dynamic variables uniformly apply to all runnables. For example, if two TestScripts have same variable names, dynamic variable will apply to both of them.
+# Example: PatientResourceId1=var1changed
+variable: 
+  - rootus-mCODEIGPatientId=cancer-patient-jenny-m
+  - targetResourceIdCancerRelatedMedicationAdministration=TODO
+  - targetResourceIdCancerRelatedMedicationRequest=cancer-related-medication-request-paclitaxel-jenny-m
+  - targetResourceIdHumanSpecimen=tumor-specimen-left-breast-jenny-m
+  - targetResourceIdTumor=TODO
+
+# The relative to the directory containing the TestReports output following their partner TestScript execution
+# Files containing TestReport instances will be placed in a subfolder corresponding to the execution completion time
+testreport_path: "TestReports"
+
+# If specified, a summary report csv file named execution_summary_[timestamp].csv will be created within the specified relative folder
+# The file will include the id, name, and title of each TestScript executed along with the overall pass/fail result and the file containing the TestReport with details
+summary_path: "TestReports"
+
+# Whether use FHIR logger
+verbose: false
+
+# If specified, the url where the external validator can be reached. If not use the internal validator
+# Resource validator options:
+# - "internal" uses the ruby validator from the fhir_models gem
+#   https://github.com/fhir-crucible/fhir_models
+# - "external" uses the a web interface for the HL7 FHIR validator.
+#   https://github.com/inferno-community/fhir-validator-wrapper
+ext_validator: http://inferno.healthit.gov/validatorapi
+
+# If specified, the url where the external fhirpath will be used. If not use the internal fhirpath.
+ext_fhirpath: http://inferno.healthit.gov/validatorapi
+
+# List of locations holding profile StructureDefinitions to be used for profile validation
+# May be a web url, a relative file, or a relative directory (profiles in sub-directories not included)
+# StructureDefinitions loaded from this configuration setting take precedence over StructureDefinitions 
+# accessed from canonical URLs in TestScripts that resolve to StructureDefinitions. 
+# This allows for validation against unpublished versions of profiles.
+profile:
+  - Profiles/mCODE
