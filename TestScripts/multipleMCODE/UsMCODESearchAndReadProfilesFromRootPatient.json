@@ -6,7 +6,7 @@
   "title": "IG: us-mCODE; Case: Search and Read Profiles from Root Patient",
   "status": "draft",
   "experimental": true,
-  "date": "2022-12-28T00:14:51-05:00",
+  "date": "2022-12-28T09:02:02-05:00",
   "publisher": "The MITRE Corporation",
   "variable": [
     {
@@ -254,7 +254,7 @@
             ],
             "label": "Execute_Read_Subtest_on_PrimaryCancerCondition_instances",
             "description": "Execute Read Subtest on PrimaryCancerCondition instances",
-            "expression": "entry.where(fullUrl.contains('Condition')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Condition')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -329,7 +329,7 @@
             ],
             "label": "Execute_Read_Subtest_on_SecondaryCancerCondition_instances",
             "description": "Execute Read Subtest on SecondaryCancerCondition instances",
-            "expression": "entry.where(fullUrl.contains('Condition')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Condition')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -404,7 +404,7 @@
             ],
             "label": "Execute_Read_Subtest_on_CancerStageGroup_instances",
             "description": "Execute Read Subtest on CancerStageGroup instances",
-            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -479,7 +479,7 @@
             ],
             "label": "Execute_Read_Subtest_on_GenomicRegionStudied_instances",
             "description": "Execute Read Subtest on GenomicRegionStudied instances",
-            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -554,7 +554,7 @@
             ],
             "label": "Execute_Read_Subtest_on_TumorMarkerTest_instances",
             "description": "Execute Read Subtest on TumorMarkerTest instances",
-            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -629,7 +629,7 @@
             ],
             "label": "Execute_Read_Subtest_on_TNMStageGroup_instances",
             "description": "Execute Read Subtest on TNMStageGroup instances",
-            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -704,7 +704,7 @@
             ],
             "label": "Execute_Read_Subtest_on_KarnofskyPerformanceStatus_instances",
             "description": "Execute Read Subtest on KarnofskyPerformanceStatus instances",
-            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -779,7 +779,7 @@
             ],
             "label": "Execute_Read_Subtest_on_ECOGPerformanceStatus_instances",
             "description": "Execute Read Subtest on ECOGPerformanceStatus instances",
-            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -854,7 +854,7 @@
             ],
             "label": "Execute_Read_Subtest_on_Comorbidities_instances",
             "description": "Execute Read Subtest on Comorbidities instances",
-            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -929,7 +929,7 @@
             ],
             "label": "Execute_Read_Subtest_on_TNMDistantMetastasesCategory_instances",
             "description": "Execute Read Subtest on TNMDistantMetastasesCategory instances",
-            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -1004,7 +1004,7 @@
             ],
             "label": "Execute_Read_Subtest_on_CancerDiseaseStatus_instances",
             "description": "Execute Read Subtest on CancerDiseaseStatus instances",
-            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -1079,7 +1079,7 @@
             ],
             "label": "Execute_Read_Subtest_on_TumorSize_instances",
             "description": "Execute Read Subtest on TumorSize instances",
-            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -1154,7 +1154,7 @@
             ],
             "label": "Execute_Read_Subtest_on_TNMPrimaryTumorCategory_instances",
             "description": "Execute Read Subtest on TNMPrimaryTumorCategory instances",
-            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -1229,7 +1229,7 @@
             ],
             "label": "Execute_Read_Subtest_on_TNMRegionalNodesCategory_instances",
             "description": "Execute Read Subtest on TNMRegionalNodesCategory instances",
-            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -1304,7 +1304,7 @@
             ],
             "label": "Execute_Read_Subtest_on_GenomicVariant_instances",
             "description": "Execute Read Subtest on GenomicVariant instances",
-            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -1379,7 +1379,7 @@
             ],
             "label": "Execute_Read_Subtest_on_RadiotherapyVolume_instances",
             "description": "Execute Read Subtest on RadiotherapyVolume instances",
-            "expression": "entry.where(fullUrl.contains('BodyStructure')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('BodyStructure')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -1490,7 +1490,7 @@
             ],
             "label": "Execute_Read_Subtest_on_CancerRelatedSurgicalProcedure_instances",
             "description": "Execute Read Subtest on CancerRelatedSurgicalProcedure instances",
-            "expression": "entry.where(fullUrl.contains('Procedure')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Procedure')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -1565,7 +1565,7 @@
             ],
             "label": "Execute_Read_Subtest_on_RadiotherapyCourseSummary_instances",
             "description": "Execute Read Subtest on RadiotherapyCourseSummary instances",
-            "expression": "entry.where(fullUrl.contains('Procedure')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('Procedure')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
@@ -1640,7 +1640,7 @@
             ],
             "label": "Execute_Read_Subtest_on_GenomicsReport_instances",
             "description": "Execute Read Subtest on GenomicsReport instances",
-            "expression": "entry.where(fullUrl.contains('DiagnosticReport')).fullUrl.replaceMatches('.*/', '')",
+            "expression": "entry.where(fullUrl.contains('DiagnosticReport')).select(fullUrl.replaceMatches('.*/', ''))",
             "warningOnly": false
           }
         }
