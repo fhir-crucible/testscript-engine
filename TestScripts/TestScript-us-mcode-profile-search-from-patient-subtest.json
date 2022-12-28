@@ -101,8 +101,8 @@
           "assert": {
             "description": "Assert Self Link URL Includes Search Parameters",
             "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
-            "warningOnly": true,
-            "expression": "link.where(relation = 'self').url.contains('code=http%3A%2F%2Fsnomed.info%2Fsct%7C398192003') and link.where(relation = 'self').url.contains('patient=Patient%2F')",
+            "warningOnly": false,
+            "expression": "link.where(relation = 'self').url.contains('code=') and link.where(relation = 'self').url.contains('patient=')",
             "value": "true"
           }
         },
@@ -138,8 +138,8 @@
                 ]
               }
             ],
-            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')",
-            "warningOnly": false
+            "warningOnly": false,
+            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')"
           }
         }
       ]
