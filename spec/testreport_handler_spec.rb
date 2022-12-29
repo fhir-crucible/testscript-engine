@@ -96,7 +96,7 @@ describe TestReportHandler do
 
         it 'returns builder with report.setup' do
           builder = TestReportHandler::TestReportBuilder.new(@script)
-
+          builder.report.id = "[UUID]" # remove generated value
           expect(builder.report).to eq(@report_outline)
         end
       end
@@ -111,7 +111,7 @@ describe TestReportHandler do
 
         it 'returns builder with report.test' do
           builder = TestReportHandler::TestReportBuilder.new(@script)
-
+          builder.report.id = "[UUID]" # remove generated value
           expect(builder.report).to eq(@report_outline)
         end
       end
@@ -126,7 +126,7 @@ describe TestReportHandler do
 
         it 'returns builder with report.teardown' do
           builder = TestReportHandler::TestReportBuilder.new(@script)
-
+          builder.report.id = "[UUID]" # remove generated value
           expect(builder.report).to eq(@report_outline)
         end
       end
@@ -134,7 +134,7 @@ describe TestReportHandler do
       context 'with all script phases' do
         it 'returns builder with all report phases' do
           builder = TestReportHandler::TestReportBuilder.new(@script)
-
+          builder.report.id = "[UUID]" # remove generated value
           expect(builder.report).to eq(@report_outline)
         end
       end

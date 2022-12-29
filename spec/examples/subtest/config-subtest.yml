@@ -5,42 +5,17 @@ nonfhir_fixture: true
 server_url: https://hapi.fhir.org/baseR4
 
 # The relative path to the directory containing the TestScript resources (as JSON or XML) to be executed by the engine
-testscript_path: "TestScripts/multipleMCODE"
+testscript_path: spec/examples/subtest/testscript
  
 # Name of TestScript under TESTSCRIPT_PATH to be executed
 # If empty, all files under TESTSCRIPT_PATH will be executed
-testscript_name:
+testscript_name: SubtestExecutionExample
 
 # Dynamic variables will replace defaultValue in variable in TestScript
 # Dynamic variables uniformly apply to all runnables. For example, if two TestScripts have same variable names, dynamic variable will apply to both of them.
 # Example: PatientResourceId1=var1changed
 variable: 
-  - targetResourceIdCancerDiseaseStatus=cancer-disease-status-jenny-m
-  - targetResourceIdCancerPatient=cancer-patient-jenny-m
-  - targetResourceIdCancerRelatedMedicationAdministration=TODO
-  - targetResourceIdCancerRelatedMedicationRequest=cancer-related-medication-request-paclitaxel-jenny-m
-  - targetResourceIdCancerRelatedSurgicalProcedure=cancer-related-surgical-procedure-jenny-m
-  - targetResourceIdCancerStageGroup=TODO
-  - targetResourceIdComorbidities=cancer-related-comorbidities-jenny-m
-  - targetResourceIdECOGPerformanceStatus=ecog-performance-status-jenny-m
-  - targetResourceIdGenomicRegionStudied=genomic-region-studied-jenny-m
-  - targetResourceIdGenomicsReport=genomics-report-jenny-m
-  - targetResourceIdGenomicVariant=genomic-variant-jenny-m
-  - targetResourceIdHumanSpecimen=tumor-specimen-left-breast-jenny-m
-  - targetResourceIdKarnofskyPerformanceStatus=TODO
-  - targetResourceIdMCODEPatientBundle=TODO
-  - targetResourceIdMCODEPatientGroup=TODO
-  - targetResourceIdPrimaryCancerCondition=primary-cancer-condition-jenny-m
-  - targetResourceIdRadiotherapyCourseSummary=radiotherapy-treatment-summary-chest-wall-jenny-m
-  - targetResourceIdRadiotherapyVolume=TODO
-  - targetResourceIdSecondaryCancerCondition=TODO
-  - targetResourceIdTNMDistantMetastasesCategory=tnm-clinical-distant-metastases-category-jenny-m
-  - targetResourceIdTNMPrimaryTumorCategory=tnm-clinical-primary-tumor-category-jenny-m
-  - targetResourceIdTNMRegionalNodesCategory=tnm-pathologic-regional-nodes-category-jenny-m
-  - targetResourceIdTNMStageGroup=tnm-clinical-stage-group-jenny-m
-  - targetResourceIdTumorMarkerTest=tumor-marker-test-er-jenny-m
-  - targetResourceIdTumor=TODO
-  - targetResourceIdTumorSize=tumor-size-jenny-m
+  - directExecuteInput=Chalmers
 
 # The relative to the directory containing the TestReports output following their partner TestScript execution
 # Files containing TestReport instances will be placed in a subfolder corresponding to the execution completion time
@@ -59,7 +34,7 @@ verbose: false
 #   https://github.com/fhir-crucible/fhir_models
 # - "external" uses the a web interface for the HL7 FHIR validator.
 #   https://github.com/inferno-community/fhir-validator-wrapper
-ext_validator: http://inferno.healthit.gov/validatorapi
+ext_validator: 
 
 # If specified, the url where the external fhirpath will be used. If not use the internal fhirpath.
 ext_fhirpath: 
@@ -70,4 +45,3 @@ ext_fhirpath:
 # accessed from canonical URLs in TestScripts that resolve to StructureDefinitions. 
 # This allows for validation against unpublished versions of profiles.
 profile:
-  - Profiles/mCODE

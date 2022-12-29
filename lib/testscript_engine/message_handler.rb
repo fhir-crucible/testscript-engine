@@ -54,7 +54,7 @@ module MessageHandler
   def pass_execution_results(results)
     increase_space
     results.each do |result|
-      print_out messages(:pass_execution_result, result)
+      print_out messages(:pass_execution_result, *result)
     end
     puts
     decrease_space
@@ -63,6 +63,10 @@ module MessageHandler
   def see_reports(testreport_path)
     puts
     print_out messages(:see_reports, testreport_path)
+  end
+
+  def see_summary(summary_filepath)
+    print_out messages(:see_summary, summary_filepath)
   end
 
   def fail_execution_results(results)
@@ -103,7 +107,7 @@ module MessageHandler
   end
 
   def run(*args)
-    print_out messages(:begin_runnable_execution, script.id)
+    print_out messages(:begin_runnable_execution, script.name)
     result = super
     puts
     print_out messages(:finish_runnable_execution)
@@ -336,7 +340,7 @@ module MessageHandler
       when :execute_operation_error
         "Unable to execute operation. ERROR: [#{options[0]}]. [#{options[1]}]"
       when :fail_execution_result
-        "Execution of [#{options[0]}] failed with score: [#{options[1]}]."
+        "Execution of [#{options[0]}]#{" with inputs '#{options[1]}'" unless options[1] == ""} failed with score: [#{options[2]}]."
       when :finish_loading_scripts
         finish_message_format("LOADING INPUT")
       when :finish_preprocess
@@ -376,11 +380,13 @@ module MessageHandler
       when :pass_execute_operation
         "Executed Operation: [#{options[0]}]"
       when :pass_execution_result
-        "Execution of [#{options[0]}] passed."
+        "Execution of [#{options[0]}]#{" with inputs '#{options[1]}'" unless options[1] == ""} passed."
       when :unable_to_load_reference
         "Unable to load reference #{"[#{options[0]}] " unless options[0].nil?}from path [#{options[1]}] or fixtures folder. Encountered: [#{options[2]}]."
       when :see_reports
         "See more execution details in the TestReports at: [#{options[0]}]."
+      when :see_summary
+        "See execution summary in CSV at: [#{options[0]}]."
       when :uncaught_error
         "Uncaught error: [#{options[0]}]."
       when :validation_msg

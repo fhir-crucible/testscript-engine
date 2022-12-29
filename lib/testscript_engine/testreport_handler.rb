@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'securerandom'
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                                                               #
@@ -34,7 +35,7 @@ module TestReportHandler
   end
 
   def builder_template
-    @builder_template ||= TestReportBuilder.new(script)
+    @builder_template ||= TestReportBuilder.new(script, bound_variables)
   end
 
   # TODO: Remove!
@@ -81,6 +82,17 @@ module TestReportHandler
     end
   end
 
+  # A 'bound_variables' method ought to be defined in the klass
+  # that includes the handler - if 'bound_variables' is undefined,
+  # this feeds an empty hash to the builder
+  def bound_variables
+    begin
+      super
+    rescue NoMethodError
+      {}
+    end
+  end
+
   class TestReportBuilder
     attr_accessor :pass_count, :total_test_count, :actions
 
@@ -92,8 +104,9 @@ module TestReportHandler
       @report ||= FHIR::TestReport.new
     end
 
-    def initialize(testscript_blueprint = nil)
+    def initialize(testscript_blueprint = nil, bound_variables = {})
       add_boilerplate(testscript_blueprint)
+      add_input_extensions(testscript_blueprint, bound_variables)
       build_setup(testscript_blueprint.setup)
       build_test(testscript_blueprint.test)
       build_teardown(testscript_blueprint.teardown)
@@ -107,6 +120,35 @@ module TestReportHandler
 
       actions = setup_blueprint.action.map { |action| build_action(action) }
       report.setup = FHIR::TestReport::Setup.new(action: actions)
+    end
+
+    def add_input_extensions(setup_blueprint, bound_variables)
+      return unless setup_blueprint
+
+      # if any variables have a defaultValue defined
+      # and have been bound
+      # then add an extension with the input value
+
+      setup_blueprint.variable.each { |script_variable|
+        if (script_variable.defaultValue != nil)
+          
+          if (bound_variables[script_variable.name] != nil)
+            input_ext = FHIR::Extension.new()
+            input_ext.url = "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/dynamic-input"
+            input_ext_variable = FHIR::Extension.new()
+            input_ext_variable.url = "variableName"
+            input_ext_variable.valueString = script_variable.name
+            input_ext.extension << input_ext_variable
+            input_ext_value = FHIR::Extension.new()
+            input_ext_value.url = "value"
+            input_ext_value.valueString = bound_variables[script_variable.name]
+            input_ext.extension << input_ext_value
+            report.extension << input_ext
+          end
+        
+        end
+
+      }
     end
 
     def build_test(test_blueprint)
@@ -167,11 +209,12 @@ module TestReportHandler
       report.result = 'pending'
       report.status = 'in-progress'
       report.tester = 'The MITRE Corporation'
-      report.id = testscript_blueprint.id&.gsub(/(?i)testscript/, 'testreport')
-      report.name = testscript_blueprint.name&.gsub(/(?i)testscript/, 'testreport')
+      report.id = SecureRandom.uuid
+      report.name = "TestReport for " + testscript_blueprint.name
       report.testScript = FHIR::Reference.new({
         reference: testscript_blueprint.url,
-        type: "http://hl7.org/fhir/R4B/testscript.html"
+        type: "TestScript",
+        display: testscript_blueprint.name
       })
     end
 
@@ -243,5 +286,75 @@ module TestReportHandler
         clone.store_action(action.operation || action.assert)
       end
     end
+
+    def self.get_testreport_inputs_string(test_report)
+      inputs_string = ""
+      
+      report.extension.each { |one_ext| 
+        if (one_ext.url == "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/dynamic-input")
+          variable_name_ext = one_ext.extension.find { |one_sub_ext| one_sub_ext.url == "variableName" }
+          variable_value_ext = one_ext.extension.find { |one_sub_ext| one_sub_ext.url == "value" }
+          if (variable_name_ext && variable_value_ext)
+            inputs_string = "#{inputs_string}#{"; " unless inputs_string == ""}#{variable_name_ext.valueString}=#{variable_value_ext.valueString}"
+          end
+        end
+      }
+
+      return inputs_string
+    end
+
+
   end
+
+  def self.get_testreport_inputs_string(test_report)
+    inputs_string = ""
+    
+    test_report.extension.each { |one_ext| 
+      if (one_ext.url == "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/dynamic-input")
+        variable_name_ext = one_ext.extension.find { |one_sub_ext| one_sub_ext.url == "variableName" }
+        variable_value_ext = one_ext.extension.find { |one_sub_ext| one_sub_ext.url == "value" }
+        if (variable_name_ext && variable_value_ext)
+          inputs_string = "#{inputs_string}#{"; " unless inputs_string == ""}#{variable_name_ext.valueString}=#{variable_value_ext.valueString}"
+        end
+      end
+    }
+
+    return inputs_string
+  end
+
+
+  def self.add_testreport_executed_as_subtest_ext(test_report, subtest_execution)
+    subtest_ext = FHIR::Extension.new()
+    subtest_ext.url = "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/executed-as-subtest"
+    subtest_ext.valueBoolean = subtest_execution
+    test_report.extension << subtest_ext
+  end
+
+  def self.add_testreport_must_pass_ext(test_report, must_pass)
+    subtest_must_pass_ext = FHIR::Extension.new()
+    subtest_must_pass_ext.url = "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/executed-as-subtest-must-pass"
+    subtest_must_pass_ext.valueBoolean = must_pass
+    test_report.extension << subtest_must_pass_ext
+  end
+
+  def self.testreport_executed_as_subtest?(test_report)
+    test_report.extension.reduce(false) { |ag, one_ext| 
+      if one_ext.url == "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/executed-as-subtest" 
+        one_ext.valueBoolean
+      else 
+        ag
+      end
+    }
+  end
+
+  def self.testreport_must_pass?(test_report)
+    test_report.extension.reduce(true) { |ag, one_ext| 
+      if one_ext.url == "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/executed-as-subtest-must-pass" 
+        one_ext.valueBoolean
+      else 
+        ag
+      end
+    }
+  end
+
 end

@@ -1,0 +1,1651 @@
+{
+  "id": "881aefd1dd7e25411f4598e7374b2bc0a7d4a7d9d2db99810907127f8a35d4d1",
+  "url": "https://github.com/fhir-crucible/testscript-generator/881aefd1dd7e25411f4598e7374b2bc0a7d4a7d9d2db99810907127f8a35d4d1",
+  "version": "0.0",
+  "name": "UsMCODESearchAndReadProfilesFromRootPatient",
+  "title": "IG: us-mCODE; Case: Search and Read Profiles from Root Patient",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-12-29T09:02:31-05:00",
+  "publisher": "The MITRE Corporation",
+  "variable": [
+    {
+      "name": "rootus-mCODEIGPatientId",
+      "defaultValue": "example",
+      "description": "Enter a known us-mCODE IG patient id on the destination system.",
+      "hint": "[resource.id]"
+    },
+    {
+      "name": "targetResourceIdCancerRelatedMedicationRequest",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile CancerRelatedMedicationRequest.",
+      "hint": "[resource.id]"
+    },
+    {
+      "name": "targetResourceIdHumanSpecimen",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile HumanSpecimen.",
+      "hint": "[resource.id]"
+    },
+    {
+      "name": "targetResourceIdCancerRelatedMedicationAdministration",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile CancerRelatedMedicationAdministration.",
+      "hint": "[resource.id]"
+    },
+    {
+      "name": "targetResourceIdTumor",
+      "defaultValue": "example",
+      "description": "Enter a known instance id on the destination system. Will be checked for conformance against profile Tumor.",
+      "hint": "[resource.id]"
+    }
+  ],
+  "test": [
+    {
+      "name": "Check root patient is conformant",
+      "action": [
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODECancerPatientReadProfile"
+                  },
+                  {
+                    "extension": [
+                      {
+                        "url": "bindSource",
+                        "valueString": "rootus-mCODEIGPatientId"
+                      },
+                      {
+                        "url": "bindTarget",
+                        "valueString": "targetResourceIdCancerPatient"
+                      }
+                    ],
+                    "url": "bindVariable"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest"
+              }
+            ],
+            "label": "Execute_Patient_Read_Subtest",
+            "description": "Execute Patient Read Subtest",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Check a specified instance of CancerRelatedMedicationRequest",
+      "action": [
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODECancerRelatedMedicationRequestReadProfile"
+                  },
+                  {
+                    "extension": [
+                      {
+                        "url": "bindSource",
+                        "valueString": "targetResourceIdCancerRelatedMedicationRequest"
+                      },
+                      {
+                        "url": "bindTarget",
+                        "valueString": "targetResourceIdCancerRelatedMedicationRequest"
+                      }
+                    ],
+                    "url": "bindVariable"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest"
+              }
+            ],
+            "label": "Execute_CancerRelatedMedicationRequest_Read_Subtest",
+            "description": "Execute CancerRelatedMedicationRequest Read Subtest",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Check a specified instance of HumanSpecimen",
+      "action": [
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODEHumanSpecimenReadProfile"
+                  },
+                  {
+                    "extension": [
+                      {
+                        "url": "bindSource",
+                        "valueString": "targetResourceIdHumanSpecimen"
+                      },
+                      {
+                        "url": "bindTarget",
+                        "valueString": "targetResourceIdHumanSpecimen"
+                      }
+                    ],
+                    "url": "bindVariable"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest"
+              }
+            ],
+            "label": "Execute_HumanSpecimen_Read_Subtest",
+            "description": "Execute HumanSpecimen Read Subtest",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Check a specified instance of CancerRelatedMedicationAdministration",
+      "action": [
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODECancerRelatedMedicationAdministrationReadProfile"
+                  },
+                  {
+                    "extension": [
+                      {
+                        "url": "bindSource",
+                        "valueString": "targetResourceIdCancerRelatedMedicationAdministration"
+                      },
+                      {
+                        "url": "bindTarget",
+                        "valueString": "targetResourceIdCancerRelatedMedicationAdministration"
+                      }
+                    ],
+                    "url": "bindVariable"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest"
+              }
+            ],
+            "label": "Execute_CancerRelatedMedicationAdministration_Read_Subtest",
+            "description": "Execute CancerRelatedMedicationAdministration Read Subtest",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for PrimaryCancerCondition instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Condition",
+            "label": "PrimaryCancerCondition_Search",
+            "description": "PrimaryCancerCondition Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&category=http://snomed.info/sct|372087000"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('category=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODEPrimaryCancerConditionReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": true
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdPrimaryCancerCondition"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_PrimaryCancerCondition_instances",
+            "description": "Execute Read Subtest on PrimaryCancerCondition instances",
+            "expression": "entry.where(fullUrl.contains('Condition')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for SecondaryCancerCondition instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Condition",
+            "label": "SecondaryCancerCondition_Search",
+            "description": "SecondaryCancerCondition Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&category=http://snomed.info/sct|128462008"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('category=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODESecondaryCancerConditionReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": true
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdSecondaryCancerCondition"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_SecondaryCancerCondition_instances",
+            "description": "Execute Read Subtest on SecondaryCancerCondition instances",
+            "expression": "entry.where(fullUrl.contains('Condition')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for CancerStageGroup instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "label": "CancerStageGroup_Search",
+            "description": "CancerStageGroup Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&category=http://snomed.info/sct|385356007"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('category=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODECancerStageGroupReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": false
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdCancerStageGroup"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_CancerStageGroup_instances",
+            "description": "Execute Read Subtest on CancerStageGroup instances",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for GenomicRegionStudied instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "label": "GenomicRegionStudied_Search",
+            "description": "GenomicRegionStudied Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&code=http://loinc.org|53041-0"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('code=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODEGenomicRegionStudiedReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": true
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdGenomicRegionStudied"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_GenomicRegionStudied_instances",
+            "description": "Execute Read Subtest on GenomicRegionStudied instances",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for TumorMarkerTest instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "label": "TumorMarkerTest_Search",
+            "description": "TumorMarkerTest Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&category=http://snomed.info/sct|250724005"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('category=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODETumorMarkerTestReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": true
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdTumorMarkerTest"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_TumorMarkerTest_instances",
+            "description": "Execute Read Subtest on TumorMarkerTest instances",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for TNMStageGroup instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "label": "TNMStageGroup_Search",
+            "description": "TNMStageGroup Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&category=http://snomed.info/sct|385356007"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('category=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODETNMStageGroupReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": false
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdTNMStageGroup"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_TNMStageGroup_instances",
+            "description": "Execute Read Subtest on TNMStageGroup instances",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for KarnofskyPerformanceStatus instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "label": "KarnofskyPerformanceStatus_Search",
+            "description": "KarnofskyPerformanceStatus Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&code=http://loinc.org|89243-0"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('code=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODEKarnofskyPerformanceStatusReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": true
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdKarnofskyPerformanceStatus"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_KarnofskyPerformanceStatus_instances",
+            "description": "Execute Read Subtest on KarnofskyPerformanceStatus instances",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for ECOGPerformanceStatus instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "label": "ECOGPerformanceStatus_Search",
+            "description": "ECOGPerformanceStatus Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&code=http://loinc.org|89247-1"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('code=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODEECOGPerformanceStatusReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": true
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdECOGPerformanceStatus"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_ECOGPerformanceStatus_instances",
+            "description": "Execute Read Subtest on ECOGPerformanceStatus instances",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for Comorbidities instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "label": "Comorbidities_Search",
+            "description": "Comorbidities Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&code=http://snomed.info/sct|398192003"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('code=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODEComorbiditiesReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": true
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdComorbidities"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_Comorbidities_instances",
+            "description": "Execute Read Subtest on Comorbidities instances",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for TNMDistantMetastasesCategory instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "label": "TNMDistantMetastasesCategory_Search",
+            "description": "TNMDistantMetastasesCategory Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&category=http://snomed.info/sct|385356007"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('category=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODETNMDistantMetastasesCategoryReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": false
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdTNMDistantMetastasesCategory"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_TNMDistantMetastasesCategory_instances",
+            "description": "Execute Read Subtest on TNMDistantMetastasesCategory instances",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for CancerDiseaseStatus instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "label": "CancerDiseaseStatus_Search",
+            "description": "CancerDiseaseStatus Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&code=http://loinc.org|97509-4"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('code=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODECancerDiseaseStatusReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": true
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdCancerDiseaseStatus"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_CancerDiseaseStatus_instances",
+            "description": "Execute Read Subtest on CancerDiseaseStatus instances",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for TumorSize instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "label": "TumorSize_Search",
+            "description": "TumorSize Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&code=http://loinc.org|21889-1"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('code=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODETumorSizeReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": true
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdTumorSize"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_TumorSize_instances",
+            "description": "Execute Read Subtest on TumorSize instances",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for TNMPrimaryTumorCategory instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "label": "TNMPrimaryTumorCategory_Search",
+            "description": "TNMPrimaryTumorCategory Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&category=http://snomed.info/sct|385356007"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('category=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODETNMPrimaryTumorCategoryReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": false
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdTNMPrimaryTumorCategory"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_TNMPrimaryTumorCategory_instances",
+            "description": "Execute Read Subtest on TNMPrimaryTumorCategory instances",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for TNMRegionalNodesCategory instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "label": "TNMRegionalNodesCategory_Search",
+            "description": "TNMRegionalNodesCategory Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&category=http://snomed.info/sct|385356007"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('category=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODETNMRegionalNodesCategoryReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": false
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdTNMRegionalNodesCategory"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_TNMRegionalNodesCategory_instances",
+            "description": "Execute Read Subtest on TNMRegionalNodesCategory instances",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for GenomicVariant instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "label": "GenomicVariant_Search",
+            "description": "GenomicVariant Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&code=http://loinc.org|69548-6"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('code=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODEGenomicVariantReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": true
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdGenomicVariant"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_GenomicVariant_instances",
+            "description": "Execute Read Subtest on GenomicVariant instances",
+            "expression": "entry.where(fullUrl.contains('Observation')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for RadiotherapyVolume instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "BodyStructure",
+            "label": "RadiotherapyVolume_Search",
+            "description": "RadiotherapyVolume Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODERadiotherapyVolumeReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": false
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdRadiotherapyVolume"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_RadiotherapyVolume_instances",
+            "description": "Execute Read Subtest on RadiotherapyVolume instances",
+            "expression": "entry.where(fullUrl.contains('BodyStructure')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Check a specified instance of Tumor",
+      "action": [
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODETumorReadProfile"
+                  },
+                  {
+                    "extension": [
+                      {
+                        "url": "bindSource",
+                        "valueString": "targetResourceIdTumor"
+                      },
+                      {
+                        "url": "bindTarget",
+                        "valueString": "targetResourceIdTumor"
+                      }
+                    ],
+                    "url": "bindVariable"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest"
+              }
+            ],
+            "label": "Execute_Tumor_Read_Subtest",
+            "description": "Execute Tumor Read Subtest",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for CancerRelatedSurgicalProcedure instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Procedure",
+            "label": "CancerRelatedSurgicalProcedure_Search",
+            "description": "CancerRelatedSurgicalProcedure Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&category=http://snomed.info/sct|387713003"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('category=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODECancerRelatedSurgicalProcedureReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": false
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdCancerRelatedSurgicalProcedure"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_CancerRelatedSurgicalProcedure_instances",
+            "description": "Execute Read Subtest on CancerRelatedSurgicalProcedure instances",
+            "expression": "entry.where(fullUrl.contains('Procedure')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for RadiotherapyCourseSummary instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Procedure",
+            "label": "RadiotherapyCourseSummary_Search",
+            "description": "RadiotherapyCourseSummary Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&code=mcode-radiotherapy-course-summary"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('code=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODERadiotherapyCourseSummaryReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": true
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdRadiotherapyCourseSummary"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_RadiotherapyCourseSummary_instances",
+            "description": "Execute Read Subtest on RadiotherapyCourseSummary instances",
+            "expression": "entry.where(fullUrl.contains('Procedure')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search for GenomicsReport instances and read each",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "DiagnosticReport",
+            "label": "GenomicsReport_Search",
+            "description": "GenomicsReport Search",
+            "encodeRequestUrl": true,
+            "params": "?patient=${rootus-mCODEIGPatientId}&code=http://loinc.org|81247-9"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_response_OK",
+            "description": "Assert response OK",
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Bundle_Returned",
+            "description": "Assert Bundle Returned",
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "expression": "link.where(relation = 'self').url.contains('patient=') and link.where(relation = 'self').url.contains('code=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "description": "Assert At Least One Entry Returned",
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "extension": [
+              {
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODEGenomicsReportReadProfile"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": true
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdGenomicsReport"
+                  }
+                ],
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
+              }
+            ],
+            "label": "Execute_Read_Subtest_on_GenomicsReport_instances",
+            "description": "Execute Read Subtest on GenomicsReport instances",
+            "expression": "entry.where(fullUrl.contains('DiagnosticReport')).select(fullUrl.replaceMatches('.*/', ''))",
+            "warningOnly": false
+          }
+        }
+      ]
+    }
+  ],
+  "resourceType": "TestScript"
+}

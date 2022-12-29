@@ -51,15 +51,25 @@ module Assertion
   def evaluate(assert, options)
     @direction = assert.direction
     @options = options
-    assert_elements = assert.to_hash.keys
-    assert_type = determine_assert_type(assert_elements)
+    assert_type = determine_assert_type(assert)
+
     outcome_message = send(assert_type.to_sym, assert)
     pass(:eval_assert_result, outcome_message)
   end
 
-  def determine_assert_type(all_elements)
-    assert_type = all_elements.detect { |elem| ASSERT_TYPES.include? elem }
+  def determine_assert_type(assert)
+    assert_type = check_assert_extensions(assert)
+    assert_type = assert.to_hash.keys.detect { |elem| ASSERT_TYPES.include? elem } if assert_type == nil
     return assert_type.split(ASSERT_TYPES_MATCHER).map(&:downcase).join('_')
+  end
+
+  def check_assert_extensions(assert)
+    if (assert.extension.length > 0 && assert.extension[0].url == "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest")
+      return "subtest"
+    elsif (assert.extension.length > 0 && assert.extension[0].url == "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each")
+        return "subtestEach"
+    end
+    return nil
   end
 
   def direction
@@ -68,7 +78,7 @@ module Assertion
 
   def determine_expected_value(assert)
     if assert.value
-      assert.value
+      replace_variables(assert.value)
     elsif assert.compareToSourceExpression
       evaluate_expression(assert.compareToSourceExpression, get_resource(assert.compareToSourceId))
     elsif assert.compareToSourcePath
@@ -194,6 +204,7 @@ module Assertion
   end
 
   def validate_profile_id(assert)
+
     ext_validator_url = @options["ext_validator"]
     sourceId = assert.sourceId
     validateProfileId = assert.validateProfileId
@@ -201,12 +212,15 @@ module Assertion
 
     if ext_validator_url == nil #Run internal validator
       print_out " validateProfileId: trying the Ruby Crucible validator"
-      outcome = profile.validates_resource?(get_resource(sourceId))
+      validation_issues = profile.validate_resource(get_resource(sourceId))
+      passed = validation_issues.empty?
+      
 
-      if outcome
-        return " As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
+      if validation_issues.empty?
+        return "#{sourceId ? "Fixture '#{sourceId}'" : "The last response"} conforms to profile '#{validateProfileId}'."
       else
-        fail_message = " Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
+        message = validation_issues.reduce("") { |ag_text, one_issue| "#{ag_text}#{";" unless ag_text == ""} #{one_issue}" }
+        fail_message = "#{sourceId ? "Fixture '#{sourceId}'" : "The last response"} does not conform to profile '#{validateProfileId}'.#{message ? " Details -#{message}" : ""}"
         raise AssertionException.new(fail_message, :fail)
       end
 
@@ -220,10 +234,13 @@ module Assertion
       reply = client_util.send(:post, path, get_resource(sourceId), { 'Content-Type' => 'json' })
 
       if reply.response[:code].start_with?("2")
-        if JSON.parse(reply.response[:body].body)["issue"][0]["severity"] != "error"
-          return "As expected, fixture '#{sourceId}' conforms to profile: '#{validateProfileId}'"
+        result = FHIR.from_contents(reply.response[:body].body)
+        passed = result.issue.reduce(true) { |pass_ag, one_issue| pass_ag && (one_issue.severity != "error")}
+        message = external_result_to_string(result)
+        if passed
+          return "#{sourceId ? "Fixture '#{sourceId}'" : "The last response"} conforms to profile '#{validateProfileId}'.#{message ? " Details -#{message}" : ""}"
         else
-          fail_message = "Failed, fixture '#{sourceId}' doesn't conform to profile: '#{validateProfileId}'"
+          fail_message = "#{sourceId ? "Fixture '#{sourceId}'" : "The last response"} does not conform to profile '#{validateProfileId}'.#{message ? " Details -#{message}" : ""}"
           raise AssertionException.new(fail_message, :fail)
         end        
       else
@@ -231,6 +248,33 @@ module Assertion
         raise AssertionException.new(fail_message, :fail)
       end
 
+    end
+  end
+
+  def external_result_to_string(result)
+    result.issue.reduce("") { |ag_text, one_issue| "#{ag_text}#{";" unless ag_text == ""} #{issue_to_string(one_issue)}" }
+  end
+
+  def issue_to_string(issue)
+    location = get_issue_location(issue)
+    
+    "#{issue.severity}#{location}: #{issue.details.text}"
+  end
+
+  def get_issue_location(issue)
+    line_extension = issue.extension.find { |ext| ext.url == "http://hl7.org/fhir/StructureDefinition/operationoutcome-issue-line"}
+    column_extension = issue.extension.find { |ext| ext.url == "http://hl7.org/fhir/StructureDefinition/operationoutcome-issue-col"}
+    
+    prefix = "at"
+    expression = issue.expression.length > 0 ? " #{issue.expression[0]}" : ""
+    line = line_extension ? " Line #{line_extension.valueInteger.to_s}" : ""
+    column = column_extension ? " Col #{column_extension.valueInteger.to_s}" : ""
+    suffix = expression + line + column
+    
+    if suffix
+      return " at" + suffix
+    else
+      return ""
     end
   end
 
@@ -417,4 +461,138 @@ module Assertion
     # raise AssertionException.new("[#{resource_xpath}] resolved to multiple values instead of a single value", resource_element.to_s) if resource_element.length>1
     resource_element.first.value
   end
+
+  def subtest(assert)
+    print_out "Begin subtest execution"
+    subtest_ext = assert.extension.find { |one_ext| one_ext.url == "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest"}
+    raise AssertionException.new("Missing subtest extension", :fail ) unless subtest_ext
+    
+    target_runnable = subtest_get_runnable(subtest_ext)
+    subtest_bound_variables = subtest_get_bound_variables(subtest_ext, target_runnable)
+
+    result_report = subtest_run_one(target_runnable, subtest_bound_variables)
+    if result_report.result == 'fail'
+      raise AssertionException.new("subtest '#{target_runnable.script.name}' execution failed", :fail)
+    end
+    return "subtest '#{target_runnable.script.name}' execution succeeded"
+
+  end
+
+  def subtest_each(assert)
+    print_out "Begin multiple subtest execution"
+    
+    subtest_each_ext = assert.extension.find { |one_ext| one_ext.url == "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"}
+    raise AssertionException.new("Missing subtest extension", :fail ) unless subtest_each_ext
+    target_runnable = subtest_get_runnable(subtest_each_ext)
+    subtest_bound_variables = subtest_get_bound_variables(subtest_each_ext, target_runnable)
+
+    # target variable for expression results
+    each_target_ext = subtest_each_ext.extension.find {|one_sub_ext| one_sub_ext.url == "bindEachTarget"}
+    raise AssertionException.new("Missing binding target extension for expression value", :fail ) unless each_target_ext
+    each_target_variable_name = each_target_ext.valueString
+    each_target_variable = target_runnable.script.variable.find { |one_target_var| one_target_var.name == each_target_variable_name }
+    raise AssertionException.new("Missing target variable with name '#{each_target_variable_name}' in script '#{target_runnable.script.name}'", :fail ) unless each_target_variable
+
+    # pass criteria
+    all_must_pass_ext = subtest_each_ext.extension.find {|one_sub_ext| one_sub_ext.url == "allMustPass"}
+    if (all_must_pass_ext)
+      all_must_pass = all_must_pass_ext.valueBoolean
+    else
+      all_must_pass = true
+    end
+
+    # evaluate expression
+    resource = get_resource(assert.sourceId)
+    raise AssertionException.new('No resource given by sourceId.', :fail) unless resource
+
+    each_values = evaluate_expression(assert.expression, resource)
+    if (!each_values.is_a?(Array))
+      if (each_values == nil)
+        each_values = []
+      else
+        each_values = [each_values]
+      end
+    end
+    if (each_values.length == 0)
+      raise AssertionException.new('SubtestEach: expression returned no results.', :fail)
+    end
+    results = []
+    each_values.each { |one_value|
+      next if one_value == nil
+      subtest_bound_variables[each_target_variable_name] = one_value
+      one_result_report = subtest_run_one(target_runnable, subtest_bound_variables, all_must_pass)
+      results << one_result_report.result
+    }
+
+    if all_must_pass
+      passed = !results.include?("fail")
+    else
+      passed = results.include?("pass")
+    end
+
+    if !passed
+      raise AssertionException.new("subtest '#{target_runnable.script.name}' execution on each of expression results failed", :fail)
+    end
+    return "subtest '#{target_runnable.script.name}' execution on each of expression results succeeded"
+
+
+  end
+
+
+  def subtest_get_runnable(subtest_ext)
+    testname_ext = subtest_ext.extension.find {|one_sub_ext| one_sub_ext.url == "testName"}
+    raise AssertionException.new("Missing subtest name extension", :fail ) unless testname_ext
+    test_name = testname_ext.valueString
+    runnable = engine.runnables[test_name]
+    raise AssertionException.new("Runnable with name '#{test_name}' not loaded", :fail ) unless runnable
+    return runnable
+  end
+
+  def subtest_get_bound_variables(subtest_ext, target_runnable)
+    subtest_bound_variables = {}
+
+    binding_ext_list = subtest_ext.extension.select {|one_sub_ext| one_sub_ext.url == "bindVariable"}
+    # bind variables
+    binding_ext_list.each { |binding_ext|
+          
+      # get source value
+      source_ext = binding_ext.extension.find {|one_sub_ext| one_sub_ext.url == "bindSource"}
+      raise AssertionException.new("Missing source variable extension for binding", :fail ) unless source_ext
+      source_variable_name = source_ext.valueString
+      source_variable = script.variable.find { |one_source_var| one_source_var.name == source_variable_name}
+      raise AssertionException.new("Missing source variable with name '#{source_variable_name}' in script '#{script.name}'", :fail ) unless source_variable
+      source_value = evaluate_variable(source_variable)
+      raise AssertionException.new("Missing value for variable with name '#{source_variable_id}' in script '#{script.name}'", :fail ) unless source_value
+
+      # add to target binding
+      target_ext = binding_ext.extension.find {|one_sub_ext| one_sub_ext.url == "bindTarget"}
+      raise AssertionException.new("Missing target variable extension for binding", :fail ) unless target_ext
+      target_variable_name = target_ext.valueString
+      target_variable = target_runnable.script.variable.find { |one_target_var| one_target_var.name == target_variable_name }
+      raise AssertionException.new("Missing target variable with name '#{target_variable_name}' in script '#{target_runnable.script.name}'", :fail ) unless target_variable
+      subtest_bound_variables[target_variable_name] = source_value
+    }
+    return subtest_bound_variables
+  end
+
+  def subtest_run_one(runnable, subtest_bound_variables, must_pass = true)
+    runnable_copy = runnable.clone
+    runnable_copy.bound_variables = runnable_copy.bound_variables.clone
+    subtest_bound_variables.each { |variable_name, variable_value| runnable_copy.bound_variables[variable_name] = variable_value}
+
+    runnable_copy.increase_space
+    runnable_copy.increase_space
+
+    result_report = engine.execute_one_runnable(runnable_copy)
+
+    # add extensions for subtest
+    TestReportHandler.add_testreport_executed_as_subtest_ext(result_report, true)
+    TestReportHandler.add_testreport_must_pass_ext(result_report, must_pass)
+    
+    runnable_copy.decrease_space
+    runnable_copy.decrease_space
+
+    return result_report
+  end
+
 end

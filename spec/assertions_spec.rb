@@ -19,6 +19,10 @@ class AssertionTestClass
   def evaluate_expression(input, resource)
     FHIRPath.evaluate(input, resource.to_hash)
   end
+
+  def replace_variables(value)
+    return value
+  end
 end
 
 describe Assertion do
@@ -50,74 +54,74 @@ describe Assertion do
     it 'returns content_type, if assert has contentType element' do
       @assert.contentType = 'contentType'
 
-      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('content_type')
+      expect(@tester.determine_assert_type(@assert)).to eq('content_type')
     end
 
     it 'returns expression, if assert has expression element' do
       @assert.expression = 'expression'
 
-      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('expression')
+      expect(@tester.determine_assert_type(@assert)).to eq('expression')
     end
 
     it 'returns header_field, if assert has headerField element' do
       @assert.headerField = 'headerField'
 
-      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('header_field')
+      expect(@tester.determine_assert_type(@assert)).to eq('header_field')
     end
 
     it 'returns minimum_id, if assert has minimumId element' do
       @assert.minimumId = 'minimumId'
 
-      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('minimum_id')
+      expect(@tester.determine_assert_type(@assert)).to eq('minimum_id')
     end
 
     it 'returns navigation_links, if assert has navigationLinks element' do
       @assert.navigationLinks = 'navigationLinks'
 
-      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('navigation_links')
+      expect(@tester.determine_assert_type(@assert)).to eq('navigation_links')
     end
 
     it 'returns path, if assert has path element' do
       @assert.path = 'path'
 
-      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('path')
+      expect(@tester.determine_assert_type(@assert)).to eq('path')
     end
 
     it 'returns request_method, if assert has requestMethod element' do
       @assert.requestMethod = 'requestMethod'
 
-      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('request_method')
+      expect(@tester.determine_assert_type(@assert)).to eq('request_method')
     end
 
     it 'returns resource, if assert has resource element' do
       @assert.resource = 'resource'
 
-      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('resource')
+      expect(@tester.determine_assert_type(@assert)).to eq('resource')
     end
 
 
     it 'returns response_code, if assert has responseCode element' do
       @assert.responseCode = 'responseCode'
 
-      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('response_code')
+      expect(@tester.determine_assert_type(@assert)).to eq('response_code')
     end
 
     it 'returns response, if assert has response element' do
       @assert.response = 'response'
 
-      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('response')
+      expect(@tester.determine_assert_type(@assert)).to eq('response')
     end
 
     it 'returns validate_profile_id, if assert has validateProfileId element' do
       @assert.validateProfileId = 'validateProfileId'
 
-      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('validate_profile_id')
+      expect(@tester.determine_assert_type(@assert)).to eq('validate_profile_id')
     end
 
     it 'returns request_url, if assert has requestURL element' do
       @assert.requestURL = 'requestURL'
 
-      expect(@tester.determine_assert_type(@assert.to_hash.keys)).to eq('request_url')
+      expect(@tester.determine_assert_type(@assert)).to eq('request_url')
     end
   end
 

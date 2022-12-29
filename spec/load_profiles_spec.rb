@@ -8,7 +8,7 @@ describe TestScriptRunnable do
     @script = FHIR.from_contents(File.read('spec/examples/basic_testscript_profile.json'))
     @available_profiles = { "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient" => @structure_definition}
     options = {"ext_validator" => nil, "ext_fhirpath" => nil}
-    @runnable = described_class.new(@script, lambda { |k| {}[k] }, options, @available_profiles)
+    @runnable = described_class.new(@script, lambda { |k| {}[k] }, options, nil, @available_profiles)
   end
 
   describe '.load_profiles' do

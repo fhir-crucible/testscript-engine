@@ -1,0 +1,148 @@
+{
+  "resourceType": "TestScript",
+  "id": "us-mcode-profile-search-from-patient-subtest",
+  "url": "https://github.com/fhir-crucible/testscript-generator/UsMcodeProfileSearchFromPatient",
+  "version": "0.1",
+  "name": "UsMcodeProfileSearchFromPatientSubTest",
+  "title": "Us Mcode Profile Search From Patient using Subtest",
+  "status": "draft",
+  "experimental": true,
+  "date": "2022-09-21T13:00:51-04:00",
+  "publisher": "The MITRE Corporation",
+  "contact": [
+    {
+      "name": "Karl Naden"
+    }
+  ],
+  "variable": [
+    {
+      "name": "cancerPatientId",
+      "defaultValue": "example",
+      "hint": "[resource.id]",
+      "description": "Enter a known cancer patient id on the destination system."
+    }
+  ],
+  "profile": [
+    {
+      "id": "mCodeCancerPatient",
+      "reference": "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-cancer-patient"
+    }
+  ],
+  "test": [
+    {
+      "name": "Validate the Patient is a mCode CancerPatient",
+      "action": [
+        {
+          "assert": {
+            "label": "Execute_mCODE_patient_subtest",
+            "description": "Subtest to check patient conformance",
+            "extension": [
+              {
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest",
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODECancerPatientReadProfile"
+                  },
+                  {
+                    "url": "bindVariable",
+                    "extension": [
+                      {
+                        "url": "bindSource",
+                        "valueString": "cancerPatientId"
+                      },
+                      {
+                        "url": "bindTarget",
+                        "valueString": "targetResourceIdCancerPatient"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "warningOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Check for Conformant Co-morbidities",
+      "action": [
+        {
+          "operation": {
+            "description": "Comorbidity Search",
+            "label": "Comorbidity_Search",
+            "type": {
+              "code": "search",
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes"
+            },
+            "resource": "Observation",
+            "encodeRequestUrl": false,
+            "params": "?patient=Patient%2F${cancerPatientId}&code=http%3A%2F%2Fsnomed.info%2Fsct%7C398192003",
+            "responseId": "comorbiditySearchBundle"
+          }
+        },
+        {
+          "assert": {
+            "label": "Assert_Response_OK",
+            "warningOnly": false,
+            "response": "okay"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Bundle Returned",
+            "label": "Assert_Bundle_Returned",
+            "warningOnly": false,
+            "resource": "Bundle"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert Self Link URL Includes Search Parameters",
+            "label": "Assert_Self_Link_URL_Includes_Search_Parameters",
+            "warningOnly": false,
+            "expression": "link.where(relation = 'self').url.contains('code=') and link.where(relation = 'self').url.contains('patient=')",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "description": "Assert At Least One Entry Returned",
+            "label": "Assert_At_Least_One_Entry_Returned",
+            "warningOnly": false,
+            "expression": "entry.count() > 0",
+            "value": "true"
+          }
+        },
+        {
+          "assert": {
+            "label": "Execute_comborbitities_read_subtest",
+            "description": "Check comorbidity read and conformance",
+            "extension": [
+              {
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each",
+                "extension": [
+                  {
+                    "url": "testName",
+                    "valueString": "UsMCODEComorbiditiesReadProfile"
+                  },
+                  {
+                    "url": "bindEachTarget",
+                    "valueString": "targetResourceIdComorbidities"
+                  },
+                  {
+                    "url": "allMustPass",
+                    "valueBoolean": true
+                  }
+                ]
+              }
+            ],
+            "warningOnly": false,
+            "expression": "entry.where(fullUrl.contains('Observation')).fullUrl.replaceMatches('.*/', '')"
+          }
+        }
+      ]
+    }
+  ]
+}

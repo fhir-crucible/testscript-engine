@@ -27,7 +27,7 @@ class TestScriptEngine
   end
 
   def reports
-    @reports ||= {}
+    @reports ||= []
   end
 
   def profiles
@@ -158,71 +158,65 @@ class TestScriptEngine
   #                            given, all stored TestScript are by default
   #                            transformed into and stored as runnables.
   def make_runnables(script = nil)
-    get_fixtures = ->(fixture_name) { fixtures[fixture_name] }
-    
     if valid_testscript? script
-      info(:creating_runnable, script.name)
-      script = dynamic_variable(script) if script.variable && variable
-      runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options, profiles)
+      runnables[script.name] = make_one_runnable(script, fixtures, variable)
     else
-      scripts.each do |_name, script|
-        info(:creating_runnable, script.name)
-        begin
-          script = dynamic_variable(script) if script.variable && variable
-          runnables[script.name] = TestScriptRunnable.new(script, get_fixtures, options, profiles)
-        rescue StandardError
-          error(:unable_to_create_runnable, script.name)
+      scripts.each do |_, one_script|
+        runnables[one_script.name] = make_one_runnable(one_script, fixtures, variable)
+      end
+    end
+  end
+
+  def make_one_runnable(script, available_fixtures, available_variables)
+    info(:creating_runnable, script.name)
+    get_fixtures_closure = ->(fixture_name) { available_fixtures[fixture_name] }
+    script_bound_variables = get_bound_variables(script, available_variables)
+    return TestScriptRunnable.new(script, get_fixtures_closure, options, self, profiles, script_bound_variables)
+  rescue StandardError => e
+    error(:unable_to_create_runnable, script.name)
+    return nil
+  end
+
+  def get_bound_variables(script, available_variables)
+    script_bound_variables = {}
+    if script.variable && available_variables
+      script.variable.each do |script_variable|
+        available_variables.each do |substitution|
+          if substitution.split("=").first == script_variable.name && script_variable.defaultValue != nil
+            input_value = substitution.split("=").last
+            script_bound_variables[script_variable.name] = input_value
+          end
         end
       end
     end
-  rescue StandardError
-    error(:unable_to_create_runnable, script.name)
+    return script_bound_variables
   end
 
-  def dynamic_variable(script)
-    script.variable.each do |v|
-      variable.each do |v2|
-        v.defaultValue = v2.split("=").last if v2.split("=").first == v.name && v.defaultValue != nil
-      end
-    end
-    return script
-  end
-
-  # TODO: Clean-up, possibly modularize into a pretty_print type method
   # @runnable_name [String] Optional, specifies the id of the runnable to be
   #                       tested against the endpoint.
   def execute_runnables(runnable_name = nil)
-    pass_results = []
-    fail_results = []
-
+    
     if runnable_name
-      if runnables[runnable_name]
-        report = runnables[runnable_name].run(client)
-        if report.result == 'pass'
-          pass_results << runnable_name
-        else
-          fail_results << [runnable_name, report.score, report.result]
-        end
-        reports[runnable_name] = report
-      else
-        error(:unable_to_locate_runnable, runnable_name)
-      end
+      execute_one_runnable_name(runnable_name)
     else
-      runnables.each do |name, runnable|
-        report = runnable.run(client)
-        if report.result == 'pass'
-          pass_results << name
-        else
-          fail_results << [name, report.score, report.result]
-        end
-        reports[name] = report
+      runnables.each do |_, one_runnable|
+        execute_one_runnable(one_runnable)
       end
     end
+  end
 
-    execution_results
-    pass_execution_results(pass_results) unless pass_results.empty?
-    fail_execution_results(fail_results) unless fail_results.empty?
-    see_reports(testreport_path)
+  def execute_one_runnable_name(runnable_name)
+    if runnables[runnable_name]
+      execute_one_runnable(runnables[runnable_name])
+    else
+      error(:unable_to_locate_runnable, runnable_name)
+    end
+  end
+
+  def execute_one_runnable(runnable)
+    report = runnable.run(client)
+    reports << report
+    return report
   end
 
   def verify_runnable(runnable_name)
@@ -239,27 +233,51 @@ class TestScriptEngine
   # @path [String] Optional, specifies the path to the folder which the
   #                TestReport resources should be written to.
   def write_reports(path = nil)
+    pass_results = []
+    fail_results = []
+    
+    report_time = DateTime.now.to_s
     report_directory = path || testreport_path
-    FileUtils.mkdir_p report_directory
+    execution_directory = File.join(report_directory, report_time)
+    FileUtils.mkdir_p execution_directory
 
-    summary_rows = [["id", "name", "title", "result"]]
+    summary_rows = [[ "name", "title", "result", "inputs", "subtest?", "mustPass?", "testReportFilePath"]]
 
-    reports.each do |report_key, report|
-      report_name = report.name.downcase.split(' ')[1...].join('_')
-      report_name = report.name.downcase.split('_')[0...].join('_') if report_name == ''
-      File.open("#{report_directory}/#{report_name}.json", 'w') do |f|
+    reports.each do |report|
+      next unless report
+      report_filename = "#{execution_directory}/#{report.id}.json"
+      File.open(report_filename, 'w') do |f|
         f.write(report.to_json)
       end
-      test_script = runnables[report_key]
-      summary_rows << [test_script.script.id, test_script.script.name, """#{test_script.script.title}""", report.result]
+
+      runnable = runnables[report.testScript.display]
+      report_inputs = TestReportHandler.get_testreport_inputs_string(report)
+      executed_as_subtest = TestReportHandler.testreport_executed_as_subtest?(report)
+      must_pass = TestReportHandler.testreport_must_pass?(report)
+      summary_rows << [runnable.script.name, """#{runnable.script.title}""", report.result, """#{report_inputs}""", executed_as_subtest.to_s, must_pass.to_s, report_filename]
+      if report.result == 'pass'
+        pass_results << [runnable.script.name, report_inputs]
+      else
+        fail_results << [runnable.script.name, report_inputs, report.score]
+      end
+    
     end
 
     if options["summary_path"] != nil
       summary_path = File.join(Dir.getwd, options["summary_path"])
+      summary_filepath = File.join(summary_path, "execution_summary_#{report_time}.csv")
       FileUtils.mkdir_p summary_path
-      File.write(File.join(summary_path, "execution_summary_#{Time.now.utc.iso8601}.csv"), summary_rows.map(&:to_csv).join)
+      File.write(summary_filepath, summary_rows.map(&:to_csv).join)
     end
 
+    execution_results
+    pass_execution_results(pass_results) unless pass_results.empty?
+    fail_execution_results(fail_results) unless fail_results.empty?
+    # todo: add sub folder and summary file pointers
+    see_reports(execution_directory)
+    if options["summary_path"] != nil
+      see_summary(summary_filepath)
+    end
 
   end
 end
