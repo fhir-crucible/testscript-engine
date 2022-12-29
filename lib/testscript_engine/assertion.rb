@@ -64,9 +64,9 @@ module Assertion
   end
 
   def check_assert_extensions(assert)
-    if (assert.extension.length > 0 && assert.extension[0].url == "urn:mitre:fhirfoundry:subtest")
+    if (assert.extension.length > 0 && assert.extension[0].url == "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest")
       return "subtest"
-    elsif (assert.extension.length > 0 && assert.extension[0].url == "urn:mitre:fhirfoundry:subtestEach")
+    elsif (assert.extension.length > 0 && assert.extension[0].url == "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each")
         return "subtestEach"
     end
     return nil
@@ -464,7 +464,7 @@ module Assertion
 
   def subtest(assert)
     print_out "Begin subtest execution"
-    subtest_ext = assert.extension.find { |one_ext| one_ext.url == "urn:mitre:fhirfoundry:subtest"}
+    subtest_ext = assert.extension.find { |one_ext| one_ext.url == "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest"}
     raise AssertionException.new("Missing subtest extension", :fail ) unless subtest_ext
     
     target_runnable = subtest_get_runnable(subtest_ext)
@@ -481,7 +481,7 @@ module Assertion
   def subtest_each(assert)
     print_out "Begin multiple subtest execution"
     
-    subtest_each_ext = assert.extension.find { |one_ext| one_ext.url == "urn:mitre:fhirfoundry:subtestEach"}
+    subtest_each_ext = assert.extension.find { |one_ext| one_ext.url == "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"}
     raise AssertionException.new("Missing subtest extension", :fail ) unless subtest_each_ext
     target_runnable = subtest_get_runnable(subtest_each_ext)
     subtest_bound_variables = subtest_get_bound_variables(subtest_each_ext, target_runnable)
@@ -494,11 +494,11 @@ module Assertion
     raise AssertionException.new("Missing target variable with name '#{each_target_variable_name}' in script '#{target_runnable.script.name}'", :fail ) unless each_target_variable
 
     # pass criteria
-    pass_criteria_ext = subtest_each_ext.extension.find {|one_sub_ext| one_sub_ext.url == "passCriteria"}
-    if (pass_criteria_ext)
-      pass_criteria = pass_criteria_ext.valueCode
+    all_must_pass_ext = subtest_each_ext.extension.find {|one_sub_ext| one_sub_ext.url == "allMustPass"}
+    if (all_must_pass_ext)
+      all_must_pass = all_must_pass_ext.valueBoolean
     else
-      pass_criteria = "all"
+      all_must_pass = true
     end
 
     # evaluate expression
@@ -524,12 +524,10 @@ module Assertion
       results << one_result_report.result
     }
 
-    if pass_criteria == "all"
+    if all_must_pass
       passed = !results.include?("fail")
-    elsif pass_criteria == "one"
-      passed = results.include?("pass")
     else
-      raise AssertionException.new("Bad pass criteria '#{pass_criteria}'.", :fail)
+      passed = results.include?("pass")
     end
 
     if !passed

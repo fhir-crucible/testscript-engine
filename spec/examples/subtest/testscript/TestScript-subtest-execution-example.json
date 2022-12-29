@@ -41,7 +41,7 @@
             "description": "Execute subtest directly",
             "extension": [
               {
-                "url": "urn:mitre:fhirfoundry:subtest",
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest",
                 "extension": [
                   {
                     "url": "testName",
@@ -77,7 +77,7 @@
             "description": "Execute_subtest_on_list_of_values",
             "extension": [
               {
-                "url": "urn:mitre:fhirfoundry:subtestEach",
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each",
                 "extension": [
                   {
                     "url": "testName",
@@ -88,41 +88,8 @@
                     "valueString": "checkValue"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "all"
-                  }
-                ]
-              }
-            ],
-            "expression": "name.family",
-            "sourceId": "testPatient",
-            "warningOnly": false
-          }
-        }
-      ]
-    },
-    {
-      "name": "Each value subtest execution one required",
-      "action": [
-        {
-          "assert": {
-            "label": "Execute_subtest_on_list_of_values",
-            "description": "Execute_subtest_on_list_of_values",
-            "extension": [
-              {
-                "url": "urn:mitre:fhirfoundry:subtestEach",
-                "extension": [
-                  {
-                    "url": "testName",
-                    "valueString": "SubtestToExecuteExample"
-                  },
-                  {
-                    "url": "bindEachTarget",
-                    "valueString": "checkValue"
-                  },
-                  {
-                    "url": "passCriteria",
-                    "valueCode": "one"
+                    "url": "allMustPass",
+                    "valueBoolean": false
                   }
                 ]
               }

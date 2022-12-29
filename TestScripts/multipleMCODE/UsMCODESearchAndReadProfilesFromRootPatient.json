@@ -6,7 +6,7 @@
   "title": "IG: us-mCODE; Case: Search and Read Profiles from Root Patient",
   "status": "draft",
   "experimental": true,
-  "date": "2022-12-28T09:02:02-05:00",
+  "date": "2022-12-29T09:02:31-05:00",
   "publisher": "The MITRE Corporation",
   "variable": [
     {
@@ -67,7 +67,7 @@
                     "url": "bindVariable"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtest"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest"
               }
             ],
             "label": "Execute_Patient_Read_Subtest",
@@ -103,7 +103,7 @@
                     "url": "bindVariable"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtest"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest"
               }
             ],
             "label": "Execute_CancerRelatedMedicationRequest_Read_Subtest",
@@ -139,7 +139,7 @@
                     "url": "bindVariable"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtest"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest"
               }
             ],
             "label": "Execute_HumanSpecimen_Read_Subtest",
@@ -175,7 +175,7 @@
                     "url": "bindVariable"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtest"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest"
               }
             ],
             "label": "Execute_CancerRelatedMedicationAdministration_Read_Subtest",
@@ -241,15 +241,15 @@
                     "valueString": "UsMCODEPrimaryCancerConditionReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "all"
+                    "url": "allMustPass",
+                    "valueBoolean": true
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdPrimaryCancerCondition"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_PrimaryCancerCondition_instances",
@@ -316,15 +316,15 @@
                     "valueString": "UsMCODESecondaryCancerConditionReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "all"
+                    "url": "allMustPass",
+                    "valueBoolean": true
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdSecondaryCancerCondition"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_SecondaryCancerCondition_instances",
@@ -391,15 +391,15 @@
                     "valueString": "UsMCODECancerStageGroupReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "one"
+                    "url": "allMustPass",
+                    "valueBoolean": false
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdCancerStageGroup"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_CancerStageGroup_instances",
@@ -466,15 +466,15 @@
                     "valueString": "UsMCODEGenomicRegionStudiedReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "all"
+                    "url": "allMustPass",
+                    "valueBoolean": true
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdGenomicRegionStudied"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_GenomicRegionStudied_instances",
@@ -541,15 +541,15 @@
                     "valueString": "UsMCODETumorMarkerTestReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "all"
+                    "url": "allMustPass",
+                    "valueBoolean": true
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdTumorMarkerTest"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_TumorMarkerTest_instances",
@@ -616,15 +616,15 @@
                     "valueString": "UsMCODETNMStageGroupReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "one"
+                    "url": "allMustPass",
+                    "valueBoolean": false
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdTNMStageGroup"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_TNMStageGroup_instances",
@@ -691,15 +691,15 @@
                     "valueString": "UsMCODEKarnofskyPerformanceStatusReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "all"
+                    "url": "allMustPass",
+                    "valueBoolean": true
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdKarnofskyPerformanceStatus"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_KarnofskyPerformanceStatus_instances",
@@ -766,15 +766,15 @@
                     "valueString": "UsMCODEECOGPerformanceStatusReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "all"
+                    "url": "allMustPass",
+                    "valueBoolean": true
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdECOGPerformanceStatus"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_ECOGPerformanceStatus_instances",
@@ -841,15 +841,15 @@
                     "valueString": "UsMCODEComorbiditiesReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "all"
+                    "url": "allMustPass",
+                    "valueBoolean": true
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdComorbidities"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_Comorbidities_instances",
@@ -916,15 +916,15 @@
                     "valueString": "UsMCODETNMDistantMetastasesCategoryReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "one"
+                    "url": "allMustPass",
+                    "valueBoolean": false
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdTNMDistantMetastasesCategory"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_TNMDistantMetastasesCategory_instances",
@@ -991,15 +991,15 @@
                     "valueString": "UsMCODECancerDiseaseStatusReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "all"
+                    "url": "allMustPass",
+                    "valueBoolean": true
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdCancerDiseaseStatus"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_CancerDiseaseStatus_instances",
@@ -1066,15 +1066,15 @@
                     "valueString": "UsMCODETumorSizeReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "all"
+                    "url": "allMustPass",
+                    "valueBoolean": true
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdTumorSize"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_TumorSize_instances",
@@ -1141,15 +1141,15 @@
                     "valueString": "UsMCODETNMPrimaryTumorCategoryReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "one"
+                    "url": "allMustPass",
+                    "valueBoolean": false
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdTNMPrimaryTumorCategory"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_TNMPrimaryTumorCategory_instances",
@@ -1216,15 +1216,15 @@
                     "valueString": "UsMCODETNMRegionalNodesCategoryReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "one"
+                    "url": "allMustPass",
+                    "valueBoolean": false
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdTNMRegionalNodesCategory"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_TNMRegionalNodesCategory_instances",
@@ -1291,15 +1291,15 @@
                     "valueString": "UsMCODEGenomicVariantReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "all"
+                    "url": "allMustPass",
+                    "valueBoolean": true
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdGenomicVariant"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_GenomicVariant_instances",
@@ -1366,15 +1366,15 @@
                     "valueString": "UsMCODERadiotherapyVolumeReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "one"
+                    "url": "allMustPass",
+                    "valueBoolean": false
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdRadiotherapyVolume"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_RadiotherapyVolume_instances",
@@ -1411,7 +1411,7 @@
                     "url": "bindVariable"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtest"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest"
               }
             ],
             "label": "Execute_Tumor_Read_Subtest",
@@ -1477,15 +1477,15 @@
                     "valueString": "UsMCODECancerRelatedSurgicalProcedureReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "one"
+                    "url": "allMustPass",
+                    "valueBoolean": false
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdCancerRelatedSurgicalProcedure"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_CancerRelatedSurgicalProcedure_instances",
@@ -1552,15 +1552,15 @@
                     "valueString": "UsMCODERadiotherapyCourseSummaryReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "all"
+                    "url": "allMustPass",
+                    "valueBoolean": true
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdRadiotherapyCourseSummary"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_RadiotherapyCourseSummary_instances",
@@ -1627,15 +1627,15 @@
                     "valueString": "UsMCODEGenomicsReportReadProfile"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "all"
+                    "url": "allMustPass",
+                    "valueBoolean": true
                   },
                   {
                     "url": "bindEachTarget",
                     "valueString": "targetResourceIdGenomicsReport"
                   }
                 ],
-                "url": "urn:mitre:fhirfoundry:subtestEach"
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each"
               }
             ],
             "label": "Execute_Read_Subtest_on_GenomicsReport_instances",

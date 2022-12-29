@@ -38,7 +38,7 @@
             "description": "Subtest to check patient conformance",
             "extension": [
               {
-                "url": "urn:mitre:fhirfoundry:subtest",
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest",
                 "extension": [
                   {
                     "url": "testName",
@@ -121,7 +121,7 @@
             "description": "Check comorbidity read and conformance",
             "extension": [
               {
-                "url": "urn:mitre:fhirfoundry:subtestEach",
+                "url": "https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition/assert-subtest-each",
                 "extension": [
                   {
                     "url": "testName",
@@ -132,8 +132,8 @@
                     "valueString": "targetResourceIdComorbidities"
                   },
                   {
-                    "url": "passCriteria",
-                    "valueCode": "all"
+                    "url": "allMustPass",
+                    "valueBoolean": true
                   }
                 ]
               }
