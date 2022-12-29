@@ -241,7 +241,7 @@ class TestScriptEngine
     execution_directory = File.join(report_directory, report_time)
     FileUtils.mkdir_p execution_directory
 
-    summary_rows = [["id", "name", "title", "result", "inputs", "TestReport file"]]
+    summary_rows = [[ "name", "title", "result", "inputs", "subtest?", "mustPass?", "testReportFilePath"]]
 
     reports.each do |report|
       next unless report
@@ -249,9 +249,12 @@ class TestScriptEngine
       File.open(report_filename, 'w') do |f|
         f.write(report.to_json)
       end
+
       runnable = runnables[report.testScript.display]
       report_inputs = TestReportHandler.get_testreport_inputs_string(report)
-      summary_rows << [runnable.script.id, runnable.script.name, """#{runnable.script.title}""", report.result, """#{report_inputs}""", report_filename]
+      executed_as_subtest = TestReportHandler.testreport_executed_as_subtest?(report)
+      must_pass = TestReportHandler.testreport_must_pass?(report)
+      summary_rows << [runnable.script.name, """#{runnable.script.title}""", report.result, """#{report_inputs}""", executed_as_subtest.to_s, must_pass.to_s, report_filename]
       if report.result == 'pass'
         pass_results << [runnable.script.name, report_inputs]
       else

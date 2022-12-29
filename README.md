@@ -124,10 +124,34 @@ The engine uses various algorithms to evaluate the results of previous operation
 
 The TestScript Engine supports several extensions to both the [TestScript](https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition-testscript-engine-testscript.html) and [TestReport]https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition-testscript-engine-testreport.html) resources. Details on these extensions are their use can be found in [this IG](https://fhir-crucible.github.io/testscript-engine-ig/). Feedback on the need for and approach to these extensions welcome.
 
+### Feedback and Result Interpretation
+
+The value of tests derives from the feedback they provide. The testscript-engine currently provides three mechanisms for feedback:
+1. Terminal output: when running the engine on the command line, details on the execution steps and the results are provided as execution proceeds. This includes a summary at the end of the tests executed, split into passing and failing lists, along with pointers to the TestReport instances and the summary CSV, if configured.
+2. [TestReport]https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition-testscript-engine-testreport.html) instances: an instance is generated for each TestScript instance executed, including subtest executions. The result of each action (operation and assertion) taken by the engine is recorded, including error details for those that failed. This means that these instances serve as a permanent record of the execution and can be used after the fact to investigate failures. However, no tools currently exist to help with the inspection of these instances.
+3. Summary CSV: in order to help users navigate the generated [TestReport]https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition-testscript-engine-testreport.html) instances in the absence of direct tools, the engine optionally (see the `summary_path` configuration option) will generate a summary file that can be opened as a spreadsheet for simple interaction and filtering. While it does not contain all details such as the specific errors that caused failures, it provides a flexible and familiar way to navigate and find the TestReport instances that contain this information. Information in the summary CSV includes:
+- name: name of the TestScript instance executed.
+- title: title of the TestScript instance executed, which generally is easier to interpret than the name.
+- result: `pass` or `fail`.
+- inputs: list of dynamic variable bindings for the execution. Each entry is of the form `[variable-name]=[value]`. Entries are separated by `; `.
+- subtest?: `true` if the TestScript was executed as a subtest.
+- mustPass?: `true` if the TestScript execution had to pass in order for the invoking assertion to pass. If `false`, then a failure may not be indicative of an actual problem.
+- testReportFilePath: where detailed results in the form of a [TestReport]https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition-testscript-engine-testreport.html) instance can be found.
+
+#### Interpretation Approach
+
+The current best practice for interacting with results based on current functionality is to:
+1. Open the Summary CSV in a spreadsheet application
+2. Sort based on the `result` column to separate failing tests
+3. Use the `name` and `title` columns to identify the specific tests and functionality failing
+4. Prioritize directly-executed tests (`subtest? = false`) and subtests that were required to pass (`mustPass = true`) since those that didn't need to pass may not be indicative of problems
+5. Open TestReport instances and search for the string `fail` to get details on what failed.
+
 ## Limitations
 The TestScript Engine is still in the infancy of its development; it is neither fully complete nor bug-free and we encourage contributions, feedback, and issue-opening from the community. There are known gaps in the TestScript Engine:
 
 * Support for multiple origins and/or destinations
+* Challenges in interpreting and using the results, specifically in terms of viewing and manipulating the TestReport instances.
 
 ## References
 

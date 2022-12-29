@@ -520,7 +520,7 @@ module Assertion
     each_values.each { |one_value|
       next if one_value == nil
       subtest_bound_variables[each_target_variable_name] = one_value
-      one_result_report = subtest_run_one(target_runnable, subtest_bound_variables)
+      one_result_report = subtest_run_one(target_runnable, subtest_bound_variables, all_must_pass)
       results << one_result_report.result
     }
 
@@ -575,7 +575,7 @@ module Assertion
     return subtest_bound_variables
   end
 
-  def subtest_run_one(runnable, subtest_bound_variables)
+  def subtest_run_one(runnable, subtest_bound_variables, must_pass = true)
     runnable_copy = runnable.clone
     runnable_copy.bound_variables = runnable_copy.bound_variables.clone
     subtest_bound_variables.each { |variable_name, variable_value| runnable_copy.bound_variables[variable_name] = variable_value}
@@ -585,6 +585,10 @@ module Assertion
 
     result_report = engine.execute_one_runnable(runnable_copy)
 
+    # add extensions for subtest
+    TestReportHandler.add_testreport_executed_as_subtest_ext(result_report, true)
+    TestReportHandler.add_testreport_must_pass_ext(result_report, must_pass)
+    
     runnable_copy.decrease_space
     runnable_copy.decrease_space
 
