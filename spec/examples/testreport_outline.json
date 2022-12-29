@@ -4,7 +4,7 @@
   "status": "in-progress",
   "testScript": {
     "reference": "spec/examples/basic_testscript",
-    "type": "http://hl7.org/fhir/R4B/testscript.html",
+    "type": "TestScript",
     "display": "basic_testscript"
   },
   "result": "pending",
