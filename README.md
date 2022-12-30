@@ -122,7 +122,7 @@ The engine uses various algorithms to evaluate the results of previous operation
 
 ### Extensions
 
-The TestScript Engine supports several extensions to both the [TestScript](https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition-testscript-engine-testscript.html) and [TestReport]https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition-testscript-engine-testreport.html) resources. Details on these extensions are their use can be found in [this IG](https://fhir-crucible.github.io/testscript-engine-ig/). Feedback on the need for and approach to these extensions welcome.
+The TestScript Engine supports several extensions to both the [TestScript](https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition-testscript-engine-testscript.html) and [TestReport](https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition-testscript-engine-testreport.html) resources. Details on these extensions are their use can be found in [this IG](https://fhir-crucible.github.io/testscript-engine-ig/). Feedback on the need for and approach to these extensions welcome.
 
 ### Feedback and Result Interpretation
 
