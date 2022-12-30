@@ -14,6 +14,18 @@ describe TestScriptRunnable do
   let(:id_map) { { targetId => serverId } }
   let(:operation) { FHIR::TestScript::Setup::Action::Operation.new }
   let(:client_reply) { FHIR::ClientReply.new(request, response, client) }
+  let(:endpoints) {[]}
+  let(:script) {
+    FHIR::TestScript.new(
+      {
+        "resourceType": 'TestScript',
+        "url": 'http://hl7.org/fhir/TestScript/testscript-example-history',
+        "name": 'TestScript-Example-History',
+        "status": 'draft',
+        "destination": []
+      }
+    )
+  }
   let(:request) do
     {
       method: :get,
@@ -29,24 +41,19 @@ describe TestScriptRunnable do
     }
   end
   let(:runnable) do
-    TestScriptRunnable.new FHIR::TestScript.new(
-      {
-        "resourceType": 'TestScript',
-        "url": 'http://hl7.org/fhir/TestScript/testscript-example-history',
-        "name": 'TestScript-Example-History',
-        "status": 'draft'
-      }
-    )
+    TestScriptRunnable.new script
   end
 
   before do
     runnable.id_map[targetId] = serverId
-    runnable.client.reply = client_reply
+    runnable.endpoints(endpoints)
+    runnable.client(script)
+    runnable.get_client.reply = client_reply
   end
 
   context '#storage' do
     context 'with client.reply == nil' do
-      before { runnable.client.reply = nil }
+      before { runnable.get_client.reply = nil }
 
       it 'sets @reply to nil' do
         runnable.storage(operation)
@@ -57,7 +64,7 @@ describe TestScriptRunnable do
       it 'sets client.reply to nil' do
         runnable.storage(operation)
 
-        expect(runnable.client.reply).to be_nil
+        expect(runnable.get_client.reply).to be_nil
       end
 
       it 'returns nil' do
@@ -75,7 +82,7 @@ describe TestScriptRunnable do
       it 'sets client.reply to nil' do
         runnable.storage(operation)
 
-        expect(runnable.client.reply).to be_nil
+        expect(runnable.get_client.reply).to be_nil
       end
 
       context 'with op.requestId' do
@@ -107,7 +114,7 @@ describe TestScriptRunnable do
       end
 
       context 'with non-FHIR resource response' do
-        before { runnable.client.reply.response[:body] = nil }
+        before { runnable.get_client.reply.response[:body] = nil }
 
         it 'ignores reply.resource' do
           runnable.storage(operation)
@@ -129,8 +136,8 @@ describe TestScriptRunnable do
 
         context 'with unsuccessful :delete' do
           before do
-            runnable.client.reply.request[:method] = :delete
-            runnable.client.reply.response[:code] = 400
+            runnable.get_client.reply.request[:method] = :delete
+            runnable.get_client.reply.response[:code] = 400
           end
 
           it "doesn't delete @id_map[targetId]" do
@@ -142,8 +149,8 @@ describe TestScriptRunnable do
 
         context 'with successful :delete' do
           before do
-            runnable.client.reply.request[:method] = :delete
-            runnable.client.reply.response[:code] = 204
+            runnable.get_client.reply.request[:method] = :delete
+            runnable.get_client.reply.response[:code] = 204
           end
 
           it 'deletes @id_map[targetId]' do
@@ -159,8 +166,8 @@ describe TestScriptRunnable do
           operation.requestId = requestId
           operation.responseId = responseId
           operation.targetId = targetId
-          runnable.client.reply.request[:method] = :delete
-          runnable.client.reply.response[:code] = 204
+          runnable.get_client.reply.request[:method] = :delete
+          runnable.get_client.reply.response[:code] = 204
         end
 
         it 'stores both request and response and deletes @id_map[targetId]' do
@@ -195,7 +202,7 @@ describe TestScriptRunnable do
       end
 
       context 'without reply.resource and with location header' do
-        before { runnable.client.reply.response[:body] = nil }
+        before { runnable.get_client.reply.response[:body] = nil }
 
         context 'with op.responseId' do
           before { operation.responseId = responseId }
@@ -220,8 +227,8 @@ describe TestScriptRunnable do
 
       context 'without reply.resource nor location header' do
         before do
-          runnable.client.reply.response[:body] = nil
-          runnable.client.reply.response[:headers] = nil
+          runnable.get_client.reply.response[:body] = nil
+          runnable.get_client.reply.response[:headers] = nil
         end
 
         it 'ignores id_map and returns nil' do

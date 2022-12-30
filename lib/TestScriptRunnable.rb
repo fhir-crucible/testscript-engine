@@ -44,6 +44,10 @@ class TestScriptRunnable
     @autocreate_ids ||= []
   end
 
+  def eps
+    @eps ||= []
+  end
+
   def autodelete_ids
     @autodelete_ids ||= []
   end
@@ -53,11 +57,18 @@ class TestScriptRunnable
     @script
   end
 
-  def client(endpoints, script)
+  def endpoints(endpoints = nil)
+    @endpoints = endpoints if endpoints
+    @endpoints
+  end
+
+  def client(script)
     if script.destination.length > endpoints.length
       FHIR.logger.error "[.initialize] Not enough server endpoints (#{endpoints.length}) for destination (#{script.destination.length}) in TestScript"
       exit
     end
+
+    info(:begin_initialize_client)
 
     @clients = Hash[]
     if script.destination.length == 0
@@ -68,9 +79,11 @@ class TestScriptRunnable
     script.destination.each do |destination|
       @clients.store (destination.index), (FHIR::Client.new(endpoints[destination.index-1] || 'localhost:3000'))
     end
+
+    info(:finish_initialize_client)
   end 
 
-  def get_client(destination)
+  def get_client(destination = nil)
     return @clients[0] if destination == nil
     return @clients[destination]
   end
@@ -96,9 +109,8 @@ class TestScriptRunnable
     # preprocessing
   end
 
-<<<<<<< HEAD
-  def run(client = nil)
-    client(client)
+  def run
+    client(script)
     fresh_testreport
 
     preprocessing # TODO: remove this
@@ -122,7 +134,7 @@ class TestScriptRunnable
     load_fixtures
 
     autocreate_ids.each do |fixture_id|
-      client.send(*create_request((operation_create(fixture_id))))
+      get_client.send(*create_request((operation_create(fixture_id))))
     end
   end
 
@@ -139,10 +151,9 @@ class TestScriptRunnable
   end
 
   def postprocessing
-
     autodelete_ids.each do |fixture_id|
       FHIR.logger.info "Auto-deleting dynamic fixture #{fixture_id}"
-      client.send(*create_request((operation_delete(fixture_id))))
+      get_client.send(*create_request((operation_delete(fixture_id))))
     end
   end
 
@@ -181,6 +192,7 @@ class TestScriptRunnable
     return FHIR.logger.info '[.load_fixtures] No fixture found' if script.fixture.length == 0 
 
     FHIR.logger.info 'Beginning loading fixtures.'    
+    
     script.fixture.each do |fixture|
       info(:no_static_fixture_id) unless fixture.id
       info(:no_static_fixture_resource) unless fixture.resource
@@ -233,13 +245,8 @@ class TestScriptRunnable
     end
 
     begin
-<<<<<<< HEAD
-      #binding.pry
-      client.send(*request)
-=======
+    #binding.pry
       get_client(op.destination).send(*request)
->>>>>>> c6f4de8 (Added multi-destination features, example testscript)
-      
     rescue StandardError => e
       fail(:execute_operation_error, (op.label || 'unlabeled'), e.message ) # TODO: Switch to ERROR
       reply = nil
@@ -264,31 +271,6 @@ class TestScriptRunnable
     request.compact
   end
 
-  # The assertion to perform
-  # + Rule: Only a single assertion SHALL be present within setup action assert element.
-  # + Rule: Setup action assert SHALL contain either compareToSourceId and compareToSourceExpression, compareToSourceId and compareToSourcePath or neither.
-  # + Rule: Setup action assert response and responseCode SHALL be empty when direction equals request
-  def evaluate assertion
-    return unless assertion
-
-    return report.fail 'invalidAssert' unless assertion.is_a? FHIR::TestScript::Setup::Action::Assert
-
-    assertTypes = ['compareToSourceExpression', 'compareToSourcePath', 'contentType', 'expression', 'headerField', 'minimumId', 'navigationLinks', 'path', 'requestMethod', 'requestURL', 'response', 'responseCode', 'resource', 'validateProfileId']
-
-    begin
-      rawType = assertion.to_hash.find { |k, v| assertTypes.include? k }
-      assertType = rawType[0].split(/(?<=\p{Ll})(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})/).map(&:downcase).join('_')
-      self.send(("assert_#{assertType}").to_sym, assertion)
-
-    rescue AssertionException => e
-      return assertion.warningOnly ? report.warning(e.message) : report.fail(e.message)
-    rescue StandardError => e
-      FHIR.logger.error "Unable to process assertion. Error: #{e.message}"
-      report.error e.message
-      return
-    end
-    report.pass
-  end
 
   def extract_path(operation, request_type)
     # If "url" element is defined, then "targetId", "resource", and "params" elements will be ignored. 
@@ -359,14 +341,19 @@ class TestScriptRunnable
   end
 
   def storage(op)
-    self.reply = get_client(op.destination).reply
-    reply.nil? ? return : get_client(op.destination).reply = nil
+    client = get_client(op.destination)
+    self.reply = client.reply
+    reply.nil? ? return : client.reply = nil
 
     request_map[op.requestId] = reply.request if op.requestId
     response_map[op.responseId] = reply.response if op.responseId
 
     (reply.resource = FHIR.from_contents(reply.response&.[](:body).to_s)) rescue {}
+    (reply.response[:body] = reply.resource)
+    response_map[op.responseId][:body] = reply.resource if reply.resource and response_map[op.responseId]
 
+    FHIR.logger.info "[.execute_operation] Result code: " + reply.response[:code].to_s
+    
     if op.targetId and (reply.request[:method] == :delete) and successful?(reply.response[:code])
       id_map.delete(op.targetId) and return
     end

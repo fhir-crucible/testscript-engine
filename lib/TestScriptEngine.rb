@@ -4,9 +4,9 @@ require_relative './TestScriptRunnable'
 require_relative './MessageHandler'
 
 class TestScriptEngine
-  prepend MessageHandler
+prepend MessageHandler
 
-  attr_accessor :endpoint, :directory_path, :file_name
+attr_accessor :endpoints, :directory_path, :file_name
 
   def scripts
     @scripts ||= {}
@@ -24,18 +24,15 @@ class TestScriptEngine
     directory_path || "../TestScripts"
   end
 
-<<<<<<< HEAD
-  def client
-    @client ||= begin
-      info(:begin_initialize_client)
-      client = FHIR::Client.new(endpoint || 'localhost:3000')
-      info(:finish_initialize_client)
-      client
-    end
-  end
+  # def client
+  #   @client ||= begin
+  #     info(:begin_initialize_client)
+  #     client = FHIR::Client.new(endpoint || 'localhost:3000')
+  #     info(:finish_initialize_client)
+  #     client
+  #   end
+  # end
 
-=======
->>>>>>> c6f4de8 (Added multi-destination features, example testscript)
   def initialize(endpoints = nil, directory_path = nil, file_name = nil)
     self.endpoints = endpoints
     self.directory_path = directory_path
@@ -113,27 +110,20 @@ class TestScriptEngine
   def execute_runnables runnable_id = nil
     if runnable_id
       if runnables[runnable_id]
-<<<<<<< HEAD
-        reports[runnable_id] = runnable.run client
-=======
         puts "\nBeggining execution of #{runnable_id}.\n\n"
         reports[runnable_id] = runnable.execute
         puts "\nFinished execution of #{runnable_id}. Score: #{reports[runnable_id].score} \n"
->>>>>>> c6f4de8 (Added multi-destination features, example testscript)
+
       else
         error(:no_runnable_stored, runnable_id)
       end
     else
       runnables.each do |id, runnable|
-<<<<<<< HEAD
-        reports[id] = runnable.run client
-      end
-=======
         puts "\nBeggining execution of #{id}.\n\n"
+        runnable.endpoints(endpoints)
         reports[id] = runnable.run
         puts "\nFinished execution of #{id}. Score: #{reports[id].score} \n"
       end 
->>>>>>> c6f4de8 (Added multi-destination features, example testscript)
     end
   end
 
