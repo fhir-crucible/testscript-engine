@@ -2,9 +2,8 @@
 
 The TestScript Engine is an open source, command-line tool for executing tests described by [Fast Healthcare Interoperability Resources (FHIR)](http://hl7.org/fhir/) TestScript instances. The key goals of the project include: 
 
-* Align with and help to further develop the FHIR standard's approach to [testing](http://www.hl7.org/fhir/testing.html)
-* Provide to the FHIR community with an open source implementation that can execute tests described by [TestScript](http://www.hl7.org/fhir/testscript.html) instances.
-* Generate results that help testers understand the results of a test run using [TestReport](http://www.hl7.org/fhir/testreport.html) instances
+* Develop tools align with the FHIR standard's approach to [testing](http://www.hl7.org/fhir/testing.html) and open source implementation that can execute tests described by [TestScript](http://www.hl7.org/fhir/testscript.html) instances.
+* Generate FHIR formatted results that help testers understand the results of a test run using [TestReport](http://www.hl7.org/fhir/testreport.html) instances
 * Support integration with additional FHIR IG authoring, implementation, and testing tools, such as the [TestScript Generator](https://github.com/fhir-crucible/testscript-generator) and [Synthea](https://github.com/synthetichealth/synthea).
 
 ## Running the Engine
@@ -32,7 +31,7 @@ The engine can be configured through three methods: configuration file, commandl
 
 Running the engine on a configuration file provides testing on predefined settings.
 
-`bundle exec bin/testscript_engine execute --config [FILEPATH]` : Put name and path of configuration YAML file.
+`bundle exec bin/testscript_engine execute --config [PATH]` : Put name and path of a configuration YAML file.
 
 Below are properties in the configuration files.
 - `testscript_name : [TESTSCRIPT.NAME]` Name of TestScript to be executed. If empty, all files under testscript_path will be executed.
@@ -42,7 +41,7 @@ Below are properties in the configuration files.
 - `variable : [- name1=value1 - name2=value2 ..]`: Replace defaultValue in variable by user defined value. This will apply to all runnables uniformly as long as names match. No space before and after =. Multiple variables are distinguished by line.
 - `profile : [- location1 - location2 ..]`: List of locations holding profile StructureDefinitions to be used for profile validation. May be a web url, a relative file, or a relative directory (profiles in sub-directories not included). StructureDefinitions loaded from this configuration setting take precedence over StructureDefinitions accessed from canonical URLs in TestScripts that resolve to StructureDefinitions. This allows for validation against unpublished versions of profiles.
 - `server_url : [URL]` Endpoint against which TestScripts will be executed.
-- `nonfhir_fixture : [TRUE/FALSE]` If yes, allow to intake non-FHIR fixture (local only).
+- `nonfhir_fixture : [TRUE/FALSE]` If true, allow to intake non-FHIR fixture (local only).
 - `ext_validator : [URL]` If specified, use external resource validator instead of internal validator.
 - `ext_fhirpath : [URL]` If specified, use external FHIR path evaluator instead of internal evaluator.
 
@@ -53,7 +52,7 @@ Command line arguments can be used when you want to run specific files and/or co
 `bundle exec bin/testscript_engine execute [OPTIONS]`
 
 [OPTIONS]
-- `--config [FILENAME]`: Name of configuration file.
+- `--config [PATH]`: Name and path of a configuration file.
 - `--testscript_name [TESTSCRIPT.NAME]`: Name of TestScript to be execute. If not specified, all files under testscript_path will be executed.
 - `--testscript_path [PATH]`: Folder location of TestScripts (default: /TestScripts)
 - `--testreport_path [PATH]`: Folder location of TestReports (default: /TestReports). Files containing TestReport instances will be placed in a subfolder corresponding to the execution completion time.
@@ -61,7 +60,7 @@ Command line arguments can be used when you want to run specific files and/or co
 - `--server_url [URL]`: If specified, it will replace the default FHIR server in the configuration file.
 - `--variable [name1=value1 name2=value2 ..]`: Replace defaultValue in variable by user defined value. This will apply to all runnables uniformly as long as names match. No space before and after =. Use quotations if value has space.
 - `--profile [location1 location2 ..]`: List of locations holding profile StructureDefinitions to be used for profile validation. May be a web url, a relative file, or a relative directory (profiles in sub-directories not included). StructureDefinitions loaded from this configuration setting take precedence over StructureDefinitions accessed from canonical URLs in TestScripts that resolve to StructureDefinitions. This allows for validation against unpublished versions of profiles.
-- `--nonfhir_fixture [TRUE/FALSE]`: If yes, allow to intake non-FHIR fixture (local only).
+- `--nonfhir_fixture [TRUE/FALSE]`: If true, allow to intake non-FHIR fixture (local only).
 - `--ext_validator [URL]`: If specified, use external resource validator.
 - `--ext_fhirpath [URL]`: If specified, use external FHIR path evaluator.
 
@@ -73,30 +72,16 @@ Running the engine on interactive mode provides flexibility to change the proper
 
 ## Folders and Files
 
-TestScripts are validated and loaded in by the engine. By default, the engine looks for a `./TestScripts` folder in its given context, but will allow the user to specify an alternate path. Once scripts are loaded, they are converted into 'runnables'. The engine allows users to specify which runnable to execute, and by default will execute all available runnables. Likewise, the user can specify the endpoint upon which the runnable(s) should be executed. Following execution, the user can either re-execute -- specifying a different runnable or endpoint -- or shut-down the engine. Finally, the results from each runnable's latest execution are written out to a subfolder corresponding to the execution completion time under the `./TestReports` folder. 
+TestScripts are validated and loaded in by the engine. By default, the engine looks for a `./TestScripts` folder in its given context, but will allow the user to specify an alternate path. Once TestScripts are loaded, they are converted into 'runnables'. The engine allows users to specify which runnable to execute, and by default will execute all available runnables. Likewise, the user can specify the endpoint upon which the runnable(s) should be executed. Following execution, the user can either re-execute -- specifying a different runnable or endpoint -- or shut-down the engine. Finally, the results from each runnable's latest execution are written out to a subfolder corresponding to the execution completion time under the `./TestReports` folder. 
 
-  - `./lib`
-    - `assertion.rb`
-    - `operation.rb`
-    - `testscript_runnable.rb`
-    - `testreport_handler.rb`
-    - `message_handler.rb`
   - `testscript_engine.rb`
-  - `run.rb`
-  - `./spec`
-  - `./TestReports`
-  - `./TestScripts `
-    - `./fixtures`
+      - Home of the TestScriptEngine class. The engine deals with loading in json TestScript files, managing their transformation into runnables, and ultimately their execution. It is the engine's responsibiliy to direct and leverage a runnable against (an) endpoint(s).
 
 `./lib`:
   - `assertion.rb`
       - Contains the asserts used during assertion handling within the TestScriptRunnable class.
   - `operation.rb`
       - Contains the operation-related methods and logic used during operation execution within the TestScriptRunnable class.
-  - `run.rb`
-      - Creates an instance of the engine, loads in the TestScript resources located within the TestScript directory, and runs them against the default endpoint. It demonstrates the start to finish process of using the TestScriptEngine to execute TestScripts.
-  - `testscript_engine.rb`
-      - Home of the TestScriptEngine class. The engine deals with loading in json TestScript files, managing their transformation into runnables, and ultimately their execution. It is the engine's responsibiliy to direct and leverage a runnable against (an) endpoint(s).
   - `testscript_runnable.rb`
       - TestScriptRunnable class is an object containing the code necessary to execute a TestScript. The runnable of a TestScript was designed with the idea that, after its initialization, is could be pointed at and run against any number of endpoints without reloading the original TestScript. Setup, Tests, and Teardown actions are executed in that order, with Setup and Teardown actions factored into the overall score given as part of the TestReport output.
   - `testreport_handler.rb`
@@ -120,7 +105,7 @@ The engine uses various algorithms to evaluate the results of previous operation
 * validateProfileId: Details rely on the validator used. Currently, the engine uses the [FHIR Crucible](https://github.com/fhir-crucible/fhir_models) FHIR validator logic by default. The engine can also be configured to use an external validator based on the [Inferno FHIR validator wrapper](https://github.com/inferno-community/fhir-validator-wrapper). 
 * expression: Details rely on the FHIRPath evaluator used. Currently, the engine uses the [Crucible FHIRPath evaluator](https://github.com/fhir-crucible/fhir_models) logic by default. The engine can also be configured to use an external validator based on the [Inferno FHIRPath evaluator](https://github.com/inferno-framework/fhir-validator-wrapper).
 
-### Extensions
+### Extension
 
 The TestScript Engine supports several extensions to both the [TestScript](https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition-testscript-engine-testscript.html) and [TestReport](https://fhir-crucible.github.io/testscript-engine-ig/StructureDefinition-testscript-engine-testreport.html) resources. Details on these extensions are their use can be found in [this IG](https://fhir-crucible.github.io/testscript-engine-ig/). Feedback on the need for and approach to these extensions welcome.
 
